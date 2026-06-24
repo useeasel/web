@@ -207,6 +207,7 @@ async function handleProvision(request: Request, env: Env): Promise<Response> {
   };
 
   const fail = (message: string, stage: keyof typeof stages) => {
+    console.error(`[provision] stage=${String(stage)} failed: ${message}`);
     stages[stage] = 'error';
     return json({ status: 'error', message, stages }, env, 502);
   };

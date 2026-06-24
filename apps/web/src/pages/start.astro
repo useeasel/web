@@ -206,8 +206,15 @@ import { ROUTES } from '../config.ts';
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ state, siteName }),
       });
-      if (!res.ok) throw new Error(`Provisioning failed (${res.status})`);
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        // Reflect which stage failed, and show the worker's real message.
+        if (data.stages) {
+          for (const st of STAGES) if (data.stages[st]) markStage(st, data.stages[st]);
+        }
+        throw new Error(data.message ? `${data.message} (${res.status})` : `Provisioning failed (${res.status})`);
+      }
 
       if (data.jobId) {
         await pollJob(data.jobId);

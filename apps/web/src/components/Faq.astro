@@ -1,20 +1,36 @@
 ---
 const faqs = [
   {
-    q: 'Do I need GitHub?',
-    a: 'You do, and it is free. GitHub is where your site files live, and Easel connects to it for you in one click, so you never have to learn how it works. No account yet? You can make one right there during setup.',
+    q: 'What does Easel cost?',
+    a: "Provisioning and hosting an Easel site is completely free. You should expect to pay around $20 a year at max for a custom domain, if you aren't already.",
   },
   {
-    q: 'What does it cost?',
-    a: 'Nothing. Easel is free, and your site runs on the free tiers of GitHub and Netlify, which are more than enough for an artist portfolio. There is no Easel subscription and no card to enter.',
+    q: 'What accounts do I need?',
+    a: "You'll need to create a free GitHub and Netlify account to provision an Easel site. GitHub hosts the code for your Easel site, while Netlify serves it as a website.",
   },
   {
-    q: 'Can I use my own custom domain?',
-    a: 'Yes. Your site is a normal Netlify site, so you can point a domain you own at it whenever you like (your-name.com instead of the default address). It is optional, and you can add it later.',
+    q: 'What prior coding knowledge do I need?',
+    a: "None! Easel uses a simple sitebuilder, and you'll never need to interact with the code that makes your site work.",
   },
   {
-    q: 'What happens to my site if I stop using Easel?',
-    a: 'Your site keeps running. Easel only does the setup; it never holds your work. The GitHub repo and the Netlify site belong to you, so your portfolio stays up with or without us.',
+    q: 'Can I use a custom domain?',
+    a: 'Absolutely! Custom domains are free with Netlify.',
+  },
+  {
+    q: 'What kind of work can I show?',
+    a: "Anything visual! Easel is built around image galleries, so it's a great fit for illustrators, photographers, painters, designers, and more.",
+  },
+  {
+    q: 'Can I change how my site looks?',
+    a: "Yes! You can adjust colors, fonts, and layout right from the sitebuilder, no code required.",
+  },
+  {
+    q: 'Who owns my site and content?',
+    a: "You do, fully. Your site lives on your own GitHub and Netlify accounts, so it stays online whether or not you keep using Easel.",
+  },
+  {
+    q: 'I have an unanswered question or idea for a feature!',
+    a: 'Shoot me an email at easel@rosematcha.com.',
   },
 ];
 ---
@@ -22,7 +38,7 @@ const faqs = [
 <section class="section faq" id="faq">
   <div class="container">
     <p class="eyebrow">Questions</p>
-    <h2>Good to know</h2>
+    <h2>You should know&hellip;</h2>
     <div class="faq__list">
       {faqs.map((item) => (
         <details class="faq__item">

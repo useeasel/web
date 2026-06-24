@@ -21,3 +21,6 @@ dist/
 .DS_Store
 .vscode/
 .idea/
+
+# agent notes (local living document)
+AGENTS.md

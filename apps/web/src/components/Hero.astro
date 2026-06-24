@@ -5,22 +5,21 @@ interface Props {
   sub?: string;
 }
 const {
-  headline = 'Your art deserves a real home',
-  sub = 'Easel sets you up with a clean portfolio site and a simple editor. Drag your photos in, write a little about yourself, hit publish. No code, no cost, and the site runs on hosting you own.',
+  headline = "An online portfolio that's truly yours.",
+  sub = "Easel is a no-code portfolio site creator for artists of all practices. It's deeply customizable, extremely accessible, and free forever.",
 } = Astro.props;
 ---
 
 <section class="hero">
   <div class="container hero__inner">
     <div class="hero__copy">
-      <p class="eyebrow">A portfolio for artists</p>
       <h1>{headline}</h1>
       <p class="hero__sub">{sub}</p>
       <div class="hero__actions">
         <a class="btn btn--primary" href="/start/">Start free</a>
         <a class="btn btn--ghost" href="/how-it-works/">See how it works</a>
       </div>
-      <p class="hero__note">Two clicks and you're live. Your GitHub and Netlify accounts stay yours.</p>
+      <p class="hero__note">Initial setup takes less than ten minutes.</p>
     </div>
 
     <div class="hero__art" aria-hidden="true">

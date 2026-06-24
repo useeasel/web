@@ -93,40 +93,50 @@ export async function generateRepoFromTemplate(
     templateOwner: string; // 'easel'
     templateRepo: string; // 'template'
     owner: string; // artist's login
-    name: string; // new repo name (site slug)
+    name: string; // base repo name; a numeric suffix is added if it's taken
     description?: string;
   },
 ): Promise<GeneratedRepo> {
-  const res = await fetch(
-    `${GH_API}/repos/${opts.templateOwner}/${opts.templateRepo}/generate`,
-    {
-      method: 'POST',
-      headers: { ...authHeaders(token), Accept: 'application/vnd.github+json' },
-      body: JSON.stringify({
-        owner: opts.owner,
-        name: opts.name,
-        description: opts.description ?? 'My portfolio, made with Easel.',
-        private: false,
-        include_all_branches: false,
-      }),
-    },
-  );
-  if (!res.ok) {
+  // Try the base name, then name-2, name-3, ... so a leftover repo from an
+  // earlier (failed) attempt doesn't block a retry.
+  for (let attempt = 1; attempt <= 6; attempt++) {
+    const name = attempt === 1 ? opts.name : `${opts.name}-${attempt}`;
+    const res = await fetch(
+      `${GH_API}/repos/${opts.templateOwner}/${opts.templateRepo}/generate`,
+      {
+        method: 'POST',
+        headers: { ...authHeaders(token), Accept: 'application/vnd.github+json' },
+        body: JSON.stringify({
+          owner: opts.owner,
+          name,
+          description: opts.description ?? 'My portfolio, made with Easel.',
+          private: false,
+          include_all_branches: false,
+        }),
+      },
+    );
+
+    if (res.ok) {
+      const data = (await res.json()) as {
+        name: string;
+        html_url: string;
+        default_branch: string;
+        owner: { login: string };
+      };
+      return {
+        owner: data.owner.login,
+        name: data.name,
+        htmlUrl: data.html_url,
+        defaultBranch: data.default_branch ?? 'main',
+      };
+    }
+
     const body = await res.text();
+    // 422 = name already exists on this account; try the next suffix.
+    if (res.status === 422 && /already exists/i.test(body)) continue;
     throw new Error(`generate-from-template failed (${res.status}): ${body}`);
   }
-  const data = (await res.json()) as {
-    name: string;
-    html_url: string;
-    default_branch: string;
-    owner: { login: string };
-  };
-  return {
-    owner: data.owner.login,
-    name: data.name,
-    htmlUrl: data.html_url,
-    defaultBranch: data.default_branch ?? 'main',
-  };
+  throw new Error('generate-from-template failed: no free repo name after 6 attempts');
 }
 
 /**

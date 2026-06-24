@@ -212,7 +212,9 @@ async function handleProvision(request: Request, env: Env): Promise<Response> {
     return json({ status: 'error', message, stages }, env, 502);
   };
 
-  const siteName = (sess.siteName ?? `${sess.githubLogin}-portfolio`).toLowerCase();
+  // Repo lives in the artist's own account, so a simple default name is fine;
+  // generateRepoFromTemplate adds a numeric suffix if it's already taken.
+  const repoName = 'portfolio';
   const templateOwner = env.TEMPLATE_OWNER ?? 'easel';
   const templateRepo = env.TEMPLATE_REPO ?? 'template';
 
@@ -224,19 +226,18 @@ async function handleProvision(request: Request, env: Env): Promise<Response> {
       templateOwner,
       templateRepo,
       owner: sess.githubLogin,
-      name: siteName,
+      name: repoName,
     });
     stages.repo = 'done';
   } catch (e) {
     return fail(e instanceof Error ? e.message : 'repo_failed', 'repo');
   }
 
-  // (b) Netlify: create site linked to the repo.
+  // (b) Netlify: create site linked to the repo (Netlify auto-assigns the name).
   stages.site = 'active';
   let site;
   try {
     site = await createSite(sess.netlifyToken, {
-      name: siteName,
       repoPath: `${repo.owner}/${repo.name}`,
       branch: repo.defaultBranch,
     });

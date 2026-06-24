@@ -23,8 +23,11 @@ import { ROUTES } from '../config.ts';
         <p class="eyebrow">Get started</p>
         <h1>Let's build your portfolio</h1>
         <p class="start__sub">
-          Three short steps. You'll connect two free accounts and pick a name, then
-          Easel does the rest. Nothing is charged, and we don't host a thing.
+          Three short steps. You'll connect two free accounts, then Easel does the rest.
+          Nothing is charged, and we don't host a thing.
+        </p>
+        <p id="start-over-wrap" class="start__over" hidden>
+          Connected the wrong account? <button type="button" id="btn-start-over" class="linklike">Start over</button>.
         </p>
       </header>
 
@@ -43,25 +46,27 @@ import { ROUTES } from '../config.ts';
         <p class="start__hint">No GitHub account yet? Sweet news: you can make one for free right here.</p>
       </ConnectStep>
 
-      <ConnectStep step={2} title="Name your site and connect Netlify" state="todo" shape="circle">
-        <label class="field">
-          <span class="field__label">Site name</span>
-          <input id="site-name" type="text" placeholder="e.g. mira-okonkwo" autocomplete="off" />
-          <span class="field__help">Lowercase letters, numbers, and dashes. This is just an internal address (yoursite.netlify.app) that you can change later, or hide behind a custom domain. It is not your public name.</span>
-        </label>
+      <ConnectStep step={2} title="Connect Netlify" state="todo" shape="circle">
+        <p>
+          <abbr class="hint" title="A hosting platform for simple websites with a generous free tier. This is what actually serves your site to the world.">Netlify</abbr>
+          hosts your site and serves it to visitors, free. Easel creates the site for you
+          and gives it a temporary web address to start. You can point your own domain at
+          it whenever you're ready.
+        </p>
         <a id="btn-netlify" class="btn btn--primary" href="#" aria-disabled="true">
           Connect Netlify
         </a>
         <p id="netlify-connected" class="start__connected" hidden>
           <span class="start__check" aria-hidden="true"></span>Netlify connected.
         </p>
-        <p class="start__hint"><abbr class="hint" title="A hosting platform for simple websites with a generous free tier. This is what actually serves your site to the world.">Netlify</abbr> (also free) builds your site and serves it to visitors.</p>
+        <p class="start__hint">No Netlify account yet? You can make one for free right here too.</p>
       </ConnectStep>
 
       <ConnectStep step={3} title="Build your site" state="todo" shape="triangle">
         <p id="provision-intro">
           Everything's connected. When you hit the button, Easel sets up your repository,
-          your Netlify site, and your editor. This usually takes a couple of minutes.
+          your Netlify site, and your editor. This usually takes a couple of minutes. Your
+          site goes live at a temporary Netlify address; you can add a custom domain after.
         </p>
         <button id="btn-provision" class="btn btn--accent" type="button">Build my site</button>
         <div id="provision-progress" hidden>
@@ -113,7 +118,6 @@ import { ROUTES } from '../config.ts';
     if (badge) badge.textContent = s === 'done' ? 'Done' : s === 'active' ? 'Now' : 'Next';
   };
 
-  const siteInput = document.querySelector<HTMLInputElement>('#site-name');
   const netlifyBtn = document.querySelector<HTMLAnchorElement>('#btn-netlify');
   const provisionBtn = document.querySelector<HTMLButtonElement>('#btn-provision');
   const progressWrap = document.querySelector<HTMLElement>('#provision-progress');
@@ -122,33 +126,34 @@ import { ROUTES } from '../config.ts';
   const githubConnected = document.querySelector<HTMLElement>('#github-connected');
   const githubLoginEl = document.querySelector<HTMLElement>('#github-login');
   const netlifyConnected = document.querySelector<HTMLElement>('#netlify-connected');
+  const startOverWrap = document.querySelector<HTMLElement>('#start-over-wrap');
+  const startOverBtn = document.querySelector<HTMLButtonElement>('#btn-start-over');
 
-  const slugify = (v: string) =>
-    v.toLowerCase().trim().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
-
-  // Enable the Netlify button only once a valid name is typed. The state is
-  // carried so the worker can attach the Netlify token to the same session.
-  const refreshNetlifyBtn = () => {
-    if (!siteInput || !netlifyBtn) return;
-    const slug = slugify(siteInput.value);
-    const ok = slug.length >= 3;
-    netlifyBtn.setAttribute('aria-disabled', ok ? 'false' : 'true');
-    if (ok) {
-      sessionStorage.setItem('easel_site_name', slug);
-      const url = new URL(ROUTES.authNetlify);
-      url.searchParams.set('state', state);
-      url.searchParams.set('site', slug);
-      netlifyBtn.href = url.toString();
-    } else {
-      netlifyBtn.removeAttribute('href');
-    }
+  // Point the Netlify connect button at the worker, carrying the session state so
+  // the worker attaches the Netlify token to the same run. No site name needed —
+  // Netlify assigns a unique address, and the artist can add a custom domain later.
+  const enableNetlifyBtn = () => {
+    if (!netlifyBtn) return;
+    const url = new URL(ROUTES.authNetlify);
+    url.searchParams.set('state', state);
+    netlifyBtn.href = url.toString();
+    netlifyBtn.setAttribute('aria-disabled', 'false');
   };
-  siteInput?.addEventListener('input', refreshNetlifyBtn);
+
+  // Clear all per-run progress and return to a fresh /start.
+  const resetFlow = () => {
+    ['easel_state', 'easel_gh', 'easel_gh_login', 'easel_nf'].forEach((k) =>
+      sessionStorage.removeItem(k),
+    );
+  };
+  startOverBtn?.addEventListener('click', () => {
+    resetFlow();
+    location.replace(location.pathname);
+  });
 
   // Reconcile the whole UI from stored progress, so completed steps stay marked
   // done (with a clear confirmation) and the active step is always obvious.
-  const savedName = sessionStorage.getItem('easel_site_name');
-  if (savedName && siteInput) siteInput.value = savedName;
+  if (ghDone || nfDone) startOverWrap?.removeAttribute('hidden');
 
   if (ghDone) {
     setStepState(1, 'done');
@@ -159,22 +164,14 @@ import { ROUTES } from '../config.ts';
   }
   if (ghDone && !nfDone) {
     setStepState(2, 'active');
-    refreshNetlifyBtn();
+    enableNetlifyBtn();
   }
   if (nfDone) {
     setStepState(2, 'done');
-    if (siteInput) siteInput.readOnly = true;
     netlifyBtn?.setAttribute('hidden', '');
     netlifyConnected?.removeAttribute('hidden');
     setStepState(3, 'active');
   }
-
-  // When the run finishes, clear the per-run progress so a fresh visit restarts.
-  const resetFlow = () => {
-    ['easel_state', 'easel_site_name', 'easel_gh', 'easel_gh_login', 'easel_nf'].forEach((k) =>
-      sessionStorage.removeItem(k),
-    );
-  };
 
   // ---- Provisioning ----
   const STAGES: Stage[] = ['repo', 'site', 'deploy', 'admin', 'cleanup'];
@@ -194,8 +191,6 @@ import { ROUTES } from '../config.ts';
     progressWrap?.removeAttribute('hidden');
     errorEl?.setAttribute('hidden', '');
 
-    const siteName = sessionStorage.getItem('easel_site_name') ?? slugify(siteInput?.value ?? '');
-
     try {
       // POST /provision kicks off the 5-step run on the worker. The worker may
       // return the final result directly, or { jobId } that we poll. We support
@@ -204,7 +199,7 @@ import { ROUTES } from '../config.ts';
       const res = await fetch(ROUTES.provision, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ state, siteName }),
+        body: JSON.stringify({ state }),
       });
       const data = await res.json().catch(() => ({}));
 
@@ -280,6 +275,17 @@ import { ROUTES } from '../config.ts';
   .start__inner { max-width: 760px; }
   .start__head { margin-bottom: var(--space-6); }
   .start__sub { font-size: 1.125rem; max-width: 54ch; color: var(--c-stone); }
+  .start__over { font-size: 0.9375rem; color: var(--c-stone); margin: 0; }
+  .linklike {
+    font: inherit;
+    color: var(--c-blue);
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
   .start__hint { color: var(--c-stone); font-size: 0.9375rem; margin: var(--space-3) 0 0; }
   .start__error {
     margin: var(--space-3) 0 0;

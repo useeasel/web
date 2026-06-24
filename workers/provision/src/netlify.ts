@@ -84,7 +84,6 @@ export interface NetlifySite {
 export async function createSite(
   token: string,
   opts: {
-    name: string; // site slug
     repoPath: string; // 'owner/repo'
     branch: string; // e.g. 'main'
   },
@@ -92,8 +91,9 @@ export async function createSite(
   const res = await fetch(`${NETLIFY_API}/sites`, {
     method: 'POST',
     headers: authHeaders(token),
+    // No `name` — let Netlify assign a unique random subdomain so two artists
+    // never clash. They add a custom domain afterward for a real address.
     body: JSON.stringify({
-      name: opts.name,
       repo: {
         provider: 'github',
         repo: opts.repoPath,

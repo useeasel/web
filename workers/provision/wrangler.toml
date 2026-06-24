@@ -19,7 +19,7 @@ WORKER_ORIGIN = "https://provision.easel.rosematcha.com"
 # The shared sveltia-auth relay origin; patched into each new repo's admin config.
 SVELTIA_AUTH_URL = "https://auth.easel.rosematcha.com"
 # GitHub template to generate each artist's repo from.
-TEMPLATE_OWNER = "easel"
+TEMPLATE_OWNER = "useeasel"
 TEMPLATE_REPO = "template"
 
 # ---------------------------------------------------------------------------

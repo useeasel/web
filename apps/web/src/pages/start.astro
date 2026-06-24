@@ -37,6 +37,9 @@ import { ROUTES } from '../config.ts';
         <a id="btn-github" class="btn btn--primary" href={ROUTES.authGithub}>
           Connect GitHub
         </a>
+        <p id="github-connected" class="start__connected" hidden>
+          <span class="start__check" aria-hidden="true"></span>GitHub connected<span id="github-login"></span>.
+        </p>
         <p class="start__hint">No GitHub account yet? Sweet news: you can make one for free right here.</p>
       </ConnectStep>
 
@@ -44,11 +47,14 @@ import { ROUTES } from '../config.ts';
         <label class="field">
           <span class="field__label">Site name</span>
           <input id="site-name" type="text" placeholder="e.g. mira-okonkwo" autocomplete="off" />
-          <span class="field__help">Lowercase letters, numbers and dashes. This becomes your site address.</span>
+          <span class="field__help">Lowercase letters, numbers, and dashes. This is just an internal address (yoursite.netlify.app) that you can change later, or hide behind a custom domain. It is not your public name.</span>
         </label>
         <a id="btn-netlify" class="btn btn--primary" href="#" aria-disabled="true">
           Connect Netlify
         </a>
+        <p id="netlify-connected" class="start__connected" hidden>
+          <span class="start__check" aria-hidden="true"></span>Netlify connected.
+        </p>
         <p class="start__hint"><abbr class="hint" title="A hosting platform for simple websites with a generous free tier. This is what actually serves your site to the world.">Netlify</abbr> (also free) builds your site and serves it to visitors.</p>
       </ConnectStep>
 
@@ -76,8 +82,25 @@ import { ROUTES } from '../config.ts';
   // The worker round-trips this opaque, HMAC-signed value through both OAuth hops.
   const state = params.get('state') ?? sessionStorage.getItem('easel_state') ?? '';
   if (state) sessionStorage.setItem('easel_state', state);
-  // Which step the worker bounced us back to: 'netlify' after GitHub, 'provision' after Netlify.
+
+  // Record progress from the worker's return hop, then drive the whole UI from
+  // sessionStorage so a refresh or back-button keeps the steps you completed.
+  // 'netlify' = GitHub just connected; 'provision' = Netlify just connected.
   const returnedStep = params.get('step');
+  if (returnedStep === 'netlify' || returnedStep === 'provision') {
+    sessionStorage.setItem('easel_gh', '1');
+    const login = params.get('login');
+    if (login) sessionStorage.setItem('easel_gh_login', login);
+  }
+  if (returnedStep === 'provision') sessionStorage.setItem('easel_nf', '1');
+
+  // Drop the signed state + step out of the address bar now that they're stored.
+  if (returnedStep || params.get('state')) {
+    history.replaceState(null, '', location.pathname);
+  }
+
+  const ghDone = sessionStorage.getItem('easel_gh') === '1';
+  const nfDone = sessionStorage.getItem('easel_nf') === '1';
 
   const stepEls = Array.from(document.querySelectorAll<HTMLElement>('.step'));
   const setStepState = (n: number, s: 'todo' | 'active' | 'done') => {
@@ -95,6 +118,10 @@ import { ROUTES } from '../config.ts';
   const provisionBtn = document.querySelector<HTMLButtonElement>('#btn-provision');
   const progressWrap = document.querySelector<HTMLElement>('#provision-progress');
   const errorEl = document.querySelector<HTMLElement>('#provision-error');
+  const githubBtn = document.querySelector<HTMLAnchorElement>('#btn-github');
+  const githubConnected = document.querySelector<HTMLElement>('#github-connected');
+  const githubLoginEl = document.querySelector<HTMLElement>('#github-login');
+  const netlifyConnected = document.querySelector<HTMLElement>('#netlify-connected');
 
   const slugify = (v: string) =>
     v.toLowerCase().trim().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
@@ -118,18 +145,36 @@ import { ROUTES } from '../config.ts';
   };
   siteInput?.addEventListener('input', refreshNetlifyBtn);
 
-  // Advance the flow based on where the worker returned us.
-  if (returnedStep === 'netlify') {
+  // Reconcile the whole UI from stored progress, so completed steps stay marked
+  // done (with a clear confirmation) and the active step is always obvious.
+  const savedName = sessionStorage.getItem('easel_site_name');
+  if (savedName && siteInput) siteInput.value = savedName;
+
+  if (ghDone) {
     setStepState(1, 'done');
+    githubBtn?.setAttribute('hidden', '');
+    githubConnected?.removeAttribute('hidden');
+    const login = sessionStorage.getItem('easel_gh_login');
+    if (login && githubLoginEl) githubLoginEl.textContent = ` as @${login}`;
+  }
+  if (ghDone && !nfDone) {
     setStepState(2, 'active');
-    const saved = sessionStorage.getItem('easel_site_name');
-    if (saved && siteInput) siteInput.value = saved;
     refreshNetlifyBtn();
-  } else if (returnedStep === 'provision') {
-    setStepState(1, 'done');
+  }
+  if (nfDone) {
     setStepState(2, 'done');
+    if (siteInput) siteInput.readOnly = true;
+    netlifyBtn?.setAttribute('hidden', '');
+    netlifyConnected?.removeAttribute('hidden');
     setStepState(3, 'active');
   }
+
+  // When the run finishes, clear the per-run progress so a fresh visit restarts.
+  const resetFlow = () => {
+    ['easel_state', 'easel_site_name', 'easel_gh', 'easel_gh_login', 'easel_nf'].forEach((k) =>
+      sessionStorage.removeItem(k),
+    );
+  };
 
   // ---- Provisioning ----
   const STAGES: Stage[] = ['repo', 'site', 'deploy', 'admin', 'cleanup'];
@@ -201,8 +246,7 @@ import { ROUTES } from '../config.ts';
   }
 
   function finish(data: { siteUrl?: string; adminUrl?: string }) {
-    sessionStorage.removeItem('easel_state');
-    sessionStorage.removeItem('easel_site_name');
+    resetFlow();
     const done = new URL('/start/done/', location.origin);
     if (data.siteUrl) done.searchParams.set('site', data.siteUrl);
     if (data.adminUrl) done.searchParams.set('admin', data.adminUrl);
@@ -251,6 +295,33 @@ import { ROUTES } from '../config.ts';
     background: var(--c-white);
   }
   .field__help { display: block; color: var(--c-stone); font-size: 0.875rem; margin-top: var(--space-2); }
+  .field input[readonly] { background: var(--c-paper); color: var(--c-stone); }
   .btn[aria-disabled='true'] { opacity: 0.5; pointer-events: none; }
   #provision-progress { margin-top: var(--space-4); }
+
+  .start__connected {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: var(--c-ink);
+  }
+  .start__check {
+    width: 22px; height: 22px; flex: none;
+    background: var(--c-blue);
+    border: var(--border);
+    border-radius: 50%;
+    position: relative;
+  }
+  .start__check::after {
+    content: '';
+    position: absolute;
+    left: 7px; top: 3px;
+    width: 5px; height: 10px;
+    border: solid var(--c-white);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
 </style>

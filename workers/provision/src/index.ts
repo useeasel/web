@@ -73,11 +73,17 @@ function json(body: unknown, env: Env, status = 200): Response {
   });
 }
 
-/** Send the artist back to /start with the next step + state. */
-function redirectToStart(env: Env, step: string, state: string): Response {
+/** Send the artist back to /start with the next step + state (+ optional extras). */
+function redirectToStart(
+  env: Env,
+  step: string,
+  state: string,
+  extra?: Record<string, string>,
+): Response {
   const u = new URL('/start/', env.APP_ORIGIN);
   u.searchParams.set('step', step);
   u.searchParams.set('state', state);
+  for (const [k, v] of Object.entries(extra ?? {})) u.searchParams.set(k, v);
   return Response.redirect(u.toString(), 302);
 }
 
@@ -124,7 +130,7 @@ export default {
         );
         const login = await getGithubLogin(token);
         await saveSession(env.EASEL_STATE, state, { githubToken: token, githubLogin: login });
-        return redirectToStart(env, 'netlify', state);
+        return redirectToStart(env, 'netlify', state, { login });
       }
 
       // ---- Step 2: Netlify OAuth ----

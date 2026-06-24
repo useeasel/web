@@ -23,20 +23,21 @@ import { ROUTES } from '../config.ts';
         <p class="eyebrow">Get started</p>
         <h1>Let's build your portfolio</h1>
         <p class="start__sub">
-          Three short steps. You will connect two free accounts and pick a name —
-          Easel does the rest. Nothing is charged and nothing is hosted by us.
+          Three short steps. You'll connect two free accounts and pick a name, then
+          Easel does the rest. Nothing is charged, and we don't host a thing.
         </p>
       </header>
 
       <ConnectStep step={1} title="Connect GitHub" state="active" shape="square">
         <p>
-          GitHub is the free home for your site's files. We ask for the minimum:
-          permission to create one public repository for your portfolio.
+          <abbr class="hint" title="A very popular, free platform for hosting code. It's where your site's files will live.">GitHub</abbr>
+          is the free home for your site's files. We ask for one thing only: permission to
+          create a single public repository for your portfolio.
         </p>
         <a id="btn-github" class="btn btn--primary" href={ROUTES.authGithub}>
           Connect GitHub
         </a>
-        <p class="start__hint">No GitHub account yet? You can create one for free during this step.</p>
+        <p class="start__hint">No GitHub account yet? Sweet news: you can make one for free right here.</p>
       </ConnectStep>
 
       <ConnectStep step={2} title="Name your site and connect Netlify" state="todo" shape="circle">
@@ -48,13 +49,13 @@ import { ROUTES } from '../config.ts';
         <a id="btn-netlify" class="btn btn--primary" href="#" aria-disabled="true">
           Connect Netlify
         </a>
-        <p class="start__hint">Netlify (also free) builds your site and serves it to visitors.</p>
+        <p class="start__hint"><abbr class="hint" title="A hosting platform for simple websites with a generous free tier. This is what actually serves your site to the world.">Netlify</abbr> (also free) builds your site and serves it to visitors.</p>
       </ConnectStep>
 
       <ConnectStep step={3} title="Build your site" state="todo" shape="triangle">
         <p id="provision-intro">
-          Everything is connected. When you start, Easel sets up your repository,
-          your Netlify site, and your editor — this usually takes a couple of minutes.
+          Everything's connected. When you hit the button, Easel sets up your repository,
+          your Netlify site, and your editor. This usually takes a couple of minutes.
         </p>
         <button id="btn-provision" class="btn btn--accent" type="button">Build my site</button>
         <div id="provision-progress" hidden>
@@ -196,7 +197,7 @@ import { ROUTES } from '../config.ts';
       if (data.status === 'done') return finish(data);
       if (data.status === 'error') return showError(data.message ?? 'Provisioning failed.');
     }
-    showError('This is taking longer than expected. Your site may still be building — check back shortly.');
+    showError('This is taking longer than expected. Your site may still be building, so check back shortly.');
   }
 
   function finish(data: { siteUrl?: string; adminUrl?: string }) {

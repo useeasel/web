@@ -2,19 +2,19 @@
 const faqs = [
   {
     q: 'Do I need GitHub?',
-    a: 'Yes — a free GitHub account is where your site lives. Easel connects to it for you in one click during setup, so you never have to learn git. If you do not have an account yet, GitHub will offer to make one during the connect step.',
+    a: 'You do, and it is free. GitHub is where your site files live, and Easel connects to it for you in one click, so you never have to learn how it works. No account yet? You can make one right there during setup.',
   },
   {
     q: 'What does it cost?',
-    a: 'Easel is free. Your site runs on the free tiers of GitHub and Netlify, both of which are plenty for an artist portfolio. There is no Easel subscription and no card required.',
+    a: 'Nothing. Easel is free, and your site runs on the free tiers of GitHub and Netlify, which are more than enough for an artist portfolio. There is no Easel subscription and no card to enter.',
   },
   {
     q: 'Can I use my own custom domain?',
-    a: 'Yes. Your site is a normal Netlify site, so you can point a domain you own at it from Netlify any time — your-name.com instead of the default address. It is optional and you can add it later.',
+    a: 'Yes. Your site is a normal Netlify site, so you can point a domain you own at it whenever you like (your-name.com instead of the default address). It is optional, and you can add it later.',
   },
   {
     q: 'What happens to my site if I stop using Easel?',
-    a: 'Nothing — it keeps running. Easel only sets things up; it never hosts your content. The GitHub repo and Netlify site are yours, so your portfolio stays live whether or not Easel does.',
+    a: 'Your site keeps running. Easel only does the setup; it never holds your work. The GitHub repo and the Netlify site belong to you, so your portfolio stays up with or without us.',
   },
 ];
 ---
@@ -22,7 +22,7 @@ const faqs = [
 <section class="section faq" id="faq">
   <div class="container">
     <p class="eyebrow">Questions</p>
-    <h2>Good things to know</h2>
+    <h2>Good to know</h2>
     <div class="faq__list">
       {faqs.map((item) => (
         <details class="faq__item">

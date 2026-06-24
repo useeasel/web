@@ -4,22 +4,22 @@ const features = [
   {
     shape: 'square',
     title: 'Drag your photos in',
-    body: 'Upload artwork right in your editor. Title it, price it, mark it sold — no spreadsheets, no file wrangling.',
+    body: 'Upload your work right in the editor. Give a piece a title, set a price, mark it sold when it goes. No spreadsheets to keep up.',
   },
   {
     shape: 'circle',
     title: 'Your own Netlify, free',
-    body: 'Your site lives on hosting you own and control. Easel sets it up once, then steps out of the way.',
+    body: 'Your site lives on a Netlify account you own and control. Easel does the setup once, and after that it belongs to you.',
   },
   {
     shape: 'triangle',
-    title: 'Beautiful and fast',
-    body: 'A clean, gallery-first design that loads instantly and looks right on every screen. Built on Astro.',
+    title: 'Made to be seen',
+    body: 'A clean, gallery-first layout that loads fast and looks right on a phone or a wide screen. Built on Astro.',
   },
   {
     shape: 'square',
     title: 'No code, ever',
-    body: 'You never touch git, builds, or config. Write and publish like you would in any notes app.',
+    body: 'You never see git, builds, or config files. Writing and publishing feels like any notes app you already use.',
   },
 ];
 ---
@@ -27,7 +27,7 @@ const features = [
 <section class="section features">
   <div class="container">
     <p class="eyebrow">What you get</p>
-    <h2>Everything an artist needs, nothing they don't</h2>
+    <h2>Built for showing your work</h2>
     <ul class="features__grid" role="list">
       {features.map((f) => (
         <li class="card feature">

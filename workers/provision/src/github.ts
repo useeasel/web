@@ -130,12 +130,12 @@ export async function generateRepoFromTemplate(
 }
 
 /**
- * Step (d): patch the new repo's `public/admin/config.yml` so Sveltia points its
- * OAuth `base_url` at our shared sveltia-auth relay.
+ * Step (d): patch the new repo's `public/admin/config.yml` so Sveltia points at
+ * the artist's own repo and our shared sveltia-auth relay.
  *
  * Implementation: read the existing file (for its blob sha), rewrite the
- * `backend.base_url` line, and PUT it back as a commit. We keep the rewrite
- * conservative — only the base_url is touched.
+ * `backend.repo` and `backend.base_url` lines (replacing the shipped
+ * REPLACED_AT_PROVISION placeholder), and PUT it back as a commit.
  */
 export async function patchAdminConfig(
   token: string,
@@ -158,14 +158,15 @@ export async function patchAdminConfig(
   }
   const file = (await getRes.json()) as { content: string; sha: string; encoding: string };
   const current = decodeBase64(file.content);
-  const updated = setBaseUrl(current, opts.authBaseUrl);
+  // Point the editor at the artist's own repo, then at our shared auth relay.
+  const updated = setBaseUrl(setRepo(current, `${opts.owner}/${opts.repo}`), opts.authBaseUrl);
   if (updated === current) return; // already correct — no commit needed
 
   const putRes = await fetch(`${GH_API}/repos/${opts.owner}/${opts.repo}/contents/${path}`, {
     method: 'PUT',
     headers: authHeaders(token),
     body: JSON.stringify({
-      message: 'chore(easel): point Sveltia auth at the shared relay',
+      message: 'chore(easel): wire Sveltia to this repo and the shared auth relay',
       content: encodeBase64(updated),
       sha: file.sha,
       branch: opts.branch,
@@ -175,6 +176,15 @@ export async function patchAdminConfig(
     const body = await putRes.text();
     throw new Error(`write config.yml failed (${putRes.status}): ${body}`);
   }
+}
+
+/** Rewrite the `repo:` line under the `backend:` block to `owner/repo`. */
+function setRepo(yaml: string, ownerRepo: string): string {
+  if (/^\s*repo:\s*.*$/m.test(yaml)) {
+    return yaml.replace(/^(\s*)repo:\s*.*$/m, `$1repo: ${ownerRepo}`);
+  }
+  // Insert right after the `backend:` line if no repo line exists.
+  return yaml.replace(/^(\s*)backend:\s*$/m, `$1backend:\n$1  repo: ${ownerRepo}`);
 }
 
 /** Rewrite (or insert) `base_url:` under the `backend:` block. */

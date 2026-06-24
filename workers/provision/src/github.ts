@@ -70,10 +70,51 @@ function authHeaders(token: string): HeadersInit {
 
 /** The authenticated user's login — needed to address their new repo. */
 export async function getGithubLogin(token: string): Promise<string> {
+  return (await getGithubUser(token)).login;
+}
+
+/**
+ * The authenticated user's login + public email (if any). We only read the public
+ * profile email — no `user:email` scope expansion — so coverage is partial; the
+ * provision request can also supply an email explicitly. Used for the optional
+ * completion email.
+ */
+export async function getGithubUser(
+  token: string,
+): Promise<{ login: string; email: string | null }> {
   const res = await fetch(`${GH_API}/user`, { headers: authHeaders(token) });
   if (!res.ok) throw new Error(`GitHub /user failed (${res.status})`);
-  const data = (await res.json()) as { login: string };
-  return data.login;
+  const data = (await res.json()) as { login: string; email?: string | null };
+  return { login: data.login, email: data.email ?? null };
+}
+
+/**
+ * Find the Netlify GitHub App installation id on the authenticated user's account.
+ *
+ * Netlify wires continuous deployment (deploy key + push webhook) through its
+ * GitHub *App*; to create a CD-linked site via the API, Netlify's `repo` block
+ * needs this installation id. We discover it from GitHub rather than asking the
+ * artist: `/user/installations` lists the App installations the user's token can
+ * see; we match the one whose app slug is Netlify's.
+ *
+ * Best-effort: returns null if the user hasn't installed Netlify's GitHub App yet
+ * (or the lookup isn't permitted), so the caller can decide how to proceed rather
+ * than hard-failing. NOTE: this path is the one flagged for live end-to-end
+ * verification — confirm the installation id + repo id actually yield auto-rebuilds
+ * on a throwaway GitHub+Netlify pair.
+ */
+export async function getNetlifyInstallationId(token: string): Promise<number | null> {
+  const res = await fetch(`${GH_API}/user/installations?per_page=100`, {
+    headers: authHeaders(token),
+  });
+  if (!res.ok) return null;
+  const data = (await res.json()) as {
+    installations?: Array<{ id: number; app_slug?: string; app_id?: number }>;
+  };
+  const netlify = data.installations?.find(
+    (i) => i.app_slug === 'netlify' || i.app_slug === 'netlify-app',
+  );
+  return netlify?.id ?? null;
 }
 
 export interface GeneratedRepo {
@@ -81,6 +122,8 @@ export interface GeneratedRepo {
   name: string;
   htmlUrl: string;
   defaultBranch: string;
+  /** Numeric GitHub repo id — Netlify needs this (not just owner/name) to link CD. */
+  id: number;
 }
 
 /**
@@ -118,6 +161,7 @@ export async function generateRepoFromTemplate(
 
     if (res.ok) {
       const data = (await res.json()) as {
+        id: number;
         name: string;
         html_url: string;
         default_branch: string;
@@ -128,6 +172,7 @@ export async function generateRepoFromTemplate(
         name: data.name,
         htmlUrl: data.html_url,
         defaultBranch: data.default_branch ?? 'main',
+        id: data.id,
       };
     }
 

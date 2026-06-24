@@ -1,0 +1,94 @@
+---
+import Base from '../layouts/Base.astro';
+
+// "Take it with you" guide. Easel's promise is that the artist owns their site;
+// this page makes that tangible — what the repo is, how to move hosts, how to hand
+// it to a developer. Custom domains are explicitly a Netlify task (Easel never
+// manages DNS), so we point there rather than pretending to do it in-app.
+
+const moves = [
+  {
+    title: 'See everything that makes up your site',
+    body: 'Your GitHub repository holds it all: every image lives in `src/assets`, every page and artwork is a plain text file in `src/content`, and your design choices are one `settings.json`. Nothing is trapped in a database only Easel can read.',
+  },
+  {
+    title: 'Add a custom domain',
+    body: 'Domains are handled in Netlify, your host — Easel never touches DNS. In your Netlify site, go to Domain management → Add a domain, and follow Netlify\'s steps to point your domain (e.g. your-name.com) at the site. HTTPS is set up for you.',
+  },
+  {
+    title: 'Move to a different host',
+    body: 'Because your site is a standard Astro project, any static host (Cloudflare Pages, Vercel, GitHub Pages, your own server) can build it. Point the host at your GitHub repo, set the build command to `astro build` and the output directory to `dist`, and you\'re live elsewhere — no Easel involved.',
+  },
+  {
+    title: 'Hand it to a developer',
+    body: 'Give them access to your GitHub repository. It\'s a normal, well-structured codebase they can read, extend, or restyle. Your content and their changes live side by side in version history.',
+  },
+];
+---
+
+<Base
+  title="Own your site — Easel"
+  description="Your Easel portfolio lives in your own GitHub repository. Here's how to add a domain, move hosts, or hand it to a developer — any time, no lock-in."
+>
+  <section class="section own-hero">
+    <div class="container">
+      <p class="eyebrow">Yours to keep</p>
+      <h1>Own your site, for real</h1>
+      <p class="own-hero__sub">
+        Easel sets your portfolio up and then steps out. Everything lives on accounts you
+        control, so you're never locked in. Here's exactly how to take it anywhere.
+      </p>
+    </div>
+  </section>
+
+  <section class="section own-moves">
+    <div class="container">
+      <ol class="own-moves__list" role="list">
+        {moves.map((m, i) => (
+          <li class="own-move">
+            <span class="own-move__num" aria-hidden="true">{i + 1}</span>
+            <div>
+              <h2>{m.title}</h2>
+              <p set:html={m.body.replace(/`([^`]+)`/g, '<code>$1</code>')} />
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <p class="own-moves__note">
+        If Easel disappeared tomorrow, your site would keep running exactly as it is —
+        because none of it depends on us once setup is done.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .own-hero { border-bottom: var(--border); }
+  .own-hero__sub { font-size: 1.25rem; max-width: 52ch; }
+
+  .own-moves__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-5); max-width: 760px; }
+  .own-move { display: flex; gap: var(--space-4); align-items: flex-start; }
+  .own-move__num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 52px; height: 52px; flex: none;
+    font-family: var(--font-display); font-weight: 800; font-size: 1.5rem;
+    color: var(--c-white); background: var(--c-blue); border: var(--border);
+  }
+  .own-move h2 { font-size: 1.375rem; margin-bottom: var(--space-2); }
+  .own-move p { margin: 0; color: var(--c-stone); }
+  .own-move code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.9em;
+    background: var(--c-paper);
+    border: 1px solid var(--c-stone);
+    padding: 0.05em 0.3em;
+  }
+  .own-moves__note {
+    margin-top: var(--space-6);
+    max-width: 760px;
+    border-left: var(--border-thick);
+    padding-left: var(--space-3);
+    color: var(--c-stone);
+  }
+</style>

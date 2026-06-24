@@ -69,6 +69,12 @@ import { ROUTES } from '../config.ts';
           your Netlify site, and your editor. This usually takes a couple of minutes. Your
           site goes live at a temporary Netlify address; you can add a custom domain after.
         </p>
+        <label class="field" for="provision-email">
+          <span class="field__label">Email <span class="field__optional">(optional)</span></span>
+          <input id="provision-email" type="email" autocomplete="email" inputmode="email"
+            placeholder="you@example.com" />
+          <span class="field__help">We'll send your live site + editor links here so you don't lose them. Nothing else.</span>
+        </label>
         <button id="btn-provision" class="btn btn--accent" type="button">Build my site</button>
         <div id="provision-progress" hidden>
           <ProgressView />
@@ -270,10 +276,12 @@ import { ROUTES } from '../config.ts';
       // return the final result directly, or { jobId } that we poll. We support
       // both: if a jobId comes back, poll GET /provision?job=...; otherwise the
       // body is the terminal result.
+      const emailInput = document.querySelector<HTMLInputElement>('#provision-email');
+      const email = emailInput?.value.trim() || undefined;
       const res = await fetch(ROUTES.provision, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ state }),
+        body: JSON.stringify({ state, email }),
       });
       const data = await res.json().catch(() => ({}));
 
@@ -297,6 +305,20 @@ import { ROUTES } from '../config.ts';
     }
   }
 
+  // If a run failed partway, the worker still returns links to whatever it created
+  // (repo, site) so the artist isn't left at a dead end. Render them under the error.
+  function showRecoveryLinks(data: { repoUrl?: string; siteUrl?: string; adminUrl?: string }) {
+    if (!errorEl || (!data.repoUrl && !data.siteUrl)) return;
+    const links: string[] = [];
+    if (data.siteUrl) links.push(`<a href="${data.siteUrl}">your site</a>`);
+    if (data.adminUrl) links.push(`<a href="${data.adminUrl}">your editor</a>`);
+    if (data.repoUrl) links.push(`<a href="${data.repoUrl}">your files on GitHub</a>`);
+    const p = document.createElement('p');
+    p.className = 'start__recovery';
+    p.innerHTML = `What got set up so far: ${links.join(', ')}. You can retry, or pick up from there.`;
+    errorEl.insertAdjacentElement('afterend', p);
+  }
+
   async function pollJob(jobId: string) {
     // Simple polling loop. The worker reports the current stage + status until
     // it reaches a terminal 'done' or 'error' state. (SSE is a future upgrade.)
@@ -316,16 +338,21 @@ import { ROUTES } from '../config.ts';
         }
       }
       if (data.status === 'done') return finish(data);
-      if (data.status === 'error') return showError(data.message ?? 'Provisioning failed.');
+      if (data.status === 'error') {
+        showError(data.message ?? 'Provisioning failed.');
+        return showRecoveryLinks(data);
+      }
     }
     showError('This is taking longer than expected. Your site may still be building, so check back shortly.');
   }
 
-  function finish(data: { siteUrl?: string; adminUrl?: string }) {
+  function finish(data: { siteUrl?: string; adminUrl?: string; repoUrl?: string; warning?: string }) {
     resetFlow();
     const done = new URL('/start/done/', location.origin);
     if (data.siteUrl) done.searchParams.set('site', data.siteUrl);
     if (data.adminUrl) done.searchParams.set('admin', data.adminUrl);
+    if (data.repoUrl) done.searchParams.set('repo', data.repoUrl);
+    if (data.warning) done.searchParams.set('warning', data.warning);
     location.assign(done.toString());
   }
 
@@ -381,6 +408,12 @@ import { ROUTES } from '../config.ts';
     border-radius: var(--radius);
     background: var(--c-white);
   }
+  .start__recovery {
+    margin: var(--space-2) 0 0;
+    font-size: 0.9375rem;
+    color: var(--c-stone);
+  }
+  .field__optional { font-weight: 400; color: var(--c-stone); }
   .field__help { display: block; color: var(--c-stone); font-size: 0.875rem; margin-top: var(--space-2); }
   .field input[readonly] { background: var(--c-paper); color: var(--c-stone); }
   .btn[aria-disabled='true'] { opacity: 0.5; pointer-events: none; }

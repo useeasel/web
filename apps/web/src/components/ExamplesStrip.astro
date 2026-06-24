@@ -1,31 +1,42 @@
 ---
-// Example portfolios strip. Placeholder cards — swap in real artist sites once
-// a few are live. Each card is a flat Bauhaus "canvas" with a primitive motif.
-const examples = [
-  { name: 'Mira Okonkwo', medium: 'Oil painting', shape: 'square', tint: 'var(--c-red)' },
-  { name: 'Leon Vance', medium: 'Ceramics', shape: 'circle', tint: 'var(--c-blue)' },
-  { name: 'Saoirse Bell', medium: 'Printmaking', shape: 'triangle', tint: 'var(--c-yellow)' },
-];
+// Example portfolios strip. Data lives in src/data/examples.ts — add real artists
+// there (with a `url` + `image`) and the cards become clickable thumbnails. Entries
+// without a `url` fall back to a flat Bauhaus "canvas" with a primitive motif.
+import { examples, hasRealExamples } from '../data/examples.ts';
 ---
 
 <section class="section examples" id="examples">
   <div class="container">
     <p class="eyebrow">Made with Easel</p>
-    <h2>A few looks to start from</h2>
+    <h2>{hasRealExamples ? 'Portfolios made with Easel' : 'A few looks to start from'}</h2>
     <ul class="examples__grid" role="list">
       {examples.map((ex) => (
         <li class="examples__card">
-          <div class="examples__art" style={`--tint:${ex.tint}`} aria-hidden="true">
-            <span class={`shape shape--${ex.shape}`}></span>
-          </div>
-          <div class="examples__meta">
-            <h3>{ex.name}</h3>
-            <p>{ex.medium}</p>
-          </div>
+          <Fragment>
+            {ex.url ? (
+              <a class="examples__link" href={ex.url} target="_blank" rel="noopener">
+                <div class="examples__art" style={`--tint:${ex.tint}`} aria-hidden={ex.image ? undefined : 'true'}>
+                  {ex.image ? <img src={ex.image} alt={`${ex.name}'s portfolio`} loading="lazy" class="examples__img" /> : <span class={`shape shape--${ex.shape}`}></span>}
+                </div>
+                <div class="examples__meta"><h3>{ex.name}</h3><p>{ex.medium}</p></div>
+              </a>
+            ) : (
+              <Fragment>
+                <div class="examples__art" style={`--tint:${ex.tint}`} aria-hidden="true">
+                  <span class={`shape shape--${ex.shape}`}></span>
+                </div>
+                <div class="examples__meta"><h3>{ex.name}</h3><p>{ex.medium}</p></div>
+              </Fragment>
+            )}
+          </Fragment>
         </li>
       ))}
     </ul>
-    <p class="examples__note">These are just samples. Yours will have your own work and name on it.</p>
+    <p class="examples__note">
+      {hasRealExamples
+        ? 'Real sites, built by artists with no code. Yours will have your own work and name on it.'
+        : 'These are just samples. Yours will have your own work and name on it.'}
+    </p>
   </div>
 </section>
 
@@ -36,6 +47,14 @@ const examples = [
     gap: var(--space-4);
   }
   .examples__card { border: var(--border); background: var(--c-white); }
+  .examples__link {
+    display: block; text-decoration: none; color: inherit;
+    transition: transform 120ms ease;
+  }
+  .examples__link:hover { transform: translateY(-3px); }
+  .examples__img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
   .examples__art {
     aspect-ratio: 4 / 3;
     background:

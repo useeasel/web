@@ -86,22 +86,38 @@ export async function createSite(
   opts: {
     repoPath: string; // 'owner/repo'
     branch: string; // e.g. 'main'
+    /** Numeric GitHub repo id — Netlify keys the repo link off this, not the path. */
+    repoId: number;
+    /**
+     * Netlify GitHub App installation id on the artist's account. Required for
+     * Netlify to install the deploy key + push webhook that drive *continuous*
+     * deployment. Without it, the first deploy may run but later editor commits
+     * won't auto-rebuild. May be null if the App isn't installed yet (see caller).
+     */
+    installationId: number | null;
   },
 ): Promise<NetlifySite> {
+  // The repo block: `id` + `installation_id` are what wire continuous deployment.
+  // (The earlier bare block — path only — created a site whose editor commits never
+  // triggered a rebuild. This is the §0.1 fix; verify end-to-end against live accts.)
+  const repo: Record<string, unknown> = {
+    provider: 'github',
+    id: opts.repoId,
+    repo: opts.repoPath,
+    repo_branch: opts.branch,
+    branch: opts.branch,
+    cmd: 'astro build',
+    dir: 'dist',
+  };
+  if (opts.installationId != null) repo.installation_id = opts.installationId;
+
   const res = await fetch(`${NETLIFY_API}/sites`, {
     method: 'POST',
     headers: authHeaders(token),
     // No `name` — let Netlify assign a unique random subdomain so two artists
     // never clash. They add a custom domain afterward for a real address.
     body: JSON.stringify({
-      repo: {
-        provider: 'github',
-        repo: opts.repoPath,
-        repo_branch: opts.branch,
-        branch: opts.branch,
-        cmd: 'astro build',
-        dir: 'dist',
-      },
+      repo,
       // Enable form detection (Netlify Forms) during post-processing.
       processing_settings: {
         html: { pretty_urls: true },

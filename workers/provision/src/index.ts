@@ -30,10 +30,12 @@ import { createState, verifyState, loadSession, saveSession, clearSession } from
 import {
   githubAuthorizeUrl,
   exchangeGithubCode,
-  getGithubLogin,
+  getGithubUser,
   generateRepoFromTemplate,
+  getNetlifyInstallationId,
   patchAdminConfig,
 } from './github';
+import { sendCompletionEmail } from './email';
 import {
   netlifyAuthorizeUrl,
   exchangeNetlifyCode,
@@ -42,6 +44,7 @@ import {
   getLatestDeployState,
   type DeployState,
 } from './netlify';
+import { isRateLimited, clientIp, trackEvent } from './limits';
 
 export interface Env {
   EASEL_STATE: KVNamespace;
@@ -55,6 +58,9 @@ export interface Env {
   SVELTIA_AUTH_URL: string;
   TEMPLATE_OWNER?: string;
   TEMPLATE_REPO?: string;
+  /** Optional: enables the completion email when both are set (see email.ts). */
+  RESEND_API_KEY?: string;
+  EASEL_FROM_EMAIL?: string;
 }
 
 type StageState = 'pending' | 'active' | 'done' | 'error';
@@ -103,6 +109,27 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders(env) });
     }
 
+    // Throttle the flow-initiating + work-doing endpoints per IP so a script can't
+    // spam repo generation against the org. The OAuth *callbacks* are not limited —
+    // they carry a signed state and blocking them would strand a legit run midway.
+    const isSensitive =
+      (pathname === '/auth/github' && request.method === 'GET') ||
+      (pathname === '/auth/netlify' && request.method === 'GET') ||
+      (pathname === '/provision' && request.method === 'POST');
+    if (isSensitive) {
+      const limited = await isRateLimited(
+        env.EASEL_STATE,
+        `${clientIp(request)}:${pathname}`,
+        // ~10 starts/min per IP — generous for a human, useless for a flood.
+        10,
+        60,
+      );
+      if (limited) {
+        await trackEvent(env.EASEL_STATE, 'rate_limited', { path: pathname });
+        return json({ status: 'error', message: 'rate_limited' }, env, 429);
+      }
+    }
+
     try {
       // ---- Step 1: GitHub OAuth ----
       if (pathname === '/auth/github' && request.method === 'GET') {
@@ -129,9 +156,13 @@ export default {
           code,
           `${env.WORKER_ORIGIN}/auth/github/cb`,
         );
-        const login = await getGithubLogin(token);
-        await saveSession(env.EASEL_STATE, state, { githubToken: token, githubLogin: login });
-        return redirectToStart(env, 'netlify', state, { login });
+        const user = await getGithubUser(token);
+        await saveSession(env.EASEL_STATE, state, {
+          githubToken: token,
+          githubLogin: user.login,
+          ...(user.email ? { email: user.email } : {}),
+        });
+        return redirectToStart(env, 'netlify', state, { login: user.login });
       }
 
       // ---- Step 2: Netlify OAuth ----
@@ -217,6 +248,8 @@ interface JobRecord {
   status: 'running' | 'done' | 'error';
   stages: Record<string, StageState>;
   message?: string;
+  /** Non-fatal note surfaced to the artist (e.g. CD connection unconfirmed). */
+  warning?: string;
   siteUrl?: string;
   adminUrl?: string;
   repoUrl?: string;
@@ -257,9 +290,17 @@ async function startProvision(
   env: Env,
   ctx: ExecutionContext,
 ): Promise<Response> {
-  const { state } = (await request.json().catch(() => ({}))) as { state?: string };
+  const { state, email } = (await request.json().catch(() => ({}))) as {
+    state?: string;
+    email?: string;
+  };
   if (!state || !(await verifyState(state, env.STATE_SIGNING_KEY))) {
     return json({ status: 'error', message: 'invalid_state' }, env, 400);
+  }
+  // An explicit email from the UI takes precedence over the (often-absent) public
+  // GitHub profile email captured at sign-in.
+  if (email && /.+@.+\..+/.test(email)) {
+    await saveSession(env.EASEL_STATE, state, { email });
   }
 
   // Idempotency: if a run for this state is already underway (or has finished),
@@ -289,7 +330,12 @@ async function startProvision(
     runProvisionJob(
       env,
       state,
-      { githubToken: sess.githubToken, netlifyToken: sess.netlifyToken, githubLogin: sess.githubLogin },
+      {
+        githubToken: sess.githubToken,
+        netlifyToken: sess.netlifyToken,
+        githubLogin: sess.githubLogin,
+        email: sess.email,
+      },
       job,
     ),
   );
@@ -301,7 +347,7 @@ async function startProvision(
 async function runProvisionJob(
   env: Env,
   state: string,
-  sess: { githubToken: string; netlifyToken: string; githubLogin: string },
+  sess: { githubToken: string; netlifyToken: string; githubLogin: string; email?: string },
   job: JobRecord,
 ): Promise<void> {
   const advance = async (stage: keyof JobRecord['stages'], to: StageState) => {
@@ -314,7 +360,10 @@ async function runProvisionJob(
     job.status = 'error';
     job.message = message;
     await setJob(env, state, job);
+    await trackEvent(env.EASEL_STATE, 'provision_failed', { stage: String(stage) });
   };
+
+  await trackEvent(env.EASEL_STATE, 'provision_started');
 
   const templateOwner = env.TEMPLATE_OWNER ?? 'useeasel';
   const templateRepo = env.TEMPLATE_REPO ?? 'template';
@@ -329,19 +378,42 @@ async function runProvisionJob(
       owner: sess.githubLogin,
       name: 'portfolio',
     });
+    // Record the repo on the job immediately so that if a *later* stage fails, the
+    // error response still hands the artist a link to what was created (instead of a
+    // dead end). Recovery beats silent partial state.
+    job.repoUrl = repo.htmlUrl;
     await advance('repo', 'done');
   } catch (e) {
     return fail(e instanceof Error ? e.message : 'repo_failed', 'repo');
   }
 
   // (b) Netlify: create site linked to the repo (Netlify auto-assigns the name).
+  // We pass the numeric repo id + the Netlify GitHub App installation id so Netlify
+  // installs the deploy key + push webhook — i.e. so later editor commits actually
+  // trigger rebuilds (continuous deployment), not just the first deploy.
   await advance('site', 'active');
   let site;
   try {
+    const installationId = await getNetlifyInstallationId(sess.githubToken);
+    if (installationId == null) {
+      // Not fatal: the first build can still run. But auto-rebuild on edit likely
+      // won't work until the artist connects GitHub in Netlify. Surface it as a
+      // soft note rather than blocking the run.
+      console.warn('[provision] no Netlify GitHub App installation found for user');
+      job.warning =
+        'We couldn’t confirm the Netlify⇄GitHub connection, so edits may not auto-publish. ' +
+        'If your site stops updating, open it in Netlify and connect the GitHub repo once.';
+    }
     site = await createSite(sess.netlifyToken, {
       repoPath: `${repo.owner}/${repo.name}`,
       branch: repo.defaultBranch,
+      repoId: repo.id,
+      installationId,
     });
+    // Same as the repo above: surface the site/admin links even if a later stage
+    // (admin patch, deploy) fails, so the artist isn't left wondering what happened.
+    job.siteUrl = site.url;
+    job.adminUrl = `${site.url.replace(/\/$/, '')}/admin/`;
     await advance('site', 'done');
   } catch (e) {
     return fail(e instanceof Error ? e.message : 'site_failed', 'site');
@@ -401,4 +473,18 @@ async function runProvisionJob(
   job.adminUrl = `${site.url.replace(/\/$/, '')}/admin/`;
   job.repoUrl = repo.htmlUrl;
   await setJob(env, state, job);
+  await trackEvent(env.EASEL_STATE, 'provision_done');
+
+  // Best-effort completion email so the artist keeps their links even after closing
+  // the tab. No-op unless RESEND_API_KEY + EASEL_FROM_EMAIL are configured and we
+  // have an address. Runs after the job is marked done so it can never affect success.
+  if (sess.email && job.siteUrl && job.adminUrl) {
+    const sent = await sendCompletionEmail(env, {
+      to: sess.email,
+      siteUrl: job.siteUrl,
+      adminUrl: job.adminUrl,
+      repoUrl: job.repoUrl,
+    });
+    if (sent) await trackEvent(env.EASEL_STATE, 'completion_email_sent');
+  }
 }

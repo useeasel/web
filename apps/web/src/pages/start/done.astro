@@ -18,6 +18,8 @@ import EaselMark from '../../components/EaselMark.astro';
         Everything from here lives on accounts you own.
       </p>
 
+      <p id="done-warning" class="done__warning" role="status" hidden></p>
+
       <div class="done__actions">
         <a id="link-site" class="btn btn--primary" href="#" target="_blank" rel="noopener">
           View your live site
@@ -37,6 +39,16 @@ import EaselMark from '../../components/EaselMark.astro';
         Want a custom domain like your-name.com? You can add it from Netlify whenever you like
         (here's <a href="/how-it-works/">how it works</a>).
       </p>
+
+      <div class="done__own">
+        <h2 class="done__own-title">It's yours to keep</h2>
+        <p>
+          Your whole site — every image, page, and setting — lives in
+          <a id="link-repo" href="#" target="_blank" rel="noopener">your own GitHub repository</a>.
+          Easel doesn't host it and can't lock you in. If you ever want to move hosts or hand it
+          to a developer, the <a href="/own-your-site/">take-it-with-you guide</a> shows you how.
+        </p>
+      </div>
     </div>
   </section>
 </Base>
@@ -45,9 +57,13 @@ import EaselMark from '../../components/EaselMark.astro';
   const params = new URLSearchParams(location.search);
   const site = params.get('site');
   const admin = params.get('admin');
+  const repo = params.get('repo');
+  const warning = params.get('warning');
 
   const siteLink = document.querySelector<HTMLAnchorElement>('#link-site');
   const adminLink = document.querySelector<HTMLAnchorElement>('#link-admin');
+  const repoLink = document.querySelector<HTMLAnchorElement>('#link-repo');
+  const warnEl = document.querySelector<HTMLElement>('#done-warning');
 
   if (site && siteLink) siteLink.href = site;
   else siteLink?.setAttribute('aria-disabled', 'true');
@@ -56,6 +72,16 @@ import EaselMark from '../../components/EaselMark.astro';
   const adminHref = admin ?? (site ? `${site.replace(/\/$/, '')}/admin/` : null);
   if (adminHref && adminLink) adminLink.href = adminHref;
   else adminLink?.setAttribute('aria-disabled', 'true');
+
+  // Link the repo if we have it; otherwise point at the user's GitHub repos list.
+  if (repoLink) repoLink.href = repo ?? 'https://github.com/?tab=repositories';
+
+  // Surface a non-fatal note from provisioning (e.g. auto-publish couldn't be
+  // confirmed) so the artist knows what to check, without it reading as a failure.
+  if (warning && warnEl) {
+    warnEl.textContent = warning;
+    warnEl.removeAttribute('hidden');
+  }
 </script>
 
 <style>
@@ -105,5 +131,27 @@ import EaselMark from '../../components/EaselMark.astro';
     border: var(--border);
   }
   .done__help { margin-top: var(--space-5); color: var(--c-stone); }
+  .done__warning {
+    margin: var(--space-4) auto 0;
+    max-width: 520px;
+    text-align: left;
+    border: var(--border);
+    border-left: var(--border-thick);
+    border-left-color: var(--c-yellow);
+    background: var(--c-white);
+    padding: var(--space-3);
+    color: var(--c-ink);
+    font-size: 0.9375rem;
+  }
+  .done__own {
+    margin-top: var(--space-6);
+    border-top: var(--border);
+    padding-top: var(--space-5);
+    text-align: left;
+    max-width: 520px;
+    margin-inline: auto;
+    color: var(--c-stone);
+  }
+  .done__own-title { font-size: 1.125rem; margin: 0 0 var(--space-2); }
   .btn[aria-disabled='true'] { opacity: 0.5; pointer-events: none; }
 </style>

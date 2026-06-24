@@ -63,6 +63,8 @@ export interface ProvisionSession {
   siteName?: string;
   /** Set once we know the artist's GitHub login (from the token). */
   githubLogin?: string;
+  /** Optional: artist email for the completion notification (best-effort). */
+  email?: string;
 }
 
 const TTL_SECONDS = 600; // 10 minutes

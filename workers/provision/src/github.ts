@@ -90,7 +90,7 @@ export interface GeneratedRepo {
 export async function generateRepoFromTemplate(
   token: string,
   opts: {
-    templateOwner: string; // 'easel'
+    templateOwner: string; // 'useeasel'
     templateRepo: string; // 'template'
     owner: string; // artist's login
     name: string; // base repo name; a numeric suffix is added if it's taken
@@ -157,13 +157,24 @@ export async function patchAdminConfig(
   const path = 'public/admin/config.json';
   const fileUrl = `${GH_API}/repos/${opts.owner}/${opts.repo}/contents/${path}?ref=${opts.branch}`;
 
-  const getRes = await fetch(fileUrl, { headers: authHeaders(token) });
-  if (!getRes.ok) {
-    // If the template lacks the file yet, skip rather than fail the whole run.
-    if (getRes.status === 404) return;
-    throw new Error(`read config.json failed (${getRes.status})`);
+  // generate-from-template populates the new repo's contents asynchronously, so an
+  // immediate read can 404 even though the file ships in the template. Retry with
+  // backoff before giving up — a missed patch here leaves the artist's /admin stuck
+  // on the REPLACED_AT_PROVISION placeholder (a dead end in the editor).
+  let file: { content: string; sha: string } | null = null;
+  for (let attempt = 1; attempt <= 6; attempt++) {
+    const getRes = await fetch(fileUrl, { headers: authHeaders(token) });
+    if (getRes.ok) {
+      file = (await getRes.json()) as { content: string; sha: string };
+      break;
+    }
+    if (getRes.status === 404 && attempt < 6) {
+      await sleep(2000);
+      continue;
+    }
+    throw new Error(`read config.json failed (${getRes.status}) after ${attempt} attempt(s)`);
   }
-  const file = (await getRes.json()) as { content: string; sha: string };
+  if (!file) throw new Error('read config.json failed: file never appeared');
 
   let cfg: Record<string, unknown> = {};
   try {
@@ -190,6 +201,10 @@ export async function patchAdminConfig(
     const body = await putRes.text();
     throw new Error(`write config.json failed (${putRes.status}): ${body}`);
   }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
 }
 
 function decodeBase64(b64: string): string {

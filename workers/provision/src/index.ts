@@ -39,6 +39,8 @@ import {
   exchangeNetlifyCode,
   createSite,
   triggerBuild,
+  getLatestDeployState,
+  type DeployState,
 } from './netlify';
 
 export interface Env {
@@ -222,6 +224,25 @@ interface JobRecord {
 
 const JOB_TTL = 900; // 15 minutes
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+/**
+ * Poll the site's latest deploy until it's ready/errored or a bounded window
+ * (~60s) elapses. A fast-failing build (bad install/config) usually errors well
+ * inside this window; a slow-but-fine build simply returns 'building' and the run
+ * completes optimistically.
+ */
+async function pollDeploy(token: string, siteId: string): Promise<DeployState> {
+  for (let i = 0; i < 12; i++) {
+    await sleep(5000);
+    const s = await getLatestDeployState(token, siteId);
+    if (s === 'ready' || s === 'error') return s;
+  }
+  return 'building';
+}
+
 async function setJob(env: Env, jobId: string, job: JobRecord): Promise<void> {
   await env.EASEL_STATE.put(`job:${jobId}`, JSON.stringify(job), { expirationTtl: JOB_TTL });
 }
@@ -240,6 +261,20 @@ async function startProvision(
   if (!state || !(await verifyState(state, env.STATE_SIGNING_KEY))) {
     return json({ status: 'error', message: 'invalid_state' }, env, 400);
   }
+
+  // Idempotency: if a run for this state is already underway (or has finished),
+  // return it instead of starting a duplicate. Without this, a double-click or a
+  // mid-run "Try again" generates a second repo (portfolio-2) + Netlify site. This
+  // is checked before the session lookup because a completed run has already
+  // deleted its transient tokens. Only a hard-errored run is allowed to restart.
+  const existing = (await env.EASEL_STATE.get(`job:${state}`, 'json')) as JobRecord | null;
+  if (existing && existing.status !== 'error') {
+    return json(
+      { jobId: state, status: existing.status, stages: existing.stages },
+      env,
+    );
+  }
+
   const sess = await loadSession(env.EASEL_STATE, state);
   if (!sess?.githubToken || !sess.netlifyToken || !sess.githubLogin) {
     return json({ status: 'error', message: 'missing_connections' }, env, 400);
@@ -281,7 +316,7 @@ async function runProvisionJob(
     await setJob(env, state, job);
   };
 
-  const templateOwner = env.TEMPLATE_OWNER ?? 'easel';
+  const templateOwner = env.TEMPLATE_OWNER ?? 'useeasel';
   const templateRepo = env.TEMPLATE_REPO ?? 'template';
 
   // (a) GitHub: generate repo from template ('portfolio', with suffix if taken).
@@ -312,19 +347,20 @@ async function runProvisionJob(
     return fail(e instanceof Error ? e.message : 'site_failed', 'site');
   }
 
-  // (c) Netlify: trigger the first build. We DON'T wait for it to finish — that
-  // build runs on Netlify's own schedule (the done page says it may still be
-  // building). Waiting here made the waitUntil job long enough to get evicted
-  // before stages (d)/(e) ran, leaving /admin unconfigured. Kick it off and move on.
+  // (c) Netlify: trigger the first build. We keep the deploy stage 'active' and
+  // verify it AFTER the admin patch (step d) rather than blocking here. Waiting
+  // before (d) once made the waitUntil job long enough to get evicted with /admin
+  // still unconfigured — so the critical config write must come first.
   await advance('deploy', 'active');
   try {
     await triggerBuild(sess.netlifyToken, site.id);
-    await advance('deploy', 'done');
   } catch (e) {
     return fail(e instanceof Error ? e.message : 'deploy_failed', 'deploy');
   }
 
   // (d) Point the new repo's admin config at this repo + the sveltia-auth relay.
+  // Intentionally before the deploy poll so this lands even if the background job
+  // is later evicted while waiting on the build.
   await advance('admin', 'active');
   try {
     await patchAdminConfig(sess.githubToken, {
@@ -337,6 +373,24 @@ async function runProvisionJob(
   } catch (e) {
     return fail(e instanceof Error ? e.message : 'admin_failed', 'admin');
   }
+
+  // (c, verify) Poll the first deploy for a bounded window so a *failed* build is
+  // surfaced as an error instead of a celebratory /start/done over a broken site.
+  // Best-effort: a still-building deploy after the window is treated as success
+  // (the done page already notes it may still be finishing), and a polling hiccup
+  // never blocks the run.
+  try {
+    const deployState = await pollDeploy(sess.netlifyToken, site.id);
+    if (deployState === 'error') {
+      return fail(
+        'The first build failed on Netlify. Open your Netlify dashboard to see the build log.',
+        'deploy',
+      );
+    }
+  } catch {
+    /* ignore — deploy verification is non-blocking */
+  }
+  await advance('deploy', 'done');
 
   // (e) Delete transient tokens.
   await advance('cleanup', 'active');

@@ -1,0 +1,255 @@
+---
+import Base from '../layouts/Base.astro';
+import ConnectStep from '../components/ConnectStep.astro';
+import ProgressView from '../components/ProgressView.astro';
+import { ROUTES } from '../config.ts';
+
+// The onboarding flow.
+//
+// This page is static HTML; the client script below drives the multi-step state
+// machine. Each connect button is a link to a route on the provisioning Worker
+// (workers/provision). After GitHub OAuth, the worker redirects back here with
+// ?step=netlify&state=...; after Netlify OAuth, with ?step=provision&state=...
+//
+// IMPORTANT: the worker implements /auth/github, /auth/netlify, and /provision.
+// Those endpoints handle the OAuth dance and store transient tokens in KV keyed
+// by the signed `state`. This page only ever holds the opaque `state` value.
+---
+
+<Base title="Start your portfolio — Easel" description="Connect GitHub and Netlify, name your site, and Easel builds your portfolio.">
+  <section class="section start">
+    <div class="container start__inner">
+      <header class="start__head">
+        <p class="eyebrow">Get started</p>
+        <h1>Let's build your portfolio</h1>
+        <p class="start__sub">
+          Three short steps. You will connect two free accounts and pick a name —
+          Easel does the rest. Nothing is charged and nothing is hosted by us.
+        </p>
+      </header>
+
+      <ConnectStep step={1} title="Connect GitHub" state="active" shape="square">
+        <p>
+          GitHub is the free home for your site's files. We ask for the minimum:
+          permission to create one public repository for your portfolio.
+        </p>
+        <a id="btn-github" class="btn btn--primary" href={ROUTES.authGithub}>
+          Connect GitHub
+        </a>
+        <p class="start__hint">No GitHub account yet? You can create one for free during this step.</p>
+      </ConnectStep>
+
+      <ConnectStep step={2} title="Name your site and connect Netlify" state="todo" shape="circle">
+        <label class="field">
+          <span class="field__label">Site name</span>
+          <input id="site-name" type="text" placeholder="e.g. mira-okonkwo" autocomplete="off" />
+          <span class="field__help">Lowercase letters, numbers and dashes. This becomes your site address.</span>
+        </label>
+        <a id="btn-netlify" class="btn btn--primary" href="#" aria-disabled="true">
+          Connect Netlify
+        </a>
+        <p class="start__hint">Netlify (also free) builds your site and serves it to visitors.</p>
+      </ConnectStep>
+
+      <ConnectStep step={3} title="Build your site" state="todo" shape="triangle">
+        <p id="provision-intro">
+          Everything is connected. When you start, Easel sets up your repository,
+          your Netlify site, and your editor — this usually takes a couple of minutes.
+        </p>
+        <button id="btn-provision" class="btn btn--accent" type="button">Build my site</button>
+        <div id="provision-progress" hidden>
+          <ProgressView />
+        </div>
+        <p id="provision-error" class="start__error" role="alert" hidden></p>
+      </ConnectStep>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { ROUTES } from '../config.ts';
+
+  type Stage = 'repo' | 'site' | 'deploy' | 'admin' | 'cleanup';
+
+  const params = new URLSearchParams(location.search);
+  // The worker round-trips this opaque, HMAC-signed value through both OAuth hops.
+  const state = params.get('state') ?? sessionStorage.getItem('easel_state') ?? '';
+  if (state) sessionStorage.setItem('easel_state', state);
+  // Which step the worker bounced us back to: 'netlify' after GitHub, 'provision' after Netlify.
+  const returnedStep = params.get('step');
+
+  const stepEls = Array.from(document.querySelectorAll<HTMLElement>('.step'));
+  const setStepState = (n: number, s: 'todo' | 'active' | 'done') => {
+    const el = stepEls.find((e) => e.dataset.step === String(n));
+    if (!el) return;
+    el.classList.remove('step--todo', 'step--active', 'step--done');
+    el.classList.add(`step--${s}`);
+    el.setAttribute('aria-current', s === 'active' ? 'step' : 'false');
+    const badge = el.querySelector<HTMLElement>('[data-role="badge"]');
+    if (badge) badge.textContent = s === 'done' ? 'Done' : s === 'active' ? 'Now' : 'Next';
+  };
+
+  const siteInput = document.querySelector<HTMLInputElement>('#site-name');
+  const netlifyBtn = document.querySelector<HTMLAnchorElement>('#btn-netlify');
+  const provisionBtn = document.querySelector<HTMLButtonElement>('#btn-provision');
+  const progressWrap = document.querySelector<HTMLElement>('#provision-progress');
+  const errorEl = document.querySelector<HTMLElement>('#provision-error');
+
+  const slugify = (v: string) =>
+    v.toLowerCase().trim().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
+
+  // Enable the Netlify button only once a valid name is typed. The state is
+  // carried so the worker can attach the Netlify token to the same session.
+  const refreshNetlifyBtn = () => {
+    if (!siteInput || !netlifyBtn) return;
+    const slug = slugify(siteInput.value);
+    const ok = slug.length >= 3;
+    netlifyBtn.setAttribute('aria-disabled', ok ? 'false' : 'true');
+    if (ok) {
+      sessionStorage.setItem('easel_site_name', slug);
+      const url = new URL(ROUTES.authNetlify);
+      url.searchParams.set('state', state);
+      url.searchParams.set('site', slug);
+      netlifyBtn.href = url.toString();
+    } else {
+      netlifyBtn.removeAttribute('href');
+    }
+  };
+  siteInput?.addEventListener('input', refreshNetlifyBtn);
+
+  // Advance the flow based on where the worker returned us.
+  if (returnedStep === 'netlify') {
+    setStepState(1, 'done');
+    setStepState(2, 'active');
+    const saved = sessionStorage.getItem('easel_site_name');
+    if (saved && siteInput) siteInput.value = saved;
+    refreshNetlifyBtn();
+  } else if (returnedStep === 'provision') {
+    setStepState(1, 'done');
+    setStepState(2, 'done');
+    setStepState(3, 'active');
+  }
+
+  // ---- Provisioning ----
+  const STAGES: Stage[] = ['repo', 'site', 'deploy', 'admin', 'cleanup'];
+
+  const markStage = (stage: Stage, s: 'pending' | 'active' | 'done' | 'error') => {
+    const li = document.querySelector<HTMLElement>(`.progress__item[data-stage="${stage}"]`);
+    if (!li) return;
+    li.dataset.state = s;
+    const sr = li.querySelector<HTMLElement>('.progress__state');
+    if (sr) sr.textContent = s;
+  };
+
+  async function runProvision() {
+    if (!provisionBtn) return;
+    provisionBtn.disabled = true;
+    provisionBtn.textContent = 'Building…';
+    progressWrap?.removeAttribute('hidden');
+    errorEl?.setAttribute('hidden', '');
+
+    const siteName = sessionStorage.getItem('easel_site_name') ?? slugify(siteInput?.value ?? '');
+
+    try {
+      // POST /provision kicks off the 5-step run on the worker. The worker may
+      // return the final result directly, or { jobId } that we poll. We support
+      // both: if a jobId comes back, poll GET /provision?job=...; otherwise the
+      // body is the terminal result.
+      const res = await fetch(ROUTES.provision, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ state, siteName }),
+      });
+      if (!res.ok) throw new Error(`Provisioning failed (${res.status})`);
+      const data = await res.json();
+
+      if (data.jobId) {
+        await pollJob(data.jobId);
+      } else {
+        // Direct result — reflect a completed run in the UI.
+        for (const st of STAGES) markStage(st, 'done');
+        finish(data);
+      }
+    } catch (err) {
+      showError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+    }
+  }
+
+  async function pollJob(jobId: string) {
+    // Simple polling loop. The worker reports the current stage + status until
+    // it reaches a terminal 'done' or 'error' state. (SSE is a future upgrade.)
+    const url = new URL(ROUTES.provision);
+    url.searchParams.set('job', jobId);
+
+    for (let i = 0; i < 120; i++) {
+      await new Promise((r) => setTimeout(r, 2500));
+      const res = await fetch(url.toString());
+      if (!res.ok) continue;
+      const data = await res.json();
+
+      // data.stages: { repo: 'done', site: 'active', ... }
+      if (data.stages) {
+        for (const st of STAGES) {
+          if (data.stages[st]) markStage(st, data.stages[st]);
+        }
+      }
+      if (data.status === 'done') return finish(data);
+      if (data.status === 'error') return showError(data.message ?? 'Provisioning failed.');
+    }
+    showError('This is taking longer than expected. Your site may still be building — check back shortly.');
+  }
+
+  function finish(data: { siteUrl?: string; adminUrl?: string }) {
+    sessionStorage.removeItem('easel_state');
+    sessionStorage.removeItem('easel_site_name');
+    const done = new URL('/start/done/', location.origin);
+    if (data.siteUrl) done.searchParams.set('site', data.siteUrl);
+    if (data.adminUrl) done.searchParams.set('admin', data.adminUrl);
+    location.assign(done.toString());
+  }
+
+  function showError(msg: string) {
+    if (errorEl) {
+      errorEl.textContent = msg;
+      errorEl.removeAttribute('hidden');
+    }
+    const active = document.querySelector<HTMLElement>('.progress__item[data-state="active"]');
+    if (active) active.dataset.state = 'error';
+    if (provisionBtn) {
+      provisionBtn.disabled = false;
+      provisionBtn.textContent = 'Try again';
+    }
+  }
+
+  provisionBtn?.addEventListener('click', runProvision);
+</script>
+
+<style>
+  .start__inner { max-width: 760px; }
+  .start__head { margin-bottom: var(--space-6); }
+  .start__sub { font-size: 1.125rem; max-width: 54ch; color: var(--c-stone); }
+  .start__hint { color: var(--c-stone); font-size: 0.9375rem; margin: var(--space-3) 0 0; }
+  .start__error {
+    margin: var(--space-3) 0 0;
+    border: var(--border);
+    border-left: var(--border-thick);
+    border-left-color: var(--c-red);
+    background: var(--c-white);
+    padding: var(--space-3);
+    color: var(--c-ink);
+  }
+  .field { display: block; margin-bottom: var(--space-4); }
+  .field__label { display: block; font-family: var(--font-display); font-weight: 700; margin-bottom: var(--space-2); }
+  .field input {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 1.0625rem;
+    padding: 0.625rem 0.75rem;
+    border: var(--border);
+    border-radius: var(--radius);
+    background: var(--c-white);
+  }
+  .field__help { display: block; color: var(--c-stone); font-size: 0.875rem; margin-top: var(--space-2); }
+  .btn[aria-disabled='true'] { opacity: 0.5; pointer-events: none; }
+  #provision-progress { margin-top: var(--space-4); }
+</style>

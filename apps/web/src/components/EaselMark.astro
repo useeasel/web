@@ -1,0 +1,35 @@
+---
+// Easel logo mark: the three Bauhaus primitives (red square, blue circle,
+// yellow triangle) resting on an easel — two splayed legs + a crossbar.
+interface Props {
+  size?: number;
+  title?: string;
+}
+const { size = 40, title = 'Easel' } = Astro.props;
+---
+
+<svg
+  width={size}
+  height={size}
+  viewBox="0 0 48 48"
+  role="img"
+  aria-label={title}
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <!-- easel legs + crossbar -->
+  <g stroke="var(--c-ink)" stroke-width="2.5" stroke-linecap="square" fill="none">
+    <line x1="11" y1="6" x2="6" y2="44" />
+    <line x1="37" y1="6" x2="42" y2="44" />
+    <line x1="9.5" y1="32" x2="38.5" y2="32" />
+  </g>
+
+  <!-- the canvas board the primitives sit on -->
+  <rect x="9" y="6" width="30" height="24" fill="var(--c-white)" stroke="var(--c-ink)" stroke-width="2.5" />
+
+  <!-- red square -->
+  <rect x="12.5" y="9.5" width="9" height="9" fill="var(--c-red)" />
+  <!-- blue circle -->
+  <circle cx="31" cy="14" r="4.5" fill="var(--c-blue)" />
+  <!-- yellow triangle -->
+  <polygon points="24,20 30,27 18,27" fill="var(--c-yellow)" />
+</svg>

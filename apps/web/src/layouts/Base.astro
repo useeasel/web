@@ -1,0 +1,115 @@
+---
+import '@fontsource-variable/syne';
+import '@fontsource/space-grotesk/400.css';
+import '@fontsource/space-grotesk/500.css';
+import '@fontsource/space-grotesk/700.css';
+import '../styles/tokens.css';
+import Footer from '../components/Footer.astro';
+import EaselMark from '../components/EaselMark.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Easel — your art deserves a real home',
+  description = 'Easel gives artists a beautiful, fast portfolio site with a friendly editor. Free, no code, hosted on your own Netlify.',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <a class="brand" href="/" aria-label="Easel home">
+          <EaselMark size={34} />
+          <span class="brand__word">Easel</span>
+        </a>
+        <nav class="site-nav" aria-label="Primary">
+          <a href="/how-it-works/">How it works</a>
+          <a href="/#examples">Examples</a>
+          <a href="/#faq">FAQ</a>
+          <a class="btn btn--primary site-nav__cta" href="/start/">Start free</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <Footer />
+
+    <style>
+      .skip-link {
+        position: absolute;
+        left: -999px;
+        top: 0;
+        background: var(--c-ink);
+        color: var(--c-white);
+        padding: var(--space-2) var(--space-3);
+        z-index: 100;
+      }
+      .skip-link:focus { left: var(--space-3); top: var(--space-3); }
+
+      .site-header {
+        border-bottom: var(--border);
+        background: var(--c-paper);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+      .site-header__inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-block: var(--space-3);
+        gap: var(--space-4);
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        text-decoration: none;
+        color: var(--c-ink);
+      }
+      .brand__word {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 1.5rem;
+        letter-spacing: -0.02em;
+      }
+      .site-nav {
+        display: flex;
+        align-items: center;
+        gap: var(--space-4);
+      }
+      .site-nav a {
+        font-family: var(--font-display);
+        font-weight: 600;
+        color: var(--c-ink);
+        text-decoration: none;
+      }
+      .site-nav a:hover { color: var(--c-blue); }
+      .site-nav__cta { color: var(--c-white); }
+      .site-nav__cta:hover { color: var(--c-white); }
+
+      @media (max-width: 720px) {
+        .site-nav a:not(.site-nav__cta) { display: none; }
+      }
+    </style>
+  </body>
+</html>

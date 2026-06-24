@@ -1,0 +1,32 @@
+name = "easel-provision"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+# node_compat not required; we use only WebCrypto + fetch.
+
+# Transient OAuth state + per-run tokens (10-min TTL, deleted on completion).
+# Create with: wrangler kv namespace create EASEL_STATE
+# then paste the returned id below (and a preview_id for `wrangler dev`).
+[[kv_namespaces]]
+binding = "EASEL_STATE"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"          # production namespace id
+preview_id = "REPLACE_WITH_PREVIEW_KV_ID"     # used by `wrangler dev`
+
+[vars]
+# Public origin of the marketing/onboarding site (where we redirect users back to).
+APP_ORIGIN = "https://easel.rosematcha.com"
+# This worker's own public origin (used to build OAuth redirect_uri callbacks).
+WORKER_ORIGIN = "https://provision.easel.rosematcha.com"
+# The shared sveltia-auth relay origin; patched into each new repo's admin config.
+SVELTIA_AUTH_URL = "https://auth.easel.rosematcha.com"
+# GitHub template to generate each artist's repo from.
+TEMPLATE_OWNER = "easel"
+TEMPLATE_REPO = "template"
+
+# ---------------------------------------------------------------------------
+# Secrets — set with `wrangler secret put <NAME>` (never commit these):
+#   GITHUB_OAUTH_CLIENT_ID
+#   GITHUB_OAUTH_CLIENT_SECRET
+#   NETLIFY_OAUTH_CLIENT_ID
+#   NETLIFY_OAUTH_CLIENT_SECRET
+#   STATE_SIGNING_KEY            # long random string for HMAC-signing OAuth state
+# ---------------------------------------------------------------------------

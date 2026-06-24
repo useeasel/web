@@ -1,0 +1,54 @@
+---
+// Example portfolios strip. Placeholder cards — swap in real artist sites once
+// a few are live. Each card is a flat Bauhaus "canvas" with a primitive motif.
+const examples = [
+  { name: 'Mira Okonkwo', medium: 'Oil painting', shape: 'square', tint: 'var(--c-red)' },
+  { name: 'Leon Vance', medium: 'Ceramics', shape: 'circle', tint: 'var(--c-blue)' },
+  { name: 'Saoirse Bell', medium: 'Printmaking', shape: 'triangle', tint: 'var(--c-yellow)' },
+];
+---
+
+<section class="section examples" id="examples">
+  <div class="container">
+    <p class="eyebrow">Made with Easel</p>
+    <h2>Portfolios artists actually want to share</h2>
+    <ul class="examples__grid" role="list">
+      {examples.map((ex) => (
+        <li class="examples__card">
+          <div class="examples__art" style={`--tint:${ex.tint}`} aria-hidden="true">
+            <span class={`shape shape--${ex.shape}`}></span>
+          </div>
+          <div class="examples__meta">
+            <h3>{ex.name}</h3>
+            <p>{ex.medium}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
+    <p class="examples__note">Example layouts. Your site, your work, your name on the door.</p>
+  </div>
+</section>
+
+<style>
+  .examples__grid {
+    list-style: none; margin: var(--space-5) 0 0; padding: 0;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-4);
+  }
+  .examples__card { border: var(--border); background: var(--c-white); }
+  .examples__art {
+    aspect-ratio: 4 / 3;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 28px, rgba(22,22,22,0.05) 28px 29px),
+      var(--c-paper);
+    display: grid; place-items: center;
+    border-bottom: var(--border);
+  }
+  .examples__art .shape--square,
+  .examples__art .shape--circle { width: 72px; height: 72px; background: var(--tint); border: var(--border); }
+  .examples__art .shape--triangle { font-size: 72px; border-bottom-color: var(--tint); }
+  .examples__meta { padding: var(--space-3) var(--space-4); }
+  .examples__meta h3 { margin: 0 0 var(--space-1); }
+  .examples__meta p { margin: 0; color: var(--c-stone); }
+  .examples__note { margin-top: var(--space-4); color: var(--c-stone); }
+</style>

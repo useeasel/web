@@ -1,0 +1,62 @@
+---
+// Feature blocks. Each gets one of the three Bauhaus primitives as its glyph.
+const features = [
+  {
+    shape: 'square',
+    title: 'Drag your photos in',
+    body: 'Upload artwork right in your editor. Title it, price it, mark it sold — no spreadsheets, no file wrangling.',
+  },
+  {
+    shape: 'circle',
+    title: 'Your own Netlify, free',
+    body: 'Your site lives on hosting you own and control. Easel sets it up once, then steps out of the way.',
+  },
+  {
+    shape: 'triangle',
+    title: 'Beautiful and fast',
+    body: 'A clean, gallery-first design that loads instantly and looks right on every screen. Built on Astro.',
+  },
+  {
+    shape: 'square',
+    title: 'No code, ever',
+    body: 'You never touch git, builds, or config. Write and publish like you would in any notes app.',
+  },
+];
+---
+
+<section class="section features">
+  <div class="container">
+    <p class="eyebrow">What you get</p>
+    <h2>Everything an artist needs, nothing they don't</h2>
+    <ul class="features__grid" role="list">
+      {features.map((f) => (
+        <li class="card feature">
+          <span class={`shape shape--${f.shape} feature__glyph`} aria-hidden="true"></span>
+          <h3>{f.title}</h3>
+          <p>{f.body}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .features__grid {
+    list-style: none;
+    margin: var(--space-5) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-4);
+  }
+  .feature { display: flex; flex-direction: column; }
+  .feature__glyph {
+    width: 40px;
+    height: 40px;
+    margin-bottom: var(--space-3);
+  }
+  .feature .shape--triangle {
+    width: 0; height: 0; font-size: 40px;
+  }
+  .feature p { margin: 0; color: var(--c-stone); }
+</style>

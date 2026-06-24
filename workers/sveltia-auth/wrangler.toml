@@ -1,0 +1,18 @@
+name = "easel-sveltia-auth"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+[vars]
+# Optional allowlist of origins permitted to receive the token via postMessage.
+# Comma-separated; supports leading-wildcard subdomains, e.g. "*.netlify.app".
+# Leave empty to trust the origin resolved from the requesting site_id.
+ALLOWED_ORIGINS = "*.netlify.app"
+
+# ---------------------------------------------------------------------------
+# Secrets — set with `wrangler secret put <NAME>` (never commit these):
+#   SVELTIA_GITHUB_CLIENT_ID       # a dedicated GitHub OAuth app for the editor
+#   SVELTIA_GITHUB_CLIENT_SECRET
+#
+# The GitHub OAuth app's "Authorization callback URL" must be this worker's
+# /callback route, e.g. https://auth.easel.rosematcha.com/callback
+# ---------------------------------------------------------------------------

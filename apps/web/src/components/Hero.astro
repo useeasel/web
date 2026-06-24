@@ -1,0 +1,89 @@
+---
+import EaselMark from './EaselMark.astro';
+interface Props {
+  headline?: string;
+  sub?: string;
+}
+const {
+  headline = 'Your art deserves a real home',
+  sub = 'Easel gives you a beautiful portfolio site and a friendly editor — drag your photos in, write a little, publish. No code, ever. Free, on hosting you own.',
+} = Astro.props;
+---
+
+<section class="hero">
+  <div class="container hero__inner">
+    <div class="hero__copy">
+      <p class="eyebrow">A portfolio for artists</p>
+      <h1>{headline}</h1>
+      <p class="hero__sub">{sub}</p>
+      <div class="hero__actions">
+        <a class="btn btn--primary" href="/start/">Start free</a>
+        <a class="btn btn--ghost" href="/how-it-works/">See how it works</a>
+      </div>
+      <p class="hero__note">Two clicks to a live site. You keep your GitHub and Netlify.</p>
+    </div>
+
+    <div class="hero__art" aria-hidden="true">
+      <div class="hero__mark"><EaselMark size={120} title="" /></div>
+      <span class="shape shape--square hero__s1"></span>
+      <span class="shape shape--circle hero__s2"></span>
+      <span class="shape shape--triangle hero__s3"></span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    border-bottom: var(--border);
+    background:
+      repeating-linear-gradient(
+        45deg,
+        transparent 0 22px,
+        rgba(22, 22, 22, 0.03) 22px 23px
+      ),
+      var(--c-paper);
+  }
+  .hero__inner {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: var(--space-6);
+    align-items: center;
+    padding-block: var(--space-7);
+  }
+  .hero__sub {
+    font-size: 1.25rem;
+    max-width: 38ch;
+    color: var(--c-ink);
+  }
+  .hero__actions {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    margin-block: var(--space-4) var(--space-3);
+  }
+  .hero__note {
+    color: var(--c-stone);
+    font-size: 0.9375rem;
+    margin: 0;
+  }
+
+  .hero__art {
+    position: relative;
+    min-height: 280px;
+  }
+  .hero__mark {
+    border: var(--border-thick);
+    background: var(--c-white);
+    padding: var(--space-5);
+    display: inline-flex;
+    width: fit-content;
+  }
+  .hero__s1 { position: absolute; width: 56px; height: 56px; right: 8px; top: -18px; border: var(--border); }
+  .hero__s2 { position: absolute; width: 64px; height: 64px; right: -16px; bottom: 24px; border: var(--border); }
+  .hero__s3 { position: absolute; font-size: 56px; left: -20px; bottom: -10px; }
+
+  @media (max-width: 900px) {
+    .hero__inner { grid-template-columns: 1fr; }
+    .hero__art { display: none; }
+  }
+</style>

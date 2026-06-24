@@ -1,0 +1,109 @@
+---
+import Base from '../../layouts/Base.astro';
+import EaselMark from '../../components/EaselMark.astro';
+
+// Success screen. The live site + admin URLs are passed as query params by the
+// provisioning flow (?site=...&admin=...). We read them on the client because
+// this is a static page.
+---
+
+<Base title="Your site is live — Easel" description="Your Easel portfolio is live. Start adding your work.">
+  <section class="section done">
+    <div class="container done__inner">
+      <div class="done__mark"><EaselMark size={88} title="" /></div>
+      <p class="eyebrow">All set</p>
+      <h1>Your portfolio is live</h1>
+      <p class="done__sub">
+        Easel created your repository, built your site, and set up your editor.
+        Everything from here lives on accounts you own.
+      </p>
+
+      <div class="done__actions">
+        <a id="link-site" class="btn btn--primary" href="#" target="_blank" rel="noopener">
+          View your live site
+        </a>
+        <a id="link-admin" class="btn btn--accent" href="#" target="_blank" rel="noopener">
+          Edit your site (/admin)
+        </a>
+      </div>
+
+      <ol class="done__next" role="list">
+        <li><strong>Open your editor</strong> and sign in with the GitHub account you connected.</li>
+        <li><strong>Add a few works</strong> — drag in photos, give them titles and prices.</li>
+        <li><strong>Hit save.</strong> Each save publishes a fresh version of your site automatically.</li>
+      </ol>
+
+      <p class="done__help">
+        Want a custom domain like your-name.com? You can add it from Netlify any time —
+        see <a href="/how-it-works/">how it works</a>.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const site = params.get('site');
+  const admin = params.get('admin');
+
+  const siteLink = document.querySelector<HTMLAnchorElement>('#link-site');
+  const adminLink = document.querySelector<HTMLAnchorElement>('#link-admin');
+
+  if (site && siteLink) siteLink.href = site;
+  else siteLink?.setAttribute('aria-disabled', 'true');
+
+  // Default admin URL is the live site + /admin if not explicitly provided.
+  const adminHref = admin ?? (site ? `${site.replace(/\/$/, '')}/admin/` : null);
+  if (adminHref && adminLink) adminLink.href = adminHref;
+  else adminLink?.setAttribute('aria-disabled', 'true');
+</script>
+
+<style>
+  .done__inner { max-width: 680px; text-align: center; margin-inline: auto; }
+  .done__mark {
+    display: inline-flex;
+    border: var(--border-thick);
+    background: var(--c-white);
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+  .done__sub { font-size: 1.25rem; color: var(--c-stone); max-width: 48ch; margin-inline: auto; }
+  .done__actions {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-block: var(--space-5);
+  }
+  .done__next {
+    text-align: left;
+    list-style: none;
+    counter-reset: step;
+    margin: var(--space-5) auto 0;
+    padding: 0;
+    max-width: 520px;
+    display: grid;
+    gap: var(--space-3);
+  }
+  .done__next li {
+    counter-increment: step;
+    border: var(--border);
+    background: var(--c-white);
+    padding: var(--space-3) var(--space-3) var(--space-3) var(--space-6);
+    position: relative;
+  }
+  .done__next li::before {
+    content: counter(step);
+    position: absolute;
+    left: var(--space-3);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px; height: 28px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--c-blue); color: var(--c-white);
+    font-family: var(--font-display); font-weight: 800;
+    border: var(--border);
+  }
+  .done__help { margin-top: var(--space-5); color: var(--c-stone); }
+  .btn[aria-disabled='true'] { opacity: 0.5; pointer-events: none; }
+</style>

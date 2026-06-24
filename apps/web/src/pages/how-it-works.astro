@@ -1,0 +1,101 @@
+---
+import Base from '../layouts/Base.astro';
+import Faq from '../components/Faq.astro';
+
+const steps = [
+  {
+    shape: 'square',
+    title: 'Connect GitHub',
+    body: 'One click connects your free GitHub account. This is where your site files live. Easel uses a one-time, minimal-permission connection — it can create one public repository for you and nothing else.',
+  },
+  {
+    shape: 'circle',
+    title: 'Name your site and connect Netlify',
+    body: 'Pick a name, then connect Netlify (also free) in one click. Netlify is what builds your site and serves it to the world, fast.',
+  },
+  {
+    shape: 'triangle',
+    title: 'Easel builds it for you',
+    body: 'Easel copies the portfolio template into your GitHub, creates your Netlify site, runs the first build, and wires up your editor. You watch a short progress bar — no terminal, no config.',
+  },
+  {
+    shape: 'square',
+    title: 'Edit at /admin and publish',
+    body: 'Open your editor at yoursite/admin, drag in artwork, write your bio, hit save. Every save publishes a new version of your live site automatically.',
+  },
+];
+---
+
+<Base title="How Easel works" description="From landing page to a live portfolio in two clicks. Here is exactly what happens behind the scenes.">
+  <section class="section how-hero">
+    <div class="container">
+      <p class="eyebrow">How it works</p>
+      <h1>From zero to a live portfolio, without touching code</h1>
+      <p class="how-hero__sub">
+        Easel never hosts your work. It sets everything up on accounts you own, then
+        steps out of the way. Here is the whole flow.
+      </p>
+    </div>
+  </section>
+
+  <section class="section how-steps">
+    <div class="container">
+      <ol class="how-steps__list" role="list">
+        {steps.map((s, i) => (
+          <li class="how-step">
+            <span class={`how-step__num shape--${s.shape}`} aria-hidden="true">{i + 1}</span>
+            <div>
+              <h2>{s.title}</h2>
+              <p>{s.body}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <div class="how-steps__cta">
+        <a class="btn btn--primary" href="/start/">Start free</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section how-own">
+    <div class="container card how-own__card">
+      <h2>What you own at the end</h2>
+      <ul role="list" class="how-own__grid">
+        <li><strong>Your GitHub repository</strong> — every word and image, version-controlled and exportable.</li>
+        <li><strong>Your Netlify site</strong> — on your account, on the free tier, ready for a custom domain.</li>
+        <li><strong>Your editor</strong> — a friendly /admin that publishes the moment you save.</li>
+      </ul>
+      <p class="how-own__note">
+        If Easel ever disappeared, your site would keep running exactly as it is.
+      </p>
+    </div>
+  </section>
+
+  <Faq />
+</Base>
+
+<style>
+  .how-hero { border-bottom: var(--border); }
+  .how-hero__sub { font-size: 1.25rem; max-width: 52ch; }
+
+  .how-steps__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-5); max-width: 760px; }
+  .how-step { display: flex; gap: var(--space-4); align-items: flex-start; }
+  .how-step__num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 52px; height: 52px; flex: none;
+    font-family: var(--font-display); font-weight: 800; font-size: 1.5rem;
+    color: var(--c-white); border: var(--border);
+  }
+  .how-step__num.shape--square { background: var(--c-red); }
+  .how-step__num.shape--circle { background: var(--c-blue); border-radius: 50%; }
+  .how-step__num.shape--triangle { background: var(--c-yellow); color: var(--c-ink); }
+  .how-step h2 { font-size: 1.5rem; margin-bottom: var(--space-2); }
+  .how-step p { margin: 0; color: var(--c-stone); }
+  .how-steps__cta { margin-top: var(--space-6); }
+
+  .how-own__card { max-width: 760px; }
+  .how-own__grid { list-style: none; margin: var(--space-4) 0; padding: 0; display: grid; gap: var(--space-3); }
+  .how-own__grid li { border-left: var(--border-thick); padding-left: var(--space-3); }
+  .how-own__note { margin: 0; color: var(--c-stone); }
+</style>

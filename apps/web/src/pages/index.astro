@@ -1,0 +1,42 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import FeatureGrid from '../components/FeatureGrid.astro';
+import ExamplesStrip from '../components/ExamplesStrip.astro';
+import Faq from '../components/Faq.astro';
+---
+
+<Base>
+  <Hero />
+  <FeatureGrid />
+  <ExamplesStrip />
+
+  <section class="section cta-band">
+    <div class="container cta-band__inner">
+      <div>
+        <h2>Ready when you are</h2>
+        <p>Two clicks, no code, no card. Your portfolio can be live in a few minutes.</p>
+      </div>
+      <a class="btn btn--accent" href="/start/">Start free</a>
+    </div>
+  </section>
+
+  <Faq />
+</Base>
+
+<style>
+  .cta-band {
+    background: var(--c-blue);
+    color: var(--c-white);
+    border-block: var(--border);
+  }
+  .cta-band__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+  .cta-band h2 { color: var(--c-white); margin-bottom: var(--space-2); }
+  .cta-band p { margin: 0; color: var(--c-paper); max-width: 46ch; }
+</style>

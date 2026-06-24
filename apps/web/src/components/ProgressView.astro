@@ -1,0 +1,54 @@
+---
+// Provisioning progress checklist. The five steps mirror POST /provision in
+// workers/provision. The client script in /start.astro flips each row's state
+// as the worker reports progress (polling).
+const steps = [
+  { id: 'repo', label: 'Creating your GitHub repository from the Easel template' },
+  { id: 'site', label: 'Setting up your Netlify site and contact form' },
+  { id: 'deploy', label: 'Building and deploying your site for the first time' },
+  { id: 'admin', label: 'Wiring up your /admin editor login' },
+  { id: 'cleanup', label: 'Cleaning up — removing the temporary access we used' },
+];
+---
+
+<div class="progress" role="status" aria-live="polite">
+  <ul class="progress__list" role="list">
+    {steps.map((s) => (
+      <li class="progress__item" data-stage={s.id} data-state="pending">
+        <span class="progress__dot" aria-hidden="true"></span>
+        <span class="progress__label">{s.label}</span>
+        <span class="progress__state visually-hidden">pending</span>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<style>
+  .progress__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+  .progress__item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    border: var(--border);
+    background: var(--c-white);
+    padding: var(--space-3);
+  }
+  .progress__dot {
+    width: 22px; height: 22px; flex: none;
+    border: var(--border);
+    background: var(--c-paper);
+  }
+  .progress__item[data-state='active'] .progress__dot {
+    background: var(--c-yellow);
+    animation: pulse 1s ease-in-out infinite;
+  }
+  .progress__item[data-state='done'] .progress__dot { background: var(--c-blue); border-radius: 50%; }
+  .progress__item[data-state='error'] .progress__dot { background: var(--c-red); }
+  .progress__item[data-state='pending'] .progress__label { color: var(--c-stone); }
+  .progress__label { font-weight: 500; }
+
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(0.8); } }
+  @media (prefers-reduced-motion: reduce) {
+    .progress__item[data-state='active'] .progress__dot { animation: none; }
+  }
+</style>

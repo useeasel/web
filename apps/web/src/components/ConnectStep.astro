@@ -1,0 +1,68 @@
+---
+// A single step in the onboarding flow. Renders a numbered, bordered card with
+// a status state (todo | active | done) and a slot for the step's controls.
+interface Props {
+  step: number;
+  title: string;
+  state?: 'todo' | 'active' | 'done';
+  shape?: 'square' | 'circle' | 'triangle';
+}
+const { step, title, state = 'todo', shape = 'square' } = Astro.props;
+---
+
+<section class={`step step--${state}`} data-step={step} aria-current={state === 'active' ? 'step' : undefined}>
+  <div class="step__head">
+    <span class={`step__num shape--${shape}`} aria-hidden="true">{step}</span>
+    <h2 class="step__title">{title}</h2>
+    <span class="step__badge" data-role="badge">{state === 'done' ? 'Done' : state === 'active' ? 'Now' : 'Next'}</span>
+  </div>
+  <div class="step__body">
+    <slot />
+  </div>
+</section>
+
+<style>
+  .step {
+    border: var(--border);
+    background: var(--c-white);
+    margin-bottom: var(--space-4);
+  }
+  .step--todo { opacity: 0.55; }
+  .step--active { border: var(--border-thick); }
+  .step__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: var(--border);
+  }
+  .step__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    flex: none;
+    font-family: var(--font-display);
+    font-weight: 800;
+    color: var(--c-white);
+    border: var(--border);
+  }
+  .step__num.shape--square { background: var(--c-red); }
+  .step__num.shape--circle { background: var(--c-blue); border-radius: 50%; }
+  .step__num.shape--triangle { background: var(--c-yellow); color: var(--c-ink); }
+  .step__title { margin: 0; font-size: 1.375rem; flex: 1; }
+  .step__badge {
+    font-family: var(--font-body);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.6875rem;
+    border: var(--border);
+    padding: 0.15rem 0.5rem;
+  }
+  .step--done .step__badge { background: var(--c-blue); color: var(--c-white); }
+  .step--active .step__badge { background: var(--c-yellow); }
+  .step__body { padding: var(--space-4); }
+  .step--todo .step__body { display: none; }
+</style>

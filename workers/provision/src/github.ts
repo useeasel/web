@@ -140,12 +140,9 @@ export async function generateRepoFromTemplate(
 }
 
 /**
- * Step (d): patch the new repo's `public/admin/config.yml` so Sveltia points at
- * the artist's own repo and our shared sveltia-auth relay.
- *
- * Implementation: read the existing file (for its blob sha), rewrite the
- * `backend.repo` and `backend.base_url` lines (replacing the shipped
- * REPLACED_AT_PROVISION placeholder), and PUT it back as a commit.
+ * Step (d): patch the new repo's `public/admin/config.json` so the Easel editor
+ * points at the artist's own repo and our shared auth relay (replacing the
+ * shipped REPLACED_AT_PROVISION placeholder).
  */
 export async function patchAdminConfig(
   token: string,
@@ -153,30 +150,37 @@ export async function patchAdminConfig(
     owner: string;
     repo: string;
     branch: string;
-    /** Full https URL of the sveltia-auth worker, e.g. https://auth.easel.rosematcha.com */
+    /** Full https URL of the auth worker, e.g. https://auth.easel.rosematcha.com */
     authBaseUrl: string;
   },
 ): Promise<void> {
-  const path = 'public/admin/config.yml';
+  const path = 'public/admin/config.json';
   const fileUrl = `${GH_API}/repos/${opts.owner}/${opts.repo}/contents/${path}?ref=${opts.branch}`;
 
   const getRes = await fetch(fileUrl, { headers: authHeaders(token) });
   if (!getRes.ok) {
     // If the template lacks the file yet, skip rather than fail the whole run.
     if (getRes.status === 404) return;
-    throw new Error(`read config.yml failed (${getRes.status})`);
+    throw new Error(`read config.json failed (${getRes.status})`);
   }
-  const file = (await getRes.json()) as { content: string; sha: string; encoding: string };
-  const current = decodeBase64(file.content);
-  // Point the editor at the artist's own repo, then at our shared auth relay.
-  const updated = setBaseUrl(setRepo(current, `${opts.owner}/${opts.repo}`), opts.authBaseUrl);
-  if (updated === current) return; // already correct — no commit needed
+  const file = (await getRes.json()) as { content: string; sha: string };
+
+  let cfg: Record<string, unknown> = {};
+  try {
+    cfg = JSON.parse(decodeBase64(file.content));
+  } catch {
+    /* corrupt/empty — overwrite with a fresh config */
+  }
+  cfg.repo = `${opts.owner}/${opts.repo}`;
+  cfg.branch = opts.branch;
+  cfg.authBaseUrl = opts.authBaseUrl;
+  const updated = JSON.stringify(cfg, null, 2) + '\n';
 
   const putRes = await fetch(`${GH_API}/repos/${opts.owner}/${opts.repo}/contents/${path}`, {
     method: 'PUT',
     headers: authHeaders(token),
     body: JSON.stringify({
-      message: 'chore(easel): wire Sveltia to this repo and the shared auth relay',
+      message: 'chore(easel): point the editor at this repo and the auth relay',
       content: encodeBase64(updated),
       sha: file.sha,
       branch: opts.branch,
@@ -184,26 +188,8 @@ export async function patchAdminConfig(
   });
   if (!putRes.ok) {
     const body = await putRes.text();
-    throw new Error(`write config.yml failed (${putRes.status}): ${body}`);
+    throw new Error(`write config.json failed (${putRes.status}): ${body}`);
   }
-}
-
-/** Rewrite the `repo:` line under the `backend:` block to `owner/repo`. */
-function setRepo(yaml: string, ownerRepo: string): string {
-  if (/^\s*repo:\s*.*$/m.test(yaml)) {
-    return yaml.replace(/^(\s*)repo:\s*.*$/m, `$1repo: ${ownerRepo}`);
-  }
-  // Insert right after the `backend:` line if no repo line exists.
-  return yaml.replace(/^(\s*)backend:\s*$/m, `$1backend:\n$1  repo: ${ownerRepo}`);
-}
-
-/** Rewrite (or insert) `base_url:` under the `backend:` block. */
-function setBaseUrl(yaml: string, baseUrl: string): string {
-  if (/^\s*base_url:\s*.*$/m.test(yaml)) {
-    return yaml.replace(/^(\s*)base_url:\s*.*$/m, `$1base_url: ${baseUrl}`);
-  }
-  // Insert right after the `backend:` line, preserving its indentation + 2.
-  return yaml.replace(/^(\s*)backend:\s*$/m, `$1backend:\n$1  base_url: ${baseUrl}`);
 }
 
 function decodeBase64(b64: string): string {

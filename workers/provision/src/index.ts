@@ -39,7 +39,6 @@ import {
   exchangeNetlifyCode,
   createSite,
   triggerBuild,
-  getLatestDeployState,
 } from './netlify';
 
 export interface Env {
@@ -313,12 +312,13 @@ async function runProvisionJob(
     return fail(e instanceof Error ? e.message : 'site_failed', 'site');
   }
 
-  // (c) Netlify: trigger first deploy + poll until ready (cap the wait).
+  // (c) Netlify: trigger the first build. We DON'T wait for it to finish — that
+  // build runs on Netlify's own schedule (the done page says it may still be
+  // building). Waiting here made the waitUntil job long enough to get evicted
+  // before stages (d)/(e) ran, leaving /admin unconfigured. Kick it off and move on.
   await advance('deploy', 'active');
   try {
     await triggerBuild(sess.netlifyToken, site.id);
-    await pollDeploy(sess.netlifyToken, site.id, 60_000);
-    // Soft-pass even if still building — the artist can proceed; it finishes shortly.
     await advance('deploy', 'done');
   } catch (e) {
     return fail(e instanceof Error ? e.message : 'deploy_failed', 'deploy');
@@ -347,16 +347,4 @@ async function runProvisionJob(
   job.adminUrl = `${site.url.replace(/\/$/, '')}/admin/`;
   job.repoUrl = repo.htmlUrl;
   await setJob(env, state, job);
-}
-
-/** Poll the latest deploy until ready or timeout. Returns true if ready. */
-async function pollDeploy(token: string, siteId: string, budgetMs: number): Promise<boolean> {
-  const deadline = Date.now() + budgetMs;
-  while (Date.now() < deadline) {
-    const state = await getLatestDeployState(token, siteId);
-    if (state === 'ready') return true;
-    if (state === 'error') throw new Error('Netlify deploy failed');
-    await new Promise((r) => setTimeout(r, 3000));
-  }
-  return false;
 }

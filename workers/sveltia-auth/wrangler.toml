@@ -2,6 +2,12 @@ name = "easel-sveltia-auth"
 main = "src/index.ts"
 compatibility_date = "2024-11-01"
 
+# Custom domain. With custom_domain=true, `wrangler deploy` provisions the route
+# AND auto-creates the DNS record in the rosematcha.com Cloudflare zone.
+[[routes]]
+pattern = "auth.easel.rosematcha.com"
+custom_domain = true
+
 [vars]
 # Optional allowlist of origins permitted to receive the token via postMessage.
 # Comma-separated; supports leading-wildcard subdomains, e.g. "*.netlify.app".

@@ -17,4 +17,5 @@ export const ROUTES = {
   authGithub: `${PROVISION_BASE}/auth/github`,
   authNetlify: `${PROVISION_BASE}/auth/netlify`,
   provision: `${PROVISION_BASE}/provision`,
+  session: `${PROVISION_BASE}/session`,
 };

@@ -29,6 +29,7 @@ import { ROUTES } from '../config.ts';
         <p id="start-over-wrap" class="start__over" hidden>
           Connected the wrong account? <button type="button" id="btn-start-over" class="linklike">Start over</button>.
         </p>
+        <p id="connect-error" class="start__error" role="alert" hidden></p>
       </header>
 
       <ConnectStep step={1} title="Connect GitHub" state="active" shape="square">
@@ -88,8 +89,9 @@ import { ROUTES } from '../config.ts';
   const state = params.get('state') ?? sessionStorage.getItem('easel_state') ?? '';
   if (state) sessionStorage.setItem('easel_state', state);
 
-  // Record progress from the worker's return hop, then drive the whole UI from
-  // sessionStorage so a refresh or back-button keeps the steps you completed.
+  // Record progress from the worker's return hop. These flags give the UI an
+  // instant, optimistic render; the worker is the real source of truth and we
+  // reconcile against it below (see reconcile()).
   // 'netlify' = GitHub just connected; 'provision' = Netlify just connected.
   const returnedStep = params.get('step');
   if (returnedStep === 'netlify' || returnedStep === 'provision') {
@@ -99,13 +101,28 @@ import { ROUTES } from '../config.ts';
   }
   if (returnedStep === 'provision') sessionStorage.setItem('easel_nf', '1');
 
-  // Drop the signed state + step out of the address bar now that they're stored.
-  if (returnedStep || params.get('state')) {
-    history.replaceState(null, '', location.pathname);
+  // The worker reports OAuth failures by redirecting to /start?error=<reason>.
+  // Surface them instead of leaving the artist staring at a button that "did
+  // nothing." A failed hop means that account isn't connected — clear its flag.
+  const errorReason = params.get('error');
+  const ERROR_COPY: Record<string, string> = {
+    github_state: "We couldn't verify that GitHub sign-in. Please connect GitHub again.",
+    github_required: 'Connect GitHub first, then Netlify.',
+    netlify_state: "We couldn't verify that Netlify sign-in. Please connect Netlify again.",
+  };
+  if (errorReason) {
+    if (errorReason.startsWith('github')) {
+      sessionStorage.removeItem('easel_gh');
+      sessionStorage.removeItem('easel_gh_login');
+    }
+    if (errorReason.startsWith('netlify')) sessionStorage.removeItem('easel_nf');
   }
 
-  const ghDone = sessionStorage.getItem('easel_gh') === '1';
-  const nfDone = sessionStorage.getItem('easel_nf') === '1';
+  // Drop the signed state + step + error out of the address bar now that they're
+  // captured, so a refresh doesn't replay them.
+  if (returnedStep || params.get('state') || errorReason) {
+    history.replaceState(null, '', location.pathname);
+  }
 
   const stepEls = Array.from(document.querySelectorAll<HTMLElement>('.step'));
   const setStepState = (n: number, s: 'todo' | 'active' | 'done') => {
@@ -128,6 +145,7 @@ import { ROUTES } from '../config.ts';
   const netlifyConnected = document.querySelector<HTMLElement>('#netlify-connected');
   const startOverWrap = document.querySelector<HTMLElement>('#start-over-wrap');
   const startOverBtn = document.querySelector<HTMLButtonElement>('#btn-start-over');
+  const connectError = document.querySelector<HTMLElement>('#connect-error');
 
   // Point the Netlify connect button at the worker, carrying the session state so
   // the worker attaches the Netlify token to the same run. No site name needed —
@@ -151,27 +169,83 @@ import { ROUTES } from '../config.ts';
     location.replace(location.pathname);
   });
 
-  // Reconcile the whole UI from stored progress, so completed steps stay marked
-  // done (with a clear confirmation) and the active step is always obvious.
-  if (ghDone || nfDone) startOverWrap?.removeAttribute('hidden');
+  // Paint the whole connect UI from a known connection state. Idempotent — it
+  // sets every element for both the connected and not-connected case, so it can
+  // run optimistically first and then again with the worker's authoritative
+  // answer without leaving stale bits behind.
+  const render = (gh: boolean, nf: boolean, login: string | null) => {
+    startOverWrap?.toggleAttribute('hidden', !(gh || nf));
 
-  if (ghDone) {
-    setStepState(1, 'done');
-    githubBtn?.setAttribute('hidden', '');
-    githubConnected?.removeAttribute('hidden');
-    const login = sessionStorage.getItem('easel_gh_login');
-    if (login && githubLoginEl) githubLoginEl.textContent = ` as @${login}`;
-  }
-  if (ghDone && !nfDone) {
-    setStepState(2, 'active');
-    enableNetlifyBtn();
-  }
-  if (nfDone) {
-    setStepState(2, 'done');
-    netlifyBtn?.setAttribute('hidden', '');
-    netlifyConnected?.removeAttribute('hidden');
-    setStepState(3, 'active');
-  }
+    // Step 1 — GitHub
+    setStepState(1, gh ? 'done' : 'active');
+    githubBtn?.toggleAttribute('hidden', gh);
+    githubConnected?.toggleAttribute('hidden', !gh);
+    if (githubLoginEl) githubLoginEl.textContent = gh && login ? ` as @${login}` : '';
+
+    // Step 2 — Netlify
+    netlifyConnected?.toggleAttribute('hidden', !nf);
+    netlifyBtn?.toggleAttribute('hidden', nf);
+    if (nf) {
+      setStepState(2, 'done');
+    } else if (gh) {
+      setStepState(2, 'active');
+      enableNetlifyBtn();
+    } else {
+      setStepState(2, 'todo');
+      netlifyBtn?.setAttribute('aria-disabled', 'true');
+    }
+
+    // Step 3 — Build
+    setStepState(3, nf ? 'active' : 'todo');
+  };
+
+  const showConnectError = (reason: string) => {
+    if (!connectError) return;
+    connectError.textContent =
+      ERROR_COPY[reason] ?? 'Something went wrong connecting that account. Please try again.';
+    connectError.removeAttribute('hidden');
+  };
+
+  // Optimistic first paint from the just-returned step / stored flags, so the
+  // page is responsive immediately even before the worker confirms.
+  render(
+    sessionStorage.getItem('easel_gh') === '1',
+    sessionStorage.getItem('easel_nf') === '1',
+    sessionStorage.getItem('easel_gh_login'),
+  );
+  if (errorReason) showConnectError(errorReason);
+
+  // Reconcile against the worker — the real source of truth. KV tokens expire
+  // after 10 minutes, and sessionStorage flags can outlive them (reload, back
+  // button, session-restore). If the worker says a token is gone, downgrade the
+  // UI so we never claim "connected" when a build would fail.
+  const reconcile = async () => {
+    if (!state) {
+      // No run in progress — make sure nothing stale is showing.
+      resetFlow();
+      render(false, false, null);
+      return;
+    }
+    try {
+      const url = new URL(ROUTES.session);
+      url.searchParams.set('state', state);
+      const res = await fetch(url.toString());
+      if (!res.ok) return; // keep the optimistic view; transient worker hiccup
+      const s = (await res.json()) as { github?: boolean; netlify?: boolean; githubLogin?: string | null };
+      const gh = !!s.github;
+      const nf = !!s.netlify;
+      // Persist the corrected truth so the next paint/refresh starts accurate.
+      if (gh) sessionStorage.setItem('easel_gh', '1');
+      else { sessionStorage.removeItem('easel_gh'); sessionStorage.removeItem('easel_gh_login'); }
+      if (nf) sessionStorage.setItem('easel_nf', '1');
+      else sessionStorage.removeItem('easel_nf');
+      if (s.githubLogin) sessionStorage.setItem('easel_gh_login', s.githubLogin);
+      render(gh, nf, s.githubLogin ?? sessionStorage.getItem('easel_gh_login'));
+    } catch {
+      // Network error — leave the optimistic view in place.
+    }
+  };
+  void reconcile();
 
   // ---- Provisioning ----
   const STAGES: Stage[] = ['repo', 'site', 'deploy', 'admin', 'cleanup'];

@@ -169,6 +169,28 @@ export default {
         return redirectToStart(env, 'provision', state);
       }
 
+      // ---- Session status ----
+      // The /start UI calls this on load to reconcile its sessionStorage flags
+      // against the real, server-side truth: which tokens still live in KV for
+      // this run. KV entries carry a 10-minute TTL, so a flag the browser kept
+      // from a prior visit (reload, back-button, or session-restore) is only
+      // trusted if the worker confirms the token is actually still here.
+      if (pathname === '/session' && request.method === 'GET') {
+        const state = url.searchParams.get('state') ?? '';
+        if (!state || !(await verifyState(state, env.STATE_SIGNING_KEY))) {
+          return json({ github: false, netlify: false, githubLogin: null }, env);
+        }
+        const sess = await loadSession(env.EASEL_STATE, state);
+        return json(
+          {
+            github: !!sess?.githubToken,
+            netlify: !!sess?.netlifyToken,
+            githubLogin: sess?.githubLogin ?? null,
+          },
+          env,
+        );
+      }
+
       // ---- Step 3: Provision ----
       // POST starts the run in the background and returns a jobId immediately;
       // the client polls GET /provision?job=<id> for live per-stage progress.

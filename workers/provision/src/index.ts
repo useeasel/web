@@ -94,7 +94,7 @@ function redirectToStartError(env: Env, reason: string): Response {
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const { pathname } = url;
 
@@ -170,8 +170,16 @@ export default {
       }
 
       // ---- Step 3: Provision ----
+      // POST starts the run in the background and returns a jobId immediately;
+      // the client polls GET /provision?job=<id> for live per-stage progress.
       if (pathname === '/provision' && request.method === 'POST') {
-        return await handleProvision(request, env);
+        return await startProvision(request, env, ctx);
+      }
+      if (pathname === '/provision' && request.method === 'GET') {
+        const jobId = url.searchParams.get('job') ?? '';
+        const job = await env.EASEL_STATE.get(`job:${jobId}`, 'json');
+        if (!job) return json({ status: 'unknown' }, env, 404);
+        return json(job, env);
       }
 
       return json({ error: 'not_found' }, env, 404);
@@ -182,88 +190,120 @@ export default {
   },
 };
 
+interface JobRecord {
+  status: 'running' | 'done' | 'error';
+  stages: Record<string, StageState>;
+  message?: string;
+  siteUrl?: string;
+  adminUrl?: string;
+  repoUrl?: string;
+}
+
+const JOB_TTL = 900; // 15 minutes
+
+async function setJob(env: Env, jobId: string, job: JobRecord): Promise<void> {
+  await env.EASEL_STATE.put(`job:${jobId}`, JSON.stringify(job), { expirationTtl: JOB_TTL });
+}
+
 /**
- * Run the five provisioning steps synchronously and return the terminal result.
- * The /start UI accepts a direct result (no jobId), so we return one. (A future
- * upgrade can move this to a Durable Object / queue + polling for long deploys.)
+ * Start a provisioning run in the background and return a jobId immediately. The
+ * actual work runs in ctx.waitUntil() and reports per-stage progress to KV, which
+ * the /start UI polls via GET /provision?job=<id> to keep the artist in the loop.
  */
-async function handleProvision(request: Request, env: Env): Promise<Response> {
+async function startProvision(
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext,
+): Promise<Response> {
   const { state } = (await request.json().catch(() => ({}))) as { state?: string };
   if (!state || !(await verifyState(state, env.STATE_SIGNING_KEY))) {
     return json({ status: 'error', message: 'invalid_state' }, env, 400);
   }
-
   const sess = await loadSession(env.EASEL_STATE, state);
   if (!sess?.githubToken || !sess.netlifyToken || !sess.githubLogin) {
     return json({ status: 'error', message: 'missing_connections' }, env, 400);
   }
 
-  const stages: Record<string, StageState> = {
-    repo: 'pending',
-    site: 'pending',
-    deploy: 'pending',
-    admin: 'pending',
-    cleanup: 'pending',
+  const job: JobRecord = {
+    status: 'running',
+    stages: { repo: 'pending', site: 'pending', deploy: 'pending', admin: 'pending', cleanup: 'pending' },
   };
+  await setJob(env, state, job);
+  ctx.waitUntil(
+    runProvisionJob(
+      env,
+      state,
+      { githubToken: sess.githubToken, netlifyToken: sess.netlifyToken, githubLogin: sess.githubLogin },
+      job,
+    ),
+  );
 
-  const fail = (message: string, stage: keyof typeof stages) => {
+  return json({ jobId: state, status: 'running', stages: job.stages }, env);
+}
+
+/** The five provisioning steps, writing progress to KV after each transition. */
+async function runProvisionJob(
+  env: Env,
+  state: string,
+  sess: { githubToken: string; netlifyToken: string; githubLogin: string },
+  job: JobRecord,
+): Promise<void> {
+  const advance = async (stage: keyof JobRecord['stages'], to: StageState) => {
+    job.stages[stage] = to;
+    await setJob(env, state, job);
+  };
+  const fail = async (message: string, stage: keyof JobRecord['stages']) => {
     console.error(`[provision] stage=${String(stage)} failed: ${message}`);
-    stages[stage] = 'error';
-    return json({ status: 'error', message, stages }, env, 502);
+    job.stages[stage] = 'error';
+    job.status = 'error';
+    job.message = message;
+    await setJob(env, state, job);
   };
 
-  // Repo lives in the artist's own account, so a simple default name is fine;
-  // generateRepoFromTemplate adds a numeric suffix if it's already taken.
-  const repoName = 'portfolio';
   const templateOwner = env.TEMPLATE_OWNER ?? 'easel';
   const templateRepo = env.TEMPLATE_REPO ?? 'template';
 
-  // (a) GitHub: generate repo from template.
-  stages.repo = 'active';
+  // (a) GitHub: generate repo from template ('portfolio', with suffix if taken).
+  await advance('repo', 'active');
   let repo;
   try {
     repo = await generateRepoFromTemplate(sess.githubToken, {
       templateOwner,
       templateRepo,
       owner: sess.githubLogin,
-      name: repoName,
+      name: 'portfolio',
     });
-    stages.repo = 'done';
+    await advance('repo', 'done');
   } catch (e) {
     return fail(e instanceof Error ? e.message : 'repo_failed', 'repo');
   }
 
   // (b) Netlify: create site linked to the repo (Netlify auto-assigns the name).
-  stages.site = 'active';
+  await advance('site', 'active');
   let site;
   try {
     site = await createSite(sess.netlifyToken, {
       repoPath: `${repo.owner}/${repo.name}`,
       branch: repo.defaultBranch,
     });
-    stages.site = 'done';
+    await advance('site', 'done');
   } catch (e) {
     return fail(e instanceof Error ? e.message : 'site_failed', 'site');
   }
 
   // (c) Netlify: trigger first deploy + poll until ready (cap the wait).
-  stages.deploy = 'active';
+  await advance('deploy', 'active');
   try {
     await triggerBuild(sess.netlifyToken, site.id);
-    const ready = await pollDeploy(sess.netlifyToken, site.id, 90_000);
-    if (!ready) {
-      // Don't hard-fail: the build may simply still be running. Surface a soft
-      // success so the artist can proceed; their site finishes shortly.
-      stages.deploy = 'active';
-    } else {
-      stages.deploy = 'done';
-    }
+    await pollDeploy(sess.netlifyToken, site.id, 60_000);
+    // Soft-pass even if still building — the artist can proceed; it finishes shortly.
+    await advance('deploy', 'done');
   } catch (e) {
     return fail(e instanceof Error ? e.message : 'deploy_failed', 'deploy');
   }
 
-  // (d) Patch the new repo's admin config to point at the sveltia-auth relay.
-  stages.admin = 'active';
+  // (d) Point the new repo's admin config at this repo + the sveltia-auth relay.
+  await advance('admin', 'active');
   try {
     await patchAdminConfig(sess.githubToken, {
       owner: repo.owner,
@@ -271,26 +311,20 @@ async function handleProvision(request: Request, env: Env): Promise<Response> {
       branch: repo.defaultBranch,
       authBaseUrl: env.SVELTIA_AUTH_URL,
     });
-    stages.admin = 'done';
+    await advance('admin', 'done');
   } catch (e) {
     return fail(e instanceof Error ? e.message : 'admin_failed', 'admin');
   }
 
   // (e) Delete transient tokens.
-  stages.cleanup = 'active';
+  await advance('cleanup', 'active');
   await clearSession(env.EASEL_STATE, state);
-  stages.cleanup = 'done';
-
-  return json(
-    {
-      status: 'done',
-      stages,
-      siteUrl: site.url,
-      adminUrl: `${site.url.replace(/\/$/, '')}/admin/`,
-      repoUrl: repo.htmlUrl,
-    },
-    env,
-  );
+  job.stages.cleanup = 'done';
+  job.status = 'done';
+  job.siteUrl = site.url;
+  job.adminUrl = `${site.url.replace(/\/$/, '')}/admin/`;
+  job.repoUrl = repo.htmlUrl;
+  await setJob(env, state, job);
 }
 
 /** Poll the latest deploy until ready or timeout. Returns true if ready. */

@@ -165,13 +165,23 @@ export async function generateRepoFromTemplate(
     templateRepo: string; // 'template'
     owner: string; // artist's login
     name: string; // base repo name; a numeric suffix is added if it's taken
+    /**
+     * Preferred first choice tried before `name` (e.g. `<login>.github.io` so a
+     * GitHub Pages site serves at the root). Falls back to `name`/`name-2`/… if taken.
+     */
+    preferredName?: string;
     description?: string;
   },
 ): Promise<GeneratedRepo> {
-  // Try the base name, then name-2, name-3, ... so a leftover repo from an
-  // earlier (failed) attempt doesn't block a retry.
-  for (let attempt = 1; attempt <= 6; attempt++) {
-    const name = attempt === 1 ? opts.name : `${opts.name}-${attempt}`;
+  // Candidate names in order: the preferred one (if any) first, then the base name,
+  // then name-2, name-3, … so a leftover repo from an earlier (failed) attempt — or
+  // an already-taken user-site name — doesn't block a retry.
+  const candidates = [
+    ...(opts.preferredName ? [opts.preferredName] : []),
+    opts.name,
+    ...[2, 3, 4, 5, 6].map((n) => `${opts.name}-${n}`),
+  ];
+  for (const name of candidates) {
     const res = await fetch(
       `${GH_API}/repos/${opts.templateOwner}/${opts.templateRepo}/generate`,
       {

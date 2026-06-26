@@ -446,6 +446,11 @@ async function runProvisionJob(
       templateRepo,
       owner: sess.githubLogin,
       name: 'portfolio',
+      // For GitHub Pages, prefer naming the repo `<login>.github.io` so the site
+      // serves at the clean root (https://login.github.io/) instead of a /portfolio
+      // subpath. Falls back to `portfolio` if the user-site name is already taken.
+      preferredName:
+        host.id === 'github-pages' ? `${sess.githubLogin.toLowerCase()}.github.io` : undefined,
     });
     // Record the repo on the job immediately so that if a *later* stage fails, the
     // error response still hands the artist a link to what was created (instead of a

@@ -231,8 +231,15 @@ export default {
       }
       if (pathname === '/provision' && request.method === 'GET') {
         const jobId = url.searchParams.get('job') ?? '';
-        const job = await env.EASEL_STATE.get(`job:${jobId}`, 'json');
+        let job = (await env.EASEL_STATE.get(`job:${jobId}`, 'json')) as JobRecord | null;
         if (!job) return json({ status: 'unknown' }, env, 404);
+        // If the background job handed off the deploy wait, advance it from this
+        // client poll: check the live Netlify deploy and finalize once it's ready
+        // (or surface a failed build). This is what keeps us from declaring the
+        // site live before Netlify has actually finished.
+        if (job.status === 'running' && job.awaitingDeploy && job.siteId) {
+          job = await reconcileDeploy(env, jobId, job);
+        }
         return json(job, env);
       }
 
@@ -253,6 +260,16 @@ interface JobRecord {
   siteUrl?: string;
   adminUrl?: string;
   repoUrl?: string;
+  /** Netlify project slug (e.g. 'radiant-nasturtium-ed9625'), for dashboard links. */
+  netlifyName?: string;
+  /** Netlify site id, recorded so the deploy can be reconciled after handoff. */
+  siteId?: string;
+  /**
+   * Set when the background job's bounded deploy poll timed out with the build
+   * still running, handing the wait to the client. While true, GET /provision
+   * checks the live deploy state on each poll and finalizes once it's ready.
+   */
+  awaitingDeploy?: boolean;
 }
 
 const JOB_TTL = 900; // 15 minutes
@@ -414,6 +431,7 @@ async function runProvisionJob(
     // (admin patch, deploy) fails, so the artist isn't left wondering what happened.
     job.siteUrl = site.url;
     job.adminUrl = `${site.url.replace(/\/$/, '')}/admin/`;
+    job.netlifyName = site.name;
     await advance('site', 'done');
   } catch (e) {
     return fail(e instanceof Error ? e.message : 'site_failed', 'site');
@@ -446,39 +464,64 @@ async function runProvisionJob(
     return fail(e instanceof Error ? e.message : 'admin_failed', 'admin');
   }
 
-  // (c, verify) Poll the first deploy for a bounded window so a *failed* build is
-  // surfaced as an error instead of a celebratory /start/done over a broken site.
-  // Best-effort: a still-building deploy after the window is treated as success
-  // (the done page already notes it may still be finishing), and a polling hiccup
-  // never blocks the run.
-  try {
-    const deployState = await pollDeploy(sess.netlifyToken, site.id);
-    if (deployState === 'error') {
-      return fail(
-        'The first build failed on Netlify. Open your Netlify dashboard to see the build log.',
-        'deploy',
-      );
-    }
-  } catch {
-    /* ignore — deploy verification is non-blocking */
-  }
-  await advance('deploy', 'done');
+  // (c, verify) Wait for the first deploy so we never declare the site live before
+  // Netlify has actually finished. We poll for a bounded window here so the common
+  // (fast) build is confirmed server-side — the completion email then fires even if
+  // the artist closed the tab. If the build outlasts the window, we hand the wait
+  // off to the client (awaitingDeploy) rather than risk this best-effort waitUntil
+  // job being evicted mid-wait; the reconciling GET handler finishes it from the
+  // client's polls. The siteId is recorded first so either path can poll the deploy.
+  job.siteId = site.id;
+  await setJob(env, state, job);
 
-  // (e) Delete transient tokens.
-  await advance('cleanup', 'active');
+  let deployState: DeployState = 'building';
+  try {
+    deployState = await pollDeploy(sess.netlifyToken, site.id);
+  } catch {
+    /* polling hiccup — fall through to the client handoff below */
+  }
+  if (deployState === 'error') {
+    return fail(
+      'The first build failed on Netlify. Open your Netlify dashboard to see the build log.',
+      'deploy',
+    );
+  }
+  if (deployState !== 'ready') {
+    // Still building after the safe window — let the client finish the wait. The
+    // deploy stage stays 'active' (pulsing) until GET /provision confirms 'ready'.
+    job.awaitingDeploy = true;
+    await setJob(env, state, job);
+    return;
+  }
+
+  await completeJob(env, state, job);
+}
+
+/**
+ * Finalize a run whose first deploy is live: mark deploy + cleanup done, drop the
+ * transient tokens, and fire the best-effort completion email. Callable from either
+ * the background job or the reconciling GET handler; no-ops if already terminal.
+ *
+ * The email is a no-op unless RESEND_API_KEY + EASEL_FROM_EMAIL are configured and
+ * we have an address. It runs after the job is marked done so it can never affect
+ * success.
+ */
+async function completeJob(env: Env, state: string, job: JobRecord): Promise<void> {
+  if (job.status !== 'running') return; // already finalized by the other path
+  job.stages.deploy = 'done';
+  job.awaitingDeploy = false;
+  job.stages.cleanup = 'active';
+  await setJob(env, state, job);
+
+  // (e) Read the email before clearing the session, then delete the transient tokens.
+  const sess = await loadSession(env.EASEL_STATE, state);
   await clearSession(env.EASEL_STATE, state);
   job.stages.cleanup = 'done';
   job.status = 'done';
-  job.siteUrl = site.url;
-  job.adminUrl = `${site.url.replace(/\/$/, '')}/admin/`;
-  job.repoUrl = repo.htmlUrl;
   await setJob(env, state, job);
   await trackEvent(env.EASEL_STATE, 'provision_done');
 
-  // Best-effort completion email so the artist keeps their links even after closing
-  // the tab. No-op unless RESEND_API_KEY + EASEL_FROM_EMAIL are configured and we
-  // have an address. Runs after the job is marked done so it can never affect success.
-  if (sess.email && job.siteUrl && job.adminUrl) {
+  if (sess?.email && job.siteUrl && job.adminUrl) {
     const sent = await sendCompletionEmail(env, {
       to: sess.email,
       siteUrl: job.siteUrl,
@@ -487,4 +530,48 @@ async function runProvisionJob(
     });
     if (sent) await trackEvent(env.EASEL_STATE, 'completion_email_sent');
   }
+}
+
+/**
+ * Client-driven deploy wait. Once the background job hands off (awaitingDeploy),
+ * each client poll of GET /provision runs this: check the live Netlify deploy and
+ * finalize the moment it's ready (or surface a failed build). This carries the wait
+ * past the worker's best-effort waitUntil window without ever claiming "ready" early.
+ */
+async function reconcileDeploy(env: Env, state: string, job: JobRecord): Promise<JobRecord> {
+  const sess = await loadSession(env.EASEL_STATE, state);
+  if (!sess?.netlifyToken || !job.siteId) {
+    // The token TTL'd out before the build finished (rare — we refresh it on every
+    // poll below). Don't strand the artist: treat the site as published.
+    await completeJob(env, state, job);
+    return job;
+  }
+
+  let deployState: DeployState;
+  try {
+    deployState = await getLatestDeployState(sess.netlifyToken, job.siteId);
+  } catch {
+    return job; // transient Netlify hiccup — the next client poll retries
+  }
+
+  if (deployState === 'error') {
+    job.stages.deploy = 'error';
+    job.status = 'error';
+    job.awaitingDeploy = false;
+    job.message =
+      'The first build failed on Netlify. Open your Netlify dashboard to see the build log.';
+    await setJob(env, state, job);
+    await trackEvent(env.EASEL_STATE, 'provision_failed', { stage: 'deploy' });
+    return job;
+  }
+  if (deployState === 'ready') {
+    await completeJob(env, state, job);
+    return job;
+  }
+
+  // Still building — refresh the job + session TTLs so neither lapses mid-wait,
+  // then let the client poll again.
+  await setJob(env, state, job);
+  await saveSession(env.EASEL_STATE, state, {});
+  return job;
 }

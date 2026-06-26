@@ -2,11 +2,13 @@
 // Provisioning progress checklist. The five steps mirror POST /provision in
 // workers/provision. The client script in /start.astro flips each row's state
 // as the worker reports progress (polling).
+// Order mirrors the provisioning steps in workers/provision (runProvisionJob):
+// repo → admin config → Netlify site → first deploy → cleanup.
 const steps = [
   { id: 'repo', label: 'Creating your GitHub repository from the Easel template' },
+  { id: 'admin', label: 'Wiring up your /admin editor login' },
   { id: 'site', label: 'Setting up your Netlify site and contact form' },
   { id: 'deploy', label: 'Building and deploying your site for the first time' },
-  { id: 'admin', label: 'Wiring up your /admin editor login' },
   { id: 'cleanup', label: 'Cleaning up the temporary access we used' },
 ];
 ---

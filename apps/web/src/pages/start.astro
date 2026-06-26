@@ -263,7 +263,7 @@ import { ROUTES } from '../config.ts';
   void reconcile();
 
   // ---- Provisioning ----
-  const STAGES: Stage[] = ['repo', 'site', 'deploy', 'admin', 'cleanup'];
+  const STAGES: Stage[] = ['repo', 'admin', 'site', 'deploy', 'cleanup'];
 
   const markStage = (stage: Stage, s: 'pending' | 'active' | 'done' | 'error') => {
     const li = document.querySelector<HTMLElement>(`.progress__item[data-stage="${stage}"]`);

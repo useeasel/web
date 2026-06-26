@@ -406,7 +406,27 @@ async function runProvisionJob(
     return fail(e instanceof Error ? e.message : 'repo_failed', 'repo');
   }
 
-  // (b) Netlify: create site linked to the repo (Netlify auto-assigns the name).
+  // (b) Point the new repo's admin config at this repo + the sveltia-auth relay,
+  // BEFORE creating the Netlify site. This is the only commit we make during
+  // provisioning, and doing it first means the repo's HEAD is already correct when
+  // Netlify first builds it — so there's exactly one build of one commit. (Patching
+  // *after* site creation pushed a second commit that the webhook rebuilt: two
+  // serialized builds on the free tier, the first of them building the placeholder
+  // config and the artist waiting through both.)
+  await advance('admin', 'active');
+  try {
+    await patchAdminConfig(sess.githubToken, {
+      owner: repo.owner,
+      repo: repo.name,
+      branch: repo.defaultBranch,
+      authBaseUrl: env.SVELTIA_AUTH_URL,
+    });
+    await advance('admin', 'done');
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : 'admin_failed', 'admin');
+  }
+
+  // (c) Netlify: create site linked to the repo (Netlify auto-assigns the name).
   // Repo access for continuous deployment is wired with a deploy key: mint one on
   // Netlify, add its public half to the repo, then create the site against it. We
   // use this instead of the GitHub-App-installation flow because that needs a
@@ -430,7 +450,7 @@ async function runProvisionJob(
       deployKeyId: deployKey.id,
     });
     // Same as the repo above: surface the site/admin links even if a later stage
-    // (admin patch, deploy) fails, so the artist isn't left wondering what happened.
+    // (deploy) fails, so the artist isn't left wondering what happened.
     job.siteUrl = site.url;
     job.adminUrl = `${site.url.replace(/\/$/, '')}/admin/`;
     job.netlifyName = site.name;
@@ -439,9 +459,11 @@ async function runProvisionJob(
     return fail(e instanceof Error ? e.message : 'site_failed', 'site');
   }
 
-  // (b2) Wire the push webhook so editor commits auto-rebuild — the "hit save → it
-  // republishes" promise. Best-effort: the first deploy works without it, so a
-  // failure here is a soft warning, not a failed run.
+  // (c2) Wire the push webhook so *future* editor commits auto-rebuild — the "hit
+  // save → it republishes" promise. Created after the admin-config commit on
+  // purpose: that commit is already in the repo, so the webhook can't fire a
+  // duplicate build for it. Best-effort: a failure here is a soft warning, not a
+  // failed run.
   try {
     await createNetlifyPushWebhook(sess.githubToken, { owner: repo.owner, repo: repo.name });
   } catch (e) {
@@ -452,10 +474,9 @@ async function runProvisionJob(
     await setJob(env, state, job);
   }
 
-  // (c) Netlify: trigger the first build. We keep the deploy stage 'active' and
-  // verify it AFTER the admin patch (step d) rather than blocking here. Waiting
-  // before (d) once made the waitUntil job long enough to get evicted with /admin
-  // still unconfigured — so the critical config write must come first.
+  // (d) Netlify: trigger the first build of the (already-correct) HEAD. Site
+  // creation often auto-builds the linked repo too; Netlify dedupes identical
+  // builds of the same commit to a single one (the other shows as 'skipped').
   await advance('deploy', 'active');
   try {
     await triggerBuild(sess.netlifyToken, site.id);
@@ -463,23 +484,7 @@ async function runProvisionJob(
     return fail(e instanceof Error ? e.message : 'deploy_failed', 'deploy');
   }
 
-  // (d) Point the new repo's admin config at this repo + the sveltia-auth relay.
-  // Intentionally before the deploy poll so this lands even if the background job
-  // is later evicted while waiting on the build.
-  await advance('admin', 'active');
-  try {
-    await patchAdminConfig(sess.githubToken, {
-      owner: repo.owner,
-      repo: repo.name,
-      branch: repo.defaultBranch,
-      authBaseUrl: env.SVELTIA_AUTH_URL,
-    });
-    await advance('admin', 'done');
-  } catch (e) {
-    return fail(e instanceof Error ? e.message : 'admin_failed', 'admin');
-  }
-
-  // (c, verify) Wait for the first deploy so we never declare the site live before
+  // (d, verify) Wait for the first deploy so we never declare the site live before
   // Netlify has actually finished. We poll for a bounded window here so the common
   // (fast) build is confirmed server-side — the completion email then fires even if
   // the artist closed the tab. If the build outlasts the window, we hand the wait

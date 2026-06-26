@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 
 // "Take it with you" guide. Easel's promise is that the artist owns their site;
 // this page makes that tangible — what the repo is, how to move hosts, how to hand
-// it to a developer. Custom domains are explicitly a Netlify task (Easel never
+// it to a developer. Custom domains are explicitly a host task (Easel never
 // manages DNS), so we point there rather than pretending to do it in-app.
 
 const moves = [
@@ -13,11 +13,11 @@ const moves = [
   },
   {
     title: 'Add a custom domain',
-    body: 'Netlify handles your domain, since it\'s your host. Easel never touches DNS. Our [step-by-step domain guide](/custom-domain/) walks you through pointing your domain (e.g. your-name.com) at the site; Netlify sets up HTTPS for you.',
+    body: 'Your host — GitHub Pages or Netlify — handles your domain. Easel never touches DNS. Our [step-by-step domain guide](/custom-domain/) walks you through pointing your domain (e.g. your-name.com) at the site, and your host sets up HTTPS for you.',
   },
   {
     title: 'Move to a different host',
-    body: 'Because your site is a standard Astro project, any static host (Cloudflare Pages, Vercel, GitHub Pages, your own server) can build it. Point the host at your GitHub repo, set the build command to `astro build` and the output directory to `dist`, and you\'re live elsewhere. No Easel involved.',
+    body: 'Because your site is a standard Astro project, any static host (GitHub Pages, Netlify, Cloudflare Pages, your own server) can build it. Point the host at your GitHub repo, set the build command to `astro build` and the output directory to `dist`, and you\'re live elsewhere. No Easel involved.',
   },
   {
     title: 'Hand it to a developer',

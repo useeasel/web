@@ -209,6 +209,31 @@ export async function generateRepoFromTemplate(
 }
 
 /**
+ * Read the template's own `package.json` version. This is the value we stamp onto
+ * each generated site as `easelVersion`, so the editor's "Update my site" feature
+ * can later tell whether a newer template has shipped. Best-effort: returns null if
+ * the file can't be read or parsed, in which case we simply don't stamp a version
+ * (the editor treats a missing version as "pre-history" and still offers the update).
+ */
+export async function getTemplateVersion(
+  token: string,
+  opts: { owner: string; repo: string },
+): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `${GH_API}/repos/${opts.owner}/${opts.repo}/contents/package.json`,
+      { headers: authHeaders(token) },
+    );
+    if (!res.ok) return null;
+    const file = (await res.json()) as { content: string };
+    const pkg = JSON.parse(decodeBase64(file.content)) as { version?: string };
+    return typeof pkg.version === 'string' ? pkg.version : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Step (d): patch the new repo's `public/admin/config.json` so the Easel editor
  * points at the artist's own repo and our shared auth relay (replacing the
  * shipped REPLACED_AT_PROVISION placeholder).
@@ -221,6 +246,16 @@ export async function patchAdminConfig(
     branch: string;
     /** Full https URL of the auth worker, e.g. https://auth.easel.rosematcha.com */
     authBaseUrl: string;
+    /** Template version this site was generated from; powers the editor's update check. */
+    easelVersion?: string | null;
+    /** Host this site is published to ('netlify' | 'github-pages'); the template adapts copy. */
+    host?: string;
+    /**
+     * Where the contact/newsletter forms POST. Empty on Netlify (the template uses
+     * native Netlify Forms); a FormSubmit endpoint keyed to the artist's email on
+     * hosts without a forms backend (e.g. GitHub Pages).
+     */
+    formEndpoint?: string;
   },
 ): Promise<void> {
   const path = 'public/admin/config.json';
@@ -257,6 +292,10 @@ export async function patchAdminConfig(
   cfg.repo = `${opts.owner}/${opts.repo}`;
   cfg.branch = opts.branch;
   cfg.authBaseUrl = opts.authBaseUrl;
+  if (opts.easelVersion) cfg.easelVersion = opts.easelVersion;
+  if (opts.host) cfg.host = opts.host;
+  // Always write the form endpoint (even empty) so re-provisioning can clear it.
+  cfg.formEndpoint = opts.formEndpoint ?? '';
   const updated = JSON.stringify(cfg, null, 2) + '\n';
 
   const putRes = await fetch(`${GH_API}/repos/${opts.owner}/${opts.repo}/contents/${path}`, {

@@ -9,13 +9,17 @@
 // It's a plain JS-readable cookie (no server reads it — these are static pages), so
 // keep nothing sensitive in it: just the public URLs Netlify already shows the user.
 
+export type HostId = 'netlify' | 'github-pages';
+
 export interface DeployRecord {
-  /** The live site's Netlify URL at provision time (the "internal" address). */
+  /** The live site's URL at provision time (the "internal" address). */
   site: string;
   /** The /admin editor URL. */
   admin?: string;
   /** The GitHub repo URL. */
   repo?: string;
+  /** Which host the site was published to. Absent on older records ⇒ treat as Netlify. */
+  provider?: HostId;
   /** Netlify project slug, e.g. 'radiant-nasturtium-ed9625'. */
   netlify?: string;
   /** ISO timestamp of when the deployment completed. */
@@ -30,6 +34,26 @@ const ONE_YEAR = 60 * 60 * 24 * 365;
  *  than the domain-management overview. */
 export function netlifyDomainUrl(slug: string): string {
   return `https://app.netlify.com/projects/${slug}/domain-management/setup`;
+}
+
+/** GitHub Pages custom-domain settings live in the repo's Settings → Pages. Derive
+ *  that deep link from the repo URL (https://github.com/owner/repo). */
+export function githubPagesSettingsUrl(repoUrl: string | null | undefined): string | null {
+  if (!repoUrl) return null;
+  try {
+    const u = new URL(repoUrl);
+    if (u.hostname !== 'github.com') return null;
+    return `https://github.com${u.pathname.replace(/\/$/, '')}/settings/pages`;
+  } catch {
+    return null;
+  }
+}
+
+/** Resolve the right "set up a custom domain" deep link for a deployment record. */
+export function domainSetupUrl(rec: DeployRecord): string | null {
+  if (rec.provider === 'github-pages') return githubPagesSettingsUrl(rec.repo);
+  const slug = rec.netlify ?? slugFromSite(rec.site);
+  return slug ? netlifyDomainUrl(slug) : 'https://app.netlify.com/';
 }
 
 /** Best-effort: derive the Netlify project slug from its *.netlify.app URL. */

@@ -13,6 +13,11 @@
  * documented fields; adjust `repo.id`/`installation_id` once a real account is wired.
  */
 
+import type { DeployState, HostProvider, ProvisionTokens, SiteHandle } from './hosts/types';
+import { addDeployKey, createNetlifyPushWebhook, type GeneratedRepo } from './github';
+
+export type { DeployState };
+
 const NETLIFY_API = 'https://api.netlify.com/api/v1';
 
 export const NETLIFY_AUTHORIZE_URL = 'https://app.netlify.com/authorize';
@@ -191,8 +196,6 @@ export async function triggerBuild(token: string, siteId: string): Promise<void>
   }
 }
 
-export type DeployState = 'building' | 'ready' | 'error' | 'enqueued' | 'unknown';
-
 // Netlify deploy states that mean "still working" (not yet success or failure).
 const IN_PROGRESS_STATES = new Set([
   'new',
@@ -235,3 +238,60 @@ export async function getLatestDeployState(
   if (states.includes('error')) return 'error';
   return 'unknown'; // e.g. only `skipped` so far — keep polling
 }
+
+/**
+ * Netlify host provider. Creating the site is the current 3-step CD wiring: mint a
+ * deploy key, add its public half to the repo, then create the site against it (plus
+ * a best-effort push webhook so editor commits auto-rebuild).
+ */
+export const netlifyProvider: HostProvider = {
+  id: 'netlify',
+  needsNetlify: true,
+  formBackend: 'netlify',
+
+  async createSite({ tokens, repo }: { tokens: ProvisionTokens; repo: GeneratedRepo }): Promise<SiteHandle> {
+    if (!tokens.netlifyToken) throw new Error('netlify token missing');
+    const deployKey = await createDeployKey(tokens.netlifyToken);
+    await addDeployKey(tokens.githubToken, {
+      owner: repo.owner,
+      repo: repo.name,
+      title: 'Easel · Netlify deploy',
+      publicKey: deployKey.publicKey,
+    });
+    const site = await createSite(tokens.netlifyToken, {
+      repoPath: `${repo.owner}/${repo.name}`,
+      branch: repo.defaultBranch,
+      repoId: repo.id,
+      deployKeyId: deployKey.id,
+    });
+    // Wire the push webhook so future editor commits auto-rebuild — the "hit save →
+    // it republishes" promise. Best-effort: a failure here only affects
+    // auto-publish-on-edit, not the first deploy, so it becomes a soft warning.
+    let warning: string | undefined;
+    try {
+      await createNetlifyPushWebhook(tokens.githubToken, { owner: repo.owner, repo: repo.name });
+    } catch (e) {
+      console.warn('[provision] push webhook setup failed:', e);
+      warning =
+        'Your site is live, but we couldn’t finish setting up auto-publishing. ' +
+        'If edits stop going live, reconnect the repo from your Netlify site settings.';
+    }
+    return {
+      siteUrl: `${site.url.replace(/\/$/, '')}/`,
+      adminUrl: `${site.url.replace(/\/$/, '')}/admin/`,
+      siteId: site.id,
+      dashboardSlug: site.name,
+      warning,
+    };
+  },
+
+  async triggerBuild({ tokens, site }: { tokens: ProvisionTokens; site: SiteHandle }): Promise<void> {
+    if (!tokens.netlifyToken || !site.siteId) return;
+    await triggerBuild(tokens.netlifyToken, site.siteId);
+  },
+
+  async getDeployState({ tokens, site }: { tokens: ProvisionTokens; site: SiteHandle }): Promise<DeployState> {
+    if (!tokens.netlifyToken || !site.siteId) return 'unknown';
+    return getLatestDeployState(tokens.netlifyToken, site.siteId);
+  },
+};

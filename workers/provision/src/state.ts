@@ -65,6 +65,8 @@ export interface ProvisionSession {
   githubLogin?: string;
   /** Optional: artist email for the completion notification (best-effort). */
   email?: string;
+  /** Chosen host for this run ('netlify' | 'github-pages'). Defaults to netlify. */
+  provider?: string;
 }
 
 const TTL_SECONDS = 600; // 10 minutes

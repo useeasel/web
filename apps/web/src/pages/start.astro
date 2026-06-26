@@ -51,13 +51,37 @@ import { ROUTES } from '../config.ts';
         <p class="start__hint">No account yet? Create one for free, then come back here to connect.</p>
       </ConnectStep>
 
-      <ConnectStep step={2} title="Connect Netlify" state="todo" shape="circle">
+      <ConnectStep step={2} title="Choose where to publish" state="todo" shape="circle">
         <p>
-          <abbr class="hint" title="A hosting platform for simple websites with a generous free tier. This is what actually serves your site to the world.">Netlify</abbr>
-          will turn the site you create with Easel into something other people can access.
-          You'll need to configure your domain with them eventually, but we'll help.
+          Pick where your site goes live. Both are free, and either way the site stays
+          entirely yours — Easel never hosts a thing.
         </p>
-        <div class="start__actions" id="netlify-actions">
+        <fieldset class="host-picker" id="host-picker">
+          <legend class="start__visually-hidden">Hosting provider</legend>
+          <label class="host-option">
+            <input type="radio" name="host" value="github-pages" checked />
+            <span class="host-option__body">
+              <span class="host-option__name">GitHub Pages <span class="host-option__tag">Recommended</span></span>
+              <span class="host-option__desc">
+                Publishes straight from the GitHub account you just connected — no extra
+                sign-up. Free, with free custom domains. Your contact form is handled by a
+                free service called <abbr class="hint" title="A free form-to-email service. The messages land in your inbox; no account needed.">FormSubmit</abbr>.
+              </span>
+            </span>
+          </label>
+          <label class="host-option">
+            <input type="radio" name="host" value="netlify" />
+            <span class="host-option__body">
+              <span class="host-option__name">Netlify</span>
+              <span class="host-option__desc">
+                A dedicated <abbr class="hint" title="A hosting platform for simple websites with a generous free tier.">Netlify</abbr>
+                account with a built-in contact-form inbox and free custom domains. Needs a
+                quick one-time connect.
+              </span>
+            </span>
+          </label>
+        </fieldset>
+        <div class="start__actions" id="netlify-actions" hidden>
           <a id="btn-netlify" class="btn btn--primary" href="#" aria-disabled="true">
             Connect Netlify
           </a>
@@ -68,14 +92,16 @@ import { ROUTES } from '../config.ts';
         <p id="netlify-connected" class="start__connected" hidden>
           <span class="start__check" aria-hidden="true"></span>Netlify connected.
         </p>
-        <p class="start__hint">No account yet? Create one for free, then come back here to connect.</p>
+        <p id="pages-note" class="start__connected" hidden>
+          <span class="start__check" aria-hidden="true"></span>Publishing to GitHub Pages — no extra account needed.
+        </p>
       </ConnectStep>
 
       <ConnectStep step={3} title="Build your site" state="todo" shape="triangle">
         <p id="provision-intro">
-          We'll copy our template from our GitHub to yours, set it up on Netlify, and get you
-          all the links you need to make your site yours. This takes a few minutes, please be
-          patient!
+          We'll copy our template from our GitHub to yours, publish it to your chosen host,
+          and get you all the links you need to make your site yours. This takes a few
+          minutes, please be patient!
         </p>
         <label class="field" for="provision-email">
           <span class="field__label">Email <span class="field__optional">(optional)</span></span>
@@ -121,7 +147,7 @@ import { ROUTES } from '../config.ts';
   const errorReason = params.get('error');
   const ERROR_COPY: Record<string, string> = {
     github_state: "We couldn't verify that GitHub sign-in. Please connect GitHub again.",
-    github_required: 'Connect GitHub first, then Netlify.',
+    github_required: 'Connect GitHub first, then choose where to publish.',
     netlify_state: "We couldn't verify that Netlify sign-in. Please connect Netlify again.",
   };
   if (errorReason) {
@@ -149,7 +175,17 @@ import { ROUTES } from '../config.ts';
     if (badge) badge.textContent = s === 'done' ? 'Done' : s === 'active' ? 'Now' : 'Next';
   };
 
+  type HostId = 'netlify' | 'github-pages';
+  const DEFAULT_HOST: HostId = 'github-pages';
+  const getProvider = (): HostId =>
+    (sessionStorage.getItem('easel_provider') as HostId) || DEFAULT_HOST;
+  const setProvider = (h: HostId) => sessionStorage.setItem('easel_provider', h);
+
   const netlifyBtn = document.querySelector<HTMLAnchorElement>('#btn-netlify');
+  const hostRadios = Array.from(
+    document.querySelectorAll<HTMLInputElement>('#host-picker input[name="host"]'),
+  );
+  const pagesNote = document.querySelector<HTMLElement>('#pages-note');
   const provisionBtn = document.querySelector<HTMLButtonElement>('#btn-provision');
   const progressWrap = document.querySelector<HTMLElement>('#provision-progress');
   const errorEl = document.querySelector<HTMLElement>('#provision-error');
@@ -197,21 +233,33 @@ import { ROUTES } from '../config.ts';
     githubConnected?.toggleAttribute('hidden', !gh);
     if (githubLoginEl) githubLoginEl.textContent = gh && login ? ` as @${login}` : '';
 
-    // Step 2 — Netlify
-    netlifyConnected?.toggleAttribute('hidden', !nf);
-    netlifyActions?.toggleAttribute('hidden', nf);
-    if (nf) {
+    // Step 2 — choose where to publish. GitHub Pages needs no second connection
+    // (it publishes with the GitHub token already in hand); Netlify needs its OAuth.
+    const provider = getProvider();
+    const usingPages = provider === 'github-pages';
+    const hostReady = usingPages || nf;
+    // Keep the radios in sync with the stored choice (e.g. after a round-trip).
+    hostRadios.forEach((r) => { r.checked = r.value === provider; });
+
+    pagesNote?.toggleAttribute('hidden', !usingPages);
+    netlifyConnected?.toggleAttribute('hidden', !(provider === 'netlify' && nf));
+    // Show the Netlify connect button only when Netlify is chosen and not yet linked.
+    netlifyActions?.toggleAttribute('hidden', usingPages || nf);
+
+    if (gh && hostReady) {
       setStepState(2, 'done');
-    } else if (gh) {
+    } else if (gh && !usingPages) {
       setStepState(2, 'active');
       enableNetlifyBtn();
     } else {
-      setStepState(2, 'todo');
+      setStepState(2, gh ? 'active' : 'todo');
       netlifyBtn?.setAttribute('aria-disabled', 'true');
     }
 
-    // Step 3 — Build
-    setStepState(3, nf ? 'active' : 'todo');
+    // Step 3 — Build (only once GitHub is connected and a host is ready).
+    const buildReady = gh && hostReady;
+    setStepState(3, buildReady ? 'active' : 'todo');
+    if (provisionBtn) provisionBtn.disabled = !buildReady;
   };
 
   const showConnectError = (reason: string) => {
@@ -221,13 +269,41 @@ import { ROUTES } from '../config.ts';
     connectError.removeAttribute('hidden');
   };
 
+  // Keep the "site" progress row's wording matched to the chosen host.
+  const siteLabel = document.querySelector<HTMLElement>(
+    '.progress__item[data-stage="site"] .progress__label',
+  );
+  const updateSiteLabel = () => {
+    if (!siteLabel) return;
+    siteLabel.textContent =
+      getProvider() === 'github-pages'
+        ? 'Enabling GitHub Pages and wiring your contact form'
+        : 'Setting up your Netlify site and contact form';
+  };
+
+  // Repaint from the current stored flags (used after a host-choice change).
+  const repaint = () => {
+    render(
+      sessionStorage.getItem('easel_gh') === '1',
+      sessionStorage.getItem('easel_nf') === '1',
+      sessionStorage.getItem('easel_gh_login'),
+    );
+    updateSiteLabel();
+  };
+
+  // Switching host re-paints step 2/3 (and reveals/hides the Netlify connect button).
+  hostRadios.forEach((r) =>
+    r.addEventListener('change', () => {
+      if (r.checked) {
+        setProvider(r.value as HostId);
+        repaint();
+      }
+    }),
+  );
+
   // Optimistic first paint from the just-returned step / stored flags, so the
   // page is responsive immediately even before the worker confirms.
-  render(
-    sessionStorage.getItem('easel_gh') === '1',
-    sessionStorage.getItem('easel_nf') === '1',
-    sessionStorage.getItem('easel_gh_login'),
-  );
+  repaint();
   if (errorReason) showConnectError(errorReason);
 
   // Reconcile against the worker — the real source of truth. KV tokens expire
@@ -290,7 +366,7 @@ import { ROUTES } from '../config.ts';
       const res = await fetch(ROUTES.provision, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ state, email }),
+        body: JSON.stringify({ state, email, provider: getProvider() }),
       });
       const data = await res.json().catch(() => ({}));
 
@@ -358,13 +434,23 @@ import { ROUTES } from '../config.ts';
     showError('This is taking longer than expected. Your site may still be building, so check back shortly.');
   }
 
-  function finish(data: { siteUrl?: string; adminUrl?: string; repoUrl?: string; netlifyName?: string; warning?: string }) {
+  function finish(data: {
+    siteUrl?: string;
+    adminUrl?: string;
+    repoUrl?: string;
+    netlifyName?: string;
+    dashboardSlug?: string;
+    provider?: string;
+    warning?: string;
+  }) {
     resetFlow();
     const done = new URL('/start/done/', location.origin);
     if (data.siteUrl) done.searchParams.set('site', data.siteUrl);
     if (data.adminUrl) done.searchParams.set('admin', data.adminUrl);
     if (data.repoUrl) done.searchParams.set('repo', data.repoUrl);
     if (data.netlifyName) done.searchParams.set('netlify', data.netlifyName);
+    if (data.dashboardSlug) done.searchParams.set('slug', data.dashboardSlug);
+    if (data.provider) done.searchParams.set('host', data.provider);
     if (data.warning) done.searchParams.set('warning', data.warning);
     location.assign(done.toString());
   }
@@ -401,6 +487,40 @@ import { ROUTES } from '../config.ts';
     text-underline-offset: 3px;
   }
   .start__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+  .start__visually-hidden {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .host-picker {
+    border: 0; padding: 0; margin: 0 0 var(--space-4);
+    display: grid; gap: var(--space-3);
+  }
+  .host-option {
+    display: flex; gap: var(--space-3); align-items: flex-start;
+    padding: var(--space-3);
+    border: var(--border);
+    border-radius: var(--radius);
+    background: var(--c-white);
+    cursor: pointer;
+  }
+  .host-option:has(input:checked) {
+    border-left: var(--border-thick);
+    border-left-color: var(--c-blue);
+    background: var(--c-paper);
+  }
+  .host-option:has(input:focus-visible) { outline: 2px solid var(--c-blue); outline-offset: 2px; }
+  .host-option input { margin-top: 0.25rem; flex: none; }
+  .host-option__body { display: flex; flex-direction: column; gap: var(--space-1); }
+  .host-option__name { font-family: var(--font-display); font-weight: 700; color: var(--c-ink); }
+  .host-option__tag {
+    display: inline-block; margin-left: var(--space-2);
+    font-family: var(--font-body); font-size: 0.6875rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--c-white); background: var(--c-blue);
+    padding: 0.1rem 0.4rem; border-radius: var(--radius);
+    vertical-align: middle;
+  }
+  .host-option__desc { color: var(--c-stone); font-size: 0.9375rem; }
   .start__hint { color: var(--c-stone); font-size: 0.9375rem; margin: var(--space-3) 0 0; }
   .start__error {
     margin: var(--space-3) 0 0;

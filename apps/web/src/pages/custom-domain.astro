@@ -3,36 +3,62 @@ import Base from '../layouts/Base.astro';
 
 // Custom-domain walkthrough. Pointing a domain is the one post-setup task Easel
 // can't do for the artist (we never touch DNS — the domain lives in their own
-// registrar + Netlify accounts). This page is the friendly, end-to-end version of
-// the one-liner on /own-your-site. If we have a deploy cookie from /start/done, the
-// callout + step links deep-link straight into *their* Netlify domain management.
+// registrar + host accounts). This page is the friendly, end-to-end version of the
+// one-liner on /own-your-site. If we have a deploy cookie from /start/done, the
+// callout + step links deep-link straight into *their* host, and we show the step
+// set that matches the host they published to (Netlify or GitHub Pages).
 
-const steps = [
-  {
-    title: 'Get a domain name',
-    body: 'If you don\'t already own one, buy a domain from a registrar like Cloudflare, Namecheap, or Porkbun. It usually costs about $10–15 a year. You buy it directly, so it\'s yours — Easel and Netlify never sell you the domain or lock it up. Already have one? Skip ahead.',
-  },
-  {
-    title: 'Open your site\'s domain settings in Netlify',
-    body: 'In Netlify, open your site and go to **Domain management**. That\'s where every domain change for your site happens. (If you just set up with Easel, the button below jumps straight there.)',
-  },
-  {
-    title: 'Add your domain',
-    body: 'Click **Add a domain**, type your address (e.g. `your-name.com`), and confirm. Netlify will check it and add it to your site. You can add both the bare `your-name.com` and the `www.` version.',
-  },
-  {
-    title: 'Point your domain at Netlify',
-    body: 'The easiest path is to let **Netlify manage your DNS**: it shows you four nameservers — set those at your registrar (replacing the ones already there) and Netlify handles the rest. Prefer to keep your registrar\'s DNS? Netlify instead shows the exact records to add (an A or ALIAS record for the bare domain, a CNAME for `www`).',
-  },
-  {
-    title: 'Wait for it to go live',
-    body: 'DNS changes take anywhere from a few minutes to a few hours to spread across the internet — this is normal, nothing is broken. Once Netlify sees your domain pointing correctly, it provisions a free HTTPS certificate automatically, so your site loads securely with no extra work.',
-  },
-  {
-    title: 'Make it your primary domain',
-    body: 'Optional but tidy: in Domain management, set your custom domain as the **primary** one. Visitors who land on the old `*.netlify.app` address are then redirected to your real domain.',
-  },
-];
+const getDomain = {
+  title: 'Get a domain name',
+  body: 'If you don\'t already own one, buy a domain from a registrar like Cloudflare, Namecheap, or Porkbun. It usually costs about $10–15 a year. You buy it directly, so it\'s yours — Easel and your host never sell you the domain or lock it up. Already have one? Skip ahead.',
+};
+
+// Two host-specific step sets. The client shows whichever matches the deploy cookie
+// (defaulting to Netlify for older records that predate the host field).
+const stepsByHost: Record<'netlify' | 'github-pages', { title: string; body: string }[]> = {
+  netlify: [
+    getDomain,
+    {
+      title: 'Open your site\'s domain settings in Netlify',
+      body: 'In Netlify, open your site and go to **Domain management**. That\'s where every domain change for your site happens. (If you just set up with Easel, the button below jumps straight there.)',
+    },
+    {
+      title: 'Add your domain',
+      body: 'Click **Add a domain**, type your address (e.g. `your-name.com`), and confirm. Netlify will check it and add it to your site. You can add both the bare `your-name.com` and the `www.` version.',
+    },
+    {
+      title: 'Point your domain at Netlify',
+      body: 'The easiest path is to let **Netlify manage your DNS**: it shows you four nameservers — set those at your registrar (replacing the ones already there) and Netlify handles the rest. Prefer to keep your registrar\'s DNS? Netlify instead shows the exact records to add (an A or ALIAS record for the bare domain, a CNAME for `www`).',
+    },
+    {
+      title: 'Wait for it to go live',
+      body: 'DNS changes take anywhere from a few minutes to a few hours to spread across the internet — this is normal, nothing is broken. Once Netlify sees your domain pointing correctly, it provisions a free HTTPS certificate automatically, so your site loads securely with no extra work.',
+    },
+    {
+      title: 'Make it your primary domain',
+      body: 'Optional but tidy: in Domain management, set your custom domain as the **primary** one. Visitors who land on the old `*.netlify.app` address are then redirected to your real domain.',
+    },
+  ],
+  'github-pages': [
+    getDomain,
+    {
+      title: 'Open your repository\'s Pages settings',
+      body: 'On GitHub, open your repository, then go to **Settings → Pages**. That\'s where the custom domain for your site is set. (If you just set up with Easel, the button below jumps straight there.)',
+    },
+    {
+      title: 'Add your domain',
+      body: 'Under **Custom domain**, type your address (e.g. `your-name.com`) and click **Save**. GitHub adds a `CNAME` file to your repository and starts checking the domain.',
+    },
+    {
+      title: 'Point your domain at GitHub Pages',
+      body: 'At your registrar, add a `CNAME` record for **www** pointing to `your-username.github.io`. For the bare `your-name.com`, add the four GitHub **A records** (`185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`) — or an `ALIAS`/`ANAME` to `your-username.github.io` if your registrar supports it.',
+    },
+    {
+      title: 'Wait for it, then turn on HTTPS',
+      body: 'DNS changes take anywhere from a few minutes to a few hours to spread — this is normal. Once GitHub shows the domain as verified, tick **Enforce HTTPS** on the same Pages settings page; GitHub provisions a free certificate so your site loads securely.',
+    },
+  ],
+};
 
 const md = (s: string) =>
   s
@@ -42,7 +68,7 @@ const md = (s: string) =>
 
 <Base
   title="Add a custom domain · Easel"
-  description="A step-by-step guide to pointing your own domain (like your-name.com) at your Easel portfolio through Netlify. Easel never touches your DNS — your domain stays yours."
+  description="A step-by-step guide to pointing your own domain (like your-name.com) at your Easel portfolio, whether it's hosted on Netlify or GitHub Pages. Easel never touches your DNS — your domain stays yours."
 >
   <section class="section domain-hero">
     <div class="container">
@@ -67,28 +93,38 @@ const md = (s: string) =>
 
   <section class="section domain-steps">
     <div class="container">
-      <ol class="domain-steps__list" role="list">
-        {steps.map((s, i) => (
-          <li class="domain-step">
-            <span class="domain-step__num" aria-hidden="true">{i + 1}</span>
-            <div>
-              <h2>{s.title}</h2>
-              <p set:html={md(s.body)} />
-              {i === 1 && (
-                <p class="domain-step__deep">
-                  <a id="domain-deeplink" href="https://app.netlify.com/" target="_blank" rel="noopener">
-                    Open Netlify domain management →
-                  </a>
-                </p>
-              )}
-            </div>
-          </li>
-        ))}
-      </ol>
+      {Object.entries(stepsByHost).map(([host, steps]) => (
+        <ol class="domain-steps__list" role="list" data-host={host} hidden={host !== 'netlify'}>
+          {steps.map((s, i) => (
+            <li class="domain-step">
+              <span class="domain-step__num" aria-hidden="true">{i + 1}</span>
+              <div>
+                <h2>{s.title}</h2>
+                <p set:html={md(s.body)} />
+                {i === 1 && (
+                  <p class="domain-step__deep">
+                    <a class="domain-deeplink" data-host={host}
+                      href={host === 'github-pages' ? 'https://github.com/' : 'https://app.netlify.com/'}
+                      target="_blank" rel="noopener">
+                      {host === 'github-pages' ? 'Open your GitHub Pages settings →' : 'Open Netlify domain management →'}
+                    </a>
+                  </p>
+                )}
+              </div>
+            </li>
+          ))}
+        </ol>
+      ))}
 
-      <p class="domain-steps__note">
+      <p class="domain-steps__note" id="domain-docs-netlify">
         Stuck on a specific record or registrar? Netlify's
         <a href="https://docs.netlify.com/domains-https/custom-domains/" target="_blank" rel="noopener">custom domain docs</a>
+        cover the edge cases. And because your domain never depends on Easel, you can change or
+        move it any time without us.
+      </p>
+      <p class="domain-steps__note" id="domain-docs-github-pages" hidden>
+        Stuck on a specific record or registrar? GitHub's
+        <a href="https://docs.github.com/pages/configuring-a-custom-domain-for-your-github-pages-site" target="_blank" rel="noopener">custom domain docs</a>
         cover the edge cases. And because your domain never depends on Easel, you can change or
         move it any time without us.
       </p>
@@ -97,17 +133,32 @@ const md = (s: string) =>
 </Base>
 
 <script>
-  import { netlifyDomainUrl, readDeploy } from '../deploy';
+  import { domainSetupUrl, readDeploy } from '../deploy';
 
-  // If the artist provisioned through Easel, deep-link into *their* Netlify project
-  // instead of the generic dashboard, and greet them by site + date.
+  // If the artist provisioned through Easel, show the step set for *their* host,
+  // deep-link straight into it, and greet them by site + date.
   const rec = readDeploy();
-  const deeplink = document.querySelector<HTMLAnchorElement>('#domain-deeplink');
+  const provider = rec?.provider === 'github-pages' ? 'github-pages' : 'netlify';
+
+  // Reveal the matching step list + docs note, hide the other.
+  document.querySelectorAll<HTMLElement>('.domain-steps__list').forEach((ol) => {
+    ol.toggleAttribute('hidden', ol.dataset.host !== provider);
+  });
+  document
+    .querySelector<HTMLElement>('#domain-docs-netlify')
+    ?.toggleAttribute('hidden', provider !== 'netlify');
+  document
+    .querySelector<HTMLElement>('#domain-docs-github-pages')
+    ?.toggleAttribute('hidden', provider !== 'github-pages');
 
   if (rec) {
-    const slug = rec.netlify ?? null;
-    const url = slug ? netlifyDomainUrl(slug) : 'https://app.netlify.com/';
-    if (deeplink) deeplink.href = url;
+    const url = domainSetupUrl(rec) ?? '#';
+    document
+      .querySelector<HTMLAnchorElement>(`.domain-deeplink[data-host="${provider}"]`)
+      ?.setAttribute('href', url);
+
+    const slug =
+      provider === 'github-pages' ? (rec.repo ? rec.repo.split('/').pop() ?? null : null) : (rec.netlify ?? null);
 
     const welcome = document.querySelector<HTMLElement>('#domain-welcome');
     const slugEl = document.querySelector<HTMLElement>('#domain-welcome-slug');
@@ -125,7 +176,11 @@ const md = (s: string) =>
         })}`;
       }
     }
-    if (link) link.href = url;
+    if (link) {
+      link.href = url;
+      link.textContent =
+        provider === 'github-pages' ? 'Open your GitHub Pages settings' : 'Open your domain management';
+    }
     welcome?.removeAttribute('hidden');
   }
 </script>

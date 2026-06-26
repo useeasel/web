@@ -27,6 +27,8 @@ SVELTIA_AUTH_URL = "https://auth.easel.rosematcha.com"
 # GitHub template to generate each artist's repo from.
 TEMPLATE_OWNER = "useeasel"
 TEMPLATE_REPO = "template"
+# From-address for the optional completion email (domain must be Resend-verified).
+EASEL_FROM_EMAIL = "Easel <hello@easel.rosematcha.com>"
 
 # ---------------------------------------------------------------------------
 # Secrets — set with `wrangler secret put <NAME>` (never commit these):

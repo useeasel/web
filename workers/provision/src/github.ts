@@ -6,11 +6,15 @@
  *   Generate from template:https://docs.github.com/rest/repos/repos#create-a-repository-using-a-template
  *   Get/update file:       https://docs.github.com/rest/repos/contents
  *
- * We request the `repo` scope. `public_repo` would cover creating the repo and
- * committing the config edit, but wiring continuous deployment ourselves — adding
- * a Netlify deploy key and a push webhook to the artist's repo — requires the
- * broader `repo` scope (GitHub gates key + hook management behind it). This lets
- * the whole site stand up with no extra clicks for the artist.
+ * We request the `repo workflow` scopes. `public_repo` would cover creating the
+ * repo and committing the config edit, but wiring continuous deployment ourselves —
+ * adding a Netlify deploy key and a push webhook to the artist's repo — requires the
+ * broader `repo` scope (GitHub gates key + hook management behind it). The GitHub
+ * Pages host additionally commits a `.github/workflows/*.yml` deploy workflow, and
+ * GitHub blocks OAuth Apps from writing under `.github/workflows/` unless the token
+ * also carries the `workflow` scope — without it the contents API returns a bare
+ * 404 (it hides the special path rather than 403-ing). This lets the whole site
+ * stand up on either host with no extra clicks for the artist.
  */
 
 const GH_API = 'https://api.github.com';
@@ -33,7 +37,7 @@ export function githubAuthorizeUrl(opts: {
   const u = new URL(GITHUB_AUTHORIZE_URL);
   u.searchParams.set('client_id', opts.clientId);
   u.searchParams.set('redirect_uri', opts.redirectUri);
-  u.searchParams.set('scope', 'repo');
+  u.searchParams.set('scope', 'repo workflow');
   u.searchParams.set('state', opts.state);
   u.searchParams.set('allow_signup', 'true');
   return u.toString();

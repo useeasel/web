@@ -6,8 +6,11 @@
  *   Generate from template:https://docs.github.com/rest/repos/repos#create-a-repository-using-a-template
  *   Get/update file:       https://docs.github.com/rest/repos/contents
  *
- * We request the minimal `public_repo` scope — enough to create one public repo
- * and commit a config edit, nothing more.
+ * We request the `repo` scope. `public_repo` would cover creating the repo and
+ * committing the config edit, but wiring continuous deployment ourselves — adding
+ * a Netlify deploy key and a push webhook to the artist's repo — requires the
+ * broader `repo` scope (GitHub gates key + hook management behind it). This lets
+ * the whole site stand up with no extra clicks for the artist.
  */
 
 const GH_API = 'https://api.github.com';
@@ -30,7 +33,7 @@ export function githubAuthorizeUrl(opts: {
   const u = new URL(GITHUB_AUTHORIZE_URL);
   u.searchParams.set('client_id', opts.clientId);
   u.searchParams.set('redirect_uri', opts.redirectUri);
-  u.searchParams.set('scope', 'public_repo');
+  u.searchParams.set('scope', 'repo');
   u.searchParams.set('state', opts.state);
   u.searchParams.set('allow_signup', 'true');
   return u.toString();
@@ -89,32 +92,53 @@ export async function getGithubUser(
 }
 
 /**
- * Find the Netlify GitHub App installation id on the authenticated user's account.
+ * Add a read-only deploy key to the artist's repo so Netlify can clone it over SSH
+ * for continuous deployment. Netlify holds the matching private half (see
+ * createDeployKey in netlify.ts). Requires the `repo` OAuth scope.
  *
- * Netlify wires continuous deployment (deploy key + push webhook) through its
- * GitHub *App*; to create a CD-linked site via the API, Netlify's `repo` block
- * needs this installation id. We discover it from GitHub rather than asking the
- * artist: `/user/installations` lists the App installations the user's token can
- * see; we match the one whose app slug is Netlify's.
- *
- * Best-effort: returns null if the user hasn't installed Netlify's GitHub App yet
- * (or the lookup isn't permitted), so the caller can decide how to proceed rather
- * than hard-failing. NOTE: this path is the one flagged for live end-to-end
- * verification — confirm the installation id + repo id actually yield auto-rebuilds
- * on a throwaway GitHub+Netlify pair.
+ * A 422 means an equivalent key is already on the repo (e.g. a retry) — harmless,
+ * so we let it pass.
  */
-export async function getNetlifyInstallationId(token: string): Promise<number | null> {
-  const res = await fetch(`${GH_API}/user/installations?per_page=100`, {
+export async function addDeployKey(
+  token: string,
+  opts: { owner: string; repo: string; title: string; publicKey: string },
+): Promise<void> {
+  const res = await fetch(`${GH_API}/repos/${opts.owner}/${opts.repo}/keys`, {
+    method: 'POST',
     headers: authHeaders(token),
+    body: JSON.stringify({ title: opts.title, key: opts.publicKey, read_only: true }),
   });
-  if (!res.ok) return null;
-  const data = (await res.json()) as {
-    installations?: Array<{ id: number; app_slug?: string; app_id?: number }>;
-  };
-  const netlify = data.installations?.find(
-    (i) => i.app_slug === 'netlify' || i.app_slug === 'netlify-app',
-  );
-  return netlify?.id ?? null;
+  if (!res.ok && res.status !== 422) {
+    const body = await res.text();
+    throw new Error(`add deploy key failed (${res.status}): ${body}`);
+  }
+}
+
+/**
+ * Create a push webhook on the artist's repo pointing at Netlify, so editor commits
+ * trigger an automatic rebuild — the "hit save → it republishes" promise. Requires
+ * the `repo` OAuth scope. The caller treats failure as non-fatal: the first deploy
+ * still works; only auto-publish-on-edit is affected. A 422 means an equivalent
+ * hook already exists.
+ */
+export async function createNetlifyPushWebhook(
+  token: string,
+  opts: { owner: string; repo: string },
+): Promise<void> {
+  const res = await fetch(`${GH_API}/repos/${opts.owner}/${opts.repo}/hooks`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({
+      name: 'web',
+      active: true,
+      events: ['push'],
+      config: { url: 'https://api.netlify.com/hooks/github', content_type: 'json' },
+    }),
+  });
+  if (!res.ok && res.status !== 422) {
+    const body = await res.text();
+    throw new Error(`create webhook failed (${res.status}): ${body}`);
+  }
 }
 
 export interface GeneratedRepo {

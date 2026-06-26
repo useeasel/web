@@ -32,13 +32,15 @@ import {
   exchangeGithubCode,
   getGithubUser,
   generateRepoFromTemplate,
-  getNetlifyInstallationId,
+  addDeployKey,
+  createNetlifyPushWebhook,
   patchAdminConfig,
 } from './github';
 import { sendCompletionEmail } from './email';
 import {
   netlifyAuthorizeUrl,
   exchangeNetlifyCode,
+  createDeployKey,
   createSite,
   triggerBuild,
   getLatestDeployState,
@@ -405,27 +407,27 @@ async function runProvisionJob(
   }
 
   // (b) Netlify: create site linked to the repo (Netlify auto-assigns the name).
-  // We pass the numeric repo id + the Netlify GitHub App installation id so Netlify
-  // installs the deploy key + push webhook — i.e. so later editor commits actually
-  // trigger rebuilds (continuous deployment), not just the first deploy.
+  // Repo access for continuous deployment is wired with a deploy key: mint one on
+  // Netlify, add its public half to the repo, then create the site against it. We
+  // use this instead of the GitHub-App-installation flow because that needs a
+  // GitHub App token — ours is a classic OAuth App, whose tokens can't enumerate
+  // App installations, so the old lookup was always null and Netlify fell back to
+  // a keyless SSH clone that always failed "host key verification failed".
   await advance('site', 'active');
   let site;
   try {
-    const installationId = await getNetlifyInstallationId(sess.githubToken);
-    if (installationId == null) {
-      // Not fatal: the first build can still run. But auto-rebuild on edit likely
-      // won't work until the artist connects GitHub in Netlify. Surface it as a
-      // soft note rather than blocking the run.
-      console.warn('[provision] no Netlify GitHub App installation found for user');
-      job.warning =
-        'We couldn’t confirm the Netlify⇄GitHub connection, so edits may not auto-publish. ' +
-        'If your site stops updating, open it in Netlify and connect the GitHub repo once.';
-    }
+    const deployKey = await createDeployKey(sess.netlifyToken);
+    await addDeployKey(sess.githubToken, {
+      owner: repo.owner,
+      repo: repo.name,
+      title: 'Easel · Netlify deploy',
+      publicKey: deployKey.publicKey,
+    });
     site = await createSite(sess.netlifyToken, {
       repoPath: `${repo.owner}/${repo.name}`,
       branch: repo.defaultBranch,
       repoId: repo.id,
-      installationId,
+      deployKeyId: deployKey.id,
     });
     // Same as the repo above: surface the site/admin links even if a later stage
     // (admin patch, deploy) fails, so the artist isn't left wondering what happened.
@@ -435,6 +437,19 @@ async function runProvisionJob(
     await advance('site', 'done');
   } catch (e) {
     return fail(e instanceof Error ? e.message : 'site_failed', 'site');
+  }
+
+  // (b2) Wire the push webhook so editor commits auto-rebuild — the "hit save → it
+  // republishes" promise. Best-effort: the first deploy works without it, so a
+  // failure here is a soft warning, not a failed run.
+  try {
+    await createNetlifyPushWebhook(sess.githubToken, { owner: repo.owner, repo: repo.name });
+  } catch (e) {
+    console.warn('[provision] push webhook setup failed:', e);
+    job.warning =
+      'Your site is live, but we couldn’t finish setting up auto-publishing. ' +
+      'If edits stop going live, reconnect the repo from your Netlify site settings.';
+    await setJob(env, state, job);
   }
 
   // (c) Netlify: trigger the first build. We keep the deploy stage 'active' and

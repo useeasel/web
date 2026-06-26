@@ -74,6 +74,30 @@ export interface NetlifySite {
   adminUrl: string;
 }
 
+export interface NetlifyDeployKey {
+  id: string;
+  /** SSH public key to register on the repo as a read-only deploy key. */
+  publicKey: string;
+}
+
+/**
+ * Create a Netlify deploy key. Netlify keeps the private half; the caller adds the
+ * public half to the artist's repo (see addDeployKey in github.ts) so Netlify can
+ * clone it for continuous deployment.
+ */
+export async function createDeployKey(token: string): Promise<NetlifyDeployKey> {
+  const res = await fetch(`${NETLIFY_API}/deploy_keys`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Netlify create deploy key failed (${res.status}): ${body}`);
+  }
+  const data = (await res.json()) as { id: string; public_key: string };
+  return { id: data.id, publicKey: data.public_key };
+}
+
 /**
  * Step (b): create a Netlify site linked to the artist's GitHub repo, with the
  * Astro build command + `dist` publish dir. Forms are enabled by Netlify's build
@@ -89,23 +113,27 @@ export async function createSite(
     /** Numeric GitHub repo id — Netlify keys the repo link off this, not the path. */
     repoId: number;
     /**
-     * Netlify GitHub App installation id on the artist's account. Required for
-     * Netlify to install the deploy key + push webhook that drive *continuous*
-     * deployment. Without it, the first deploy may run but later editor commits
-     * won't auto-rebuild. May be null if the App isn't installed yet (see caller).
+     * Netlify deploy key id (see createDeployKey). Its public half is added to the
+     * repo so Netlify can clone it over SSH — this is what links the repo for
+     * continuous deployment without needing Netlify's GitHub App.
      */
-    installationId: number | null;
+    deployKeyId: string;
   },
 ): Promise<NetlifySite> {
-  // The repo block: `id` + `installation_id` are what wire continuous deployment.
-  // (The earlier bare block — path only — created a site whose editor commits never
-  // triggered a rebuild. This is the §0.1 fix; verify end-to-end against live accts.)
+  // Link the repo via a deploy key (SSH). We use this instead of the GitHub App
+  // installation flow because that requires a GitHub App token, while our GitHub
+  // integration is a classic OAuth App — its tokens can't enumerate App
+  // installations, so `installation_id` was always null and Netlify fell back to a
+  // keyless deploy-key clone that always failed "host key verification failed".
+  // Providing the key id makes that path actually work.
   const repo: Record<string, unknown> = {
     provider: 'github',
     id: opts.repoId,
     repo: opts.repoPath,
     repo_branch: opts.branch,
     branch: opts.branch,
+    private: false,
+    deploy_key_id: opts.deployKeyId,
     // Install dependencies *in the build command*. Sites created through the API
     // with an explicit `cmd` don't reliably get Netlify's automatic dependency
     // install step, so a bare `astro build` fails with `astro: command not found`
@@ -114,7 +142,6 @@ export async function createSite(
     cmd: 'npm install && npm run build',
     dir: 'dist',
   };
-  if (opts.installationId != null) repo.installation_id = opts.installationId;
 
   const res = await fetch(`${NETLIFY_API}/sites`, {
     method: 'POST',

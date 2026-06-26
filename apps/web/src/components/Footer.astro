@@ -8,7 +8,7 @@ const year = new Date().getFullYear();
     <div class="site-footer__brand">
       <a class="brand" href="/" aria-label="Easel home">
         <EaselMark size={30} />
-        <span class="brand__word">Easel</span>
+        <span class="brand__word">easel</span>
       </a>
       <p class="site-footer__tag">Portfolio sites for artists. Free, fast, and yours.</p>
     </div>
@@ -23,6 +23,7 @@ const year = new Date().getFullYear();
       <div>
         <h4>Help</h4>
         <a href="/#faq">FAQ</a>
+        <a href="/custom-domain/">Add a domain</a>
         <a href="https://github.com/useeasel" rel="noopener">GitHub</a>
       </div>
     </nav>
@@ -39,10 +40,10 @@ const year = new Date().getFullYear();
 
 <style>
   .site-footer {
-    border-top: var(--border);
+    border-top: var(--border-thick);
     background: var(--c-ink);
     color: var(--c-paper);
-    margin-top: var(--space-7);
+    margin-top: 0;
   }
   .site-footer a { color: var(--c-paper); text-decoration: none; }
   .site-footer a:hover { color: var(--c-yellow); }
@@ -72,4 +73,13 @@ const year = new Date().getFullYear();
   .site-footer__shapes .shape--square,
   .site-footer__shapes .shape--circle { width: 14px; height: 14px; }
   .site-footer__shapes .shape--triangle { font-size: 14px; }
+
+  @media (max-width: 720px) {
+    .site-footer { margin-top: var(--space-6); }
+    .site-footer__inner {
+      gap: var(--space-5);
+      padding-block: var(--space-5) var(--space-4);
+    }
+    .site-footer__nav { gap: var(--space-5); }
+  }
 </style>

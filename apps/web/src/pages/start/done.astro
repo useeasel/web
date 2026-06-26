@@ -7,11 +7,10 @@ import EaselMark from '../../components/EaselMark.astro';
 // this is a static page.
 ---
 
-<Base title="Your site is live — Easel" description="Your Easel portfolio is live. Start adding your work.">
+<Base title="Your site is live · Easel" description="Your Easel portfolio is live. Start adding your work.">
   <section class="section done">
     <div class="container done__inner">
       <div class="done__mark"><EaselMark size={88} title="" /></div>
-      <p class="eyebrow">All set</p>
       <h1>Your portfolio is live</h1>
       <p class="done__sub">
         Easel created your repository, built your site, and set up your editor.
@@ -36,14 +35,16 @@ import EaselMark from '../../components/EaselMark.astro';
       </ol>
 
       <p class="done__help">
-        Want a custom domain like your-name.com? You can add it from Netlify whenever you like
-        (here's <a href="/how-it-works/">how it works</a>).
+        Want a custom domain like your-name.com? Add it from
+        <a id="link-domain" href="#" target="_blank" rel="noopener">your Netlify domain settings</a>
+        whenever you're ready — our <a href="/custom-domain/">step-by-step domain guide</a> walks
+        you through it.
       </p>
 
       <div class="done__own">
         <h2 class="done__own-title">It's yours to keep</h2>
         <p>
-          Your whole site — every image, page, and setting — lives in
+          Your whole site (every image, page, and setting) lives in
           <a id="link-repo" href="#" target="_blank" rel="noopener">your own GitHub repository</a>.
           Easel doesn't host it and can't lock you in. If you ever want to move hosts or hand it
           to a developer, the <a href="/own-your-site/">take-it-with-you guide</a> shows you how.
@@ -54,15 +55,19 @@ import EaselMark from '../../components/EaselMark.astro';
 </Base>
 
 <script>
+  import { netlifyDomainUrl, slugFromSite, writeDeploy } from '../../deploy';
+
   const params = new URLSearchParams(location.search);
   const site = params.get('site');
   const admin = params.get('admin');
   const repo = params.get('repo');
+  const netlify = params.get('netlify') ?? slugFromSite(site);
   const warning = params.get('warning');
 
   const siteLink = document.querySelector<HTMLAnchorElement>('#link-site');
   const adminLink = document.querySelector<HTMLAnchorElement>('#link-admin');
   const repoLink = document.querySelector<HTMLAnchorElement>('#link-repo');
+  const domainLink = document.querySelector<HTMLAnchorElement>('#link-domain');
   const warnEl = document.querySelector<HTMLElement>('#done-warning');
 
   if (site && siteLink) siteLink.href = site;
@@ -75,6 +80,25 @@ import EaselMark from '../../components/EaselMark.astro';
 
   // Link the repo if we have it; otherwise point at the user's GitHub repos list.
   if (repoLink) repoLink.href = repo ?? 'https://github.com/?tab=repositories';
+
+  // Deep-link straight into this project's Netlify domain management.
+  if (domainLink) {
+    domainLink.href = netlify
+      ? netlifyDomainUrl(netlify)
+      : 'https://app.netlify.com/';
+  }
+
+  // Remember this deployment so the domain guide (and any later visit) can pick up
+  // where the artist left off instead of giving generic, un-personalized steps.
+  if (site) {
+    writeDeploy({
+      site,
+      admin: adminHref ?? undefined,
+      repo: repo ?? undefined,
+      netlify: netlify ?? undefined,
+      at: new Date().toISOString(),
+    });
+  }
 
   // Surface a non-fatal note from provisioning (e.g. auto-publish couldn't be
   // confirmed) so the artist knows what to check, without it reading as a failure.

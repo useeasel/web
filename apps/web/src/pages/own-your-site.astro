@@ -13,11 +13,11 @@ const moves = [
   },
   {
     title: 'Add a custom domain',
-    body: 'Domains are handled in Netlify, your host — Easel never touches DNS. In your Netlify site, go to Domain management → Add a domain, and follow Netlify\'s steps to point your domain (e.g. your-name.com) at the site. HTTPS is set up for you.',
+    body: 'Netlify handles your domain, since it\'s your host. Easel never touches DNS. Our [step-by-step domain guide](/custom-domain/) walks you through pointing your domain (e.g. your-name.com) at the site; Netlify sets up HTTPS for you.',
   },
   {
     title: 'Move to a different host',
-    body: 'Because your site is a standard Astro project, any static host (Cloudflare Pages, Vercel, GitHub Pages, your own server) can build it. Point the host at your GitHub repo, set the build command to `astro build` and the output directory to `dist`, and you\'re live elsewhere — no Easel involved.',
+    body: 'Because your site is a standard Astro project, any static host (Cloudflare Pages, Vercel, GitHub Pages, your own server) can build it. Point the host at your GitHub repo, set the build command to `astro build` and the output directory to `dist`, and you\'re live elsewhere. No Easel involved.',
   },
   {
     title: 'Hand it to a developer',
@@ -27,16 +27,15 @@ const moves = [
 ---
 
 <Base
-  title="Own your site — Easel"
-  description="Your Easel portfolio lives in your own GitHub repository. Here's how to add a domain, move hosts, or hand it to a developer — any time, no lock-in."
+  title="Own your site · Easel"
+  description="Your Easel portfolio lives in your own GitHub repository. Add a domain, move hosts, or hand it to a developer. Any time, no lock-in."
 >
   <section class="section own-hero">
     <div class="container">
-      <p class="eyebrow">Yours to keep</p>
       <h1>Own your site, for real</h1>
       <p class="own-hero__sub">
         Easel sets your portfolio up and then steps out. Everything lives on accounts you
-        control, so you're never locked in. Here's exactly how to take it anywhere.
+        control, so you're never locked in. You can take it anywhere.
       </p>
     </div>
   </section>
@@ -49,15 +48,17 @@ const moves = [
             <span class="own-move__num" aria-hidden="true">{i + 1}</span>
             <div>
               <h2>{m.title}</h2>
-              <p set:html={m.body.replace(/`([^`]+)`/g, '<code>$1</code>')} />
+              <p set:html={m.body
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')} />
             </div>
           </li>
         ))}
       </ol>
 
       <p class="own-moves__note">
-        If Easel disappeared tomorrow, your site would keep running exactly as it is —
-        because none of it depends on us once setup is done.
+        If Easel disappeared tomorrow, your site would keep running just as it is. None of
+        it depends on us once setup is done.
       </p>
     </div>
   </section>

@@ -1,0 +1,174 @@
+---
+import Base from '../layouts/Base.astro';
+
+// Custom-domain walkthrough. Pointing a domain is the one post-setup task Easel
+// can't do for the artist (we never touch DNS — the domain lives in their own
+// registrar + Netlify accounts). This page is the friendly, end-to-end version of
+// the one-liner on /own-your-site. If we have a deploy cookie from /start/done, the
+// callout + step links deep-link straight into *their* Netlify domain management.
+
+const steps = [
+  {
+    title: 'Get a domain name',
+    body: 'If you don\'t already own one, buy a domain from a registrar like Cloudflare, Namecheap, or Porkbun. It usually costs about $10–15 a year. You buy it directly, so it\'s yours — Easel and Netlify never sell you the domain or lock it up. Already have one? Skip ahead.',
+  },
+  {
+    title: 'Open your site\'s domain settings in Netlify',
+    body: 'In Netlify, open your site and go to **Domain management**. That\'s where every domain change for your site happens. (If you just set up with Easel, the button below jumps straight there.)',
+  },
+  {
+    title: 'Add your domain',
+    body: 'Click **Add a domain**, type your address (e.g. `your-name.com`), and confirm. Netlify will check it and add it to your site. You can add both the bare `your-name.com` and the `www.` version.',
+  },
+  {
+    title: 'Point your domain at Netlify',
+    body: 'The easiest path is to let **Netlify manage your DNS**: it shows you four nameservers — set those at your registrar (replacing the ones already there) and Netlify handles the rest. Prefer to keep your registrar\'s DNS? Netlify instead shows the exact records to add (an A or ALIAS record for the bare domain, a CNAME for `www`).',
+  },
+  {
+    title: 'Wait for it to go live',
+    body: 'DNS changes take anywhere from a few minutes to a few hours to spread across the internet — this is normal, nothing is broken. Once Netlify sees your domain pointing correctly, it provisions a free HTTPS certificate automatically, so your site loads securely with no extra work.',
+  },
+  {
+    title: 'Make it your primary domain',
+    body: 'Optional but tidy: in Domain management, set your custom domain as the **primary** one. Visitors who land on the old `*.netlify.app` address are then redirected to your real domain.',
+  },
+];
+
+const md = (s: string) =>
+  s
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+---
+
+<Base
+  title="Add a custom domain · Easel"
+  description="A step-by-step guide to pointing your own domain (like your-name.com) at your Easel portfolio through Netlify. Easel never touches your DNS — your domain stays yours."
+>
+  <section class="section domain-hero">
+    <div class="container">
+      <h1>Add your own domain</h1>
+      <p class="domain-hero__sub">
+        Give your portfolio a real address like <strong>your-name.com</strong>. Your domain
+        lives in your own registrar and Netlify accounts — Easel never touches your DNS. Here's
+        the whole thing, start to finish.
+      </p>
+
+      <div id="domain-welcome" class="domain-welcome" hidden>
+        <p class="domain-welcome__line">
+          Your Easel site <strong id="domain-welcome-slug"></strong> went live
+          <span id="domain-welcome-when"></span>. Pick up right where you left off:
+        </p>
+        <a id="domain-welcome-link" class="btn btn--accent" href="#" target="_blank" rel="noopener">
+          Open your domain management
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section domain-steps">
+    <div class="container">
+      <ol class="domain-steps__list" role="list">
+        {steps.map((s, i) => (
+          <li class="domain-step">
+            <span class="domain-step__num" aria-hidden="true">{i + 1}</span>
+            <div>
+              <h2>{s.title}</h2>
+              <p set:html={md(s.body)} />
+              {i === 1 && (
+                <p class="domain-step__deep">
+                  <a id="domain-deeplink" href="https://app.netlify.com/" target="_blank" rel="noopener">
+                    Open Netlify domain management →
+                  </a>
+                </p>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <p class="domain-steps__note">
+        Stuck on a specific record or registrar? Netlify's
+        <a href="https://docs.netlify.com/domains-https/custom-domains/" target="_blank" rel="noopener">custom domain docs</a>
+        cover the edge cases. And because your domain never depends on Easel, you can change or
+        move it any time without us.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { netlifyDomainUrl, readDeploy } from '../deploy';
+
+  // If the artist provisioned through Easel, deep-link into *their* Netlify project
+  // instead of the generic dashboard, and greet them by site + date.
+  const rec = readDeploy();
+  const deeplink = document.querySelector<HTMLAnchorElement>('#domain-deeplink');
+
+  if (rec) {
+    const slug = rec.netlify ?? null;
+    const url = slug ? netlifyDomainUrl(slug) : 'https://app.netlify.com/';
+    if (deeplink) deeplink.href = url;
+
+    const welcome = document.querySelector<HTMLElement>('#domain-welcome');
+    const slugEl = document.querySelector<HTMLElement>('#domain-welcome-slug');
+    const whenEl = document.querySelector<HTMLElement>('#domain-welcome-when');
+    const link = document.querySelector<HTMLAnchorElement>('#domain-welcome-link');
+
+    if (slugEl) slugEl.textContent = slug ?? 'your site';
+    if (whenEl && rec.at) {
+      const d = new Date(rec.at);
+      if (!Number.isNaN(d.getTime())) {
+        whenEl.textContent = `on ${d.toLocaleDateString(undefined, {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })}`;
+      }
+    }
+    if (link) link.href = url;
+    welcome?.removeAttribute('hidden');
+  }
+</script>
+
+<style>
+  .domain-hero { border-bottom: var(--border); }
+  .domain-hero__sub { font-size: 1.25rem; max-width: 56ch; }
+
+  .domain-welcome {
+    margin-top: var(--space-5);
+    max-width: 640px;
+    border: var(--border);
+    border-left: var(--border-thick);
+    border-left-color: var(--c-blue);
+    background: var(--c-white);
+    padding: var(--space-4);
+  }
+  .domain-welcome__line { margin: 0 0 var(--space-3); color: var(--c-ink); }
+
+  .domain-steps__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-5); max-width: 760px; }
+  .domain-step { display: flex; gap: var(--space-4); align-items: flex-start; }
+  .domain-step__num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 52px; height: 52px; flex: none;
+    font-family: var(--font-display); font-weight: 800; font-size: 1.5rem;
+    color: var(--c-white); background: var(--c-blue); border: var(--border);
+  }
+  .domain-step h2 { font-size: 1.375rem; margin-bottom: var(--space-2); }
+  .domain-step p { margin: 0; color: var(--c-stone); }
+  .domain-step__deep { margin-top: var(--space-2) !important; }
+  .domain-step__deep a { font-family: var(--font-display); font-weight: 700; color: var(--c-blue); }
+  .domain-step code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.9em;
+    background: var(--c-paper);
+    border: 1px solid var(--c-stone);
+    padding: 0.05em 0.3em;
+  }
+  .domain-steps__note {
+    margin-top: var(--space-6);
+    max-width: 760px;
+    border-left: var(--border-thick);
+    padding-left: var(--space-3);
+    color: var(--c-stone);
+  }
+</style>

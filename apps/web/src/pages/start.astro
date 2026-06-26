@@ -16,11 +16,10 @@ import { ROUTES } from '../config.ts';
 // by the signed `state`. This page only ever holds the opaque `state` value.
 ---
 
-<Base title="Start your portfolio — Easel" description="Connect GitHub and Netlify, name your site, and Easel builds your portfolio.">
+<Base title="Start your portfolio · Easel" description="Connect GitHub and Netlify, name your site, and Easel builds your portfolio.">
   <section class="section start">
     <div class="container start__inner">
       <header class="start__head">
-        <p class="eyebrow">Get started</p>
         <h1>Let's build your portfolio</h1>
         <p class="start__sub">
           Three short steps. You'll connect two free accounts, then Easel does the rest.
@@ -35,39 +34,48 @@ import { ROUTES } from '../config.ts';
       <ConnectStep step={1} title="Connect GitHub" state="active" shape="square">
         <p>
           <abbr class="hint" title="A very popular, free platform for hosting code. It's where your site's files will live.">GitHub</abbr>
-          is the free home for your site's files. We ask for one thing only: permission to
-          create a single public repository for your portfolio.
+          is where the backend code and edit history for your site will live. You'll also use
+          it to log in to your site's editor. Don't worry, you won't need to touch any code!
         </p>
-        <a id="btn-github" class="btn btn--primary" href={ROUTES.authGithub}>
-          Connect GitHub
-        </a>
+        <div class="start__actions" id="github-actions">
+          <a id="btn-github" class="btn btn--primary" href={ROUTES.authGithub}>
+            Connect GitHub
+          </a>
+          <a class="btn btn--ghost" href="https://github.com/signup" target="_blank" rel="noopener">
+            Create a GitHub account
+          </a>
+        </div>
         <p id="github-connected" class="start__connected" hidden>
           <span class="start__check" aria-hidden="true"></span>GitHub connected<span id="github-login"></span>.
         </p>
-        <p class="start__hint">No GitHub account yet? Sweet news: you can make one for free right here.</p>
+        <p class="start__hint">No account yet? Create one for free, then come back here to connect.</p>
       </ConnectStep>
 
       <ConnectStep step={2} title="Connect Netlify" state="todo" shape="circle">
         <p>
           <abbr class="hint" title="A hosting platform for simple websites with a generous free tier. This is what actually serves your site to the world.">Netlify</abbr>
-          hosts your site and serves it to visitors, free. Easel creates the site for you
-          and gives it a temporary web address to start. You can point your own domain at
-          it whenever you're ready.
+          will turn the site you create with Easel into something other people can access.
+          You'll need to configure your domain with them eventually, but we'll help.
         </p>
-        <a id="btn-netlify" class="btn btn--primary" href="#" aria-disabled="true">
-          Connect Netlify
-        </a>
+        <div class="start__actions" id="netlify-actions">
+          <a id="btn-netlify" class="btn btn--primary" href="#" aria-disabled="true">
+            Connect Netlify
+          </a>
+          <a class="btn btn--ghost" href="https://app.netlify.com/signup" target="_blank" rel="noopener">
+            Create a Netlify account
+          </a>
+        </div>
         <p id="netlify-connected" class="start__connected" hidden>
           <span class="start__check" aria-hidden="true"></span>Netlify connected.
         </p>
-        <p class="start__hint">No Netlify account yet? You can make one for free right here too.</p>
+        <p class="start__hint">No account yet? Create one for free, then come back here to connect.</p>
       </ConnectStep>
 
       <ConnectStep step={3} title="Build your site" state="todo" shape="triangle">
         <p id="provision-intro">
-          Everything's connected. When you hit the button, Easel sets up your repository,
-          your Netlify site, and your editor. This usually takes a couple of minutes. Your
-          site goes live at a temporary Netlify address; you can add a custom domain after.
+          We'll copy our template from our GitHub to yours, set it up on Netlify, and get you
+          all the links you need to make your site yours. This takes a few minutes, please be
+          patient!
         </p>
         <label class="field" for="provision-email">
           <span class="field__label">Email <span class="field__optional">(optional)</span></span>
@@ -145,7 +153,8 @@ import { ROUTES } from '../config.ts';
   const provisionBtn = document.querySelector<HTMLButtonElement>('#btn-provision');
   const progressWrap = document.querySelector<HTMLElement>('#provision-progress');
   const errorEl = document.querySelector<HTMLElement>('#provision-error');
-  const githubBtn = document.querySelector<HTMLAnchorElement>('#btn-github');
+  const githubActions = document.querySelector<HTMLElement>('#github-actions');
+  const netlifyActions = document.querySelector<HTMLElement>('#netlify-actions');
   const githubConnected = document.querySelector<HTMLElement>('#github-connected');
   const githubLoginEl = document.querySelector<HTMLElement>('#github-login');
   const netlifyConnected = document.querySelector<HTMLElement>('#netlify-connected');
@@ -184,13 +193,13 @@ import { ROUTES } from '../config.ts';
 
     // Step 1 — GitHub
     setStepState(1, gh ? 'done' : 'active');
-    githubBtn?.toggleAttribute('hidden', gh);
+    githubActions?.toggleAttribute('hidden', gh);
     githubConnected?.toggleAttribute('hidden', !gh);
     if (githubLoginEl) githubLoginEl.textContent = gh && login ? ` as @${login}` : '';
 
     // Step 2 — Netlify
     netlifyConnected?.toggleAttribute('hidden', !nf);
-    netlifyBtn?.toggleAttribute('hidden', nf);
+    netlifyActions?.toggleAttribute('hidden', nf);
     if (nf) {
       setStepState(2, 'done');
     } else if (gh) {
@@ -322,10 +331,13 @@ import { ROUTES } from '../config.ts';
   async function pollJob(jobId: string) {
     // Simple polling loop. The worker reports the current stage + status until
     // it reaches a terminal 'done' or 'error' state. (SSE is a future upgrade.)
+    // The window is generous because the deploy stage now waits for Netlify's first
+    // build to actually finish — the worker hands that wait off to these polls, and
+    // a cold Astro build can run a few minutes. ~200 × 2.5s ≈ 8 min of headroom.
     const url = new URL(ROUTES.provision);
     url.searchParams.set('job', jobId);
 
-    for (let i = 0; i < 120; i++) {
+    for (let i = 0; i < 200; i++) {
       await new Promise((r) => setTimeout(r, 2500));
       const res = await fetch(url.toString());
       if (!res.ok) continue;
@@ -346,12 +358,13 @@ import { ROUTES } from '../config.ts';
     showError('This is taking longer than expected. Your site may still be building, so check back shortly.');
   }
 
-  function finish(data: { siteUrl?: string; adminUrl?: string; repoUrl?: string; warning?: string }) {
+  function finish(data: { siteUrl?: string; adminUrl?: string; repoUrl?: string; netlifyName?: string; warning?: string }) {
     resetFlow();
     const done = new URL('/start/done/', location.origin);
     if (data.siteUrl) done.searchParams.set('site', data.siteUrl);
     if (data.adminUrl) done.searchParams.set('admin', data.adminUrl);
     if (data.repoUrl) done.searchParams.set('repo', data.repoUrl);
+    if (data.netlifyName) done.searchParams.set('netlify', data.netlifyName);
     if (data.warning) done.searchParams.set('warning', data.warning);
     location.assign(done.toString());
   }
@@ -387,6 +400,7 @@ import { ROUTES } from '../config.ts';
     text-decoration: underline;
     text-underline-offset: 3px;
   }
+  .start__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
   .start__hint { color: var(--c-stone); font-size: 0.9375rem; margin: var(--space-3) 0 0; }
   .start__error {
     margin: var(--space-3) 0 0;

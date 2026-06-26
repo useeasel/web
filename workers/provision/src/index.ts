@@ -657,8 +657,17 @@ async function reconcileDeploy(env: Env, state: string, job: JobRecord): Promise
     return job;
   }
 
-  // Still building — refresh the job + session TTLs so neither lapses mid-wait,
-  // then let the client poll again.
+  // Still building. We only reach reconcile once the site exists and its first
+  // build is under way, so assert that truth in the checklist before persisting:
+  // everything up to deploy is done, deploy is active. This also repairs a stale
+  // snapshot we may have read mid-write from the background job (which can still
+  // show deploy 'pending') — without it, writing the snapshot back here clobbers
+  // the background's deploy→'active' and the row never turns yellow.
+  job.stages.repo = 'done';
+  job.stages.admin = 'done';
+  job.stages.site = 'done';
+  job.stages.deploy = 'active';
+  // Refresh the job + session TTLs so neither lapses mid-wait, then poll again.
   await setJob(env, state, job);
   await saveSession(env.EASEL_STATE, state, {});
   return job;

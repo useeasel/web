@@ -8,7 +8,11 @@ const steps = [
   { id: 'repo', label: 'Creating your GitHub repository from the Easel template' },
   { id: 'admin', label: 'Wiring up your /admin editor login' },
   { id: 'site', label: 'Publishing your site and contact form' },
-  { id: 'deploy', label: 'Building and deploying your site for the first time' },
+  {
+    id: 'deploy',
+    label: 'Building and deploying your site for the first time',
+    note: 'This is the slow one. Expect to wait about two minutes.',
+  },
   { id: 'cleanup', label: 'Cleaning up the temporary access we used' },
 ];
 ---
@@ -18,7 +22,10 @@ const steps = [
     {steps.map((s) => (
       <li class="progress__item" data-stage={s.id} data-state="pending">
         <span class="progress__dot" aria-hidden="true"></span>
-        <span class="progress__label">{s.label}</span>
+        <span class="progress__text">
+          <span class="progress__label">{s.label}</span>
+          {s.note && <span class="progress__note">{s.note}</span>}
+        </span>
         <span class="progress__state visually-hidden">pending</span>
       </li>
     ))}
@@ -47,7 +54,9 @@ const steps = [
   .progress__item[data-state='done'] .progress__dot { background: var(--c-blue); border-radius: 50%; }
   .progress__item[data-state='error'] .progress__dot { background: var(--c-red); }
   .progress__item[data-state='pending'] .progress__label { color: var(--c-stone); }
+  .progress__text { display: flex; flex-direction: column; gap: 2px; }
   .progress__label { font-weight: 500; }
+  .progress__note { font-size: 0.8125rem; color: var(--c-stone); font-weight: 400; }
 
   @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(0.8); } }
   @media (prefers-reduced-motion: reduce) {

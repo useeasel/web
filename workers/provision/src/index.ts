@@ -309,7 +309,11 @@ async function pollDeploy(
   tokens: ProvisionTokens,
   site: SiteHandle,
 ): Promise<DeployState> {
-  for (let i = 0; i < 12; i++) {
+  // Short window: awaitingDeploy is already armed before this runs, so this is just a
+  // best-effort fast path for quick builds. Keeping it brief returns the best-effort
+  // waitUntil task sooner, lowering the chance Cloudflare evicts it mid-run. Slow
+  // builds (GitHub Pages is always ~2 min) fall through to the durable client poll.
+  for (let i = 0; i < 6; i++) {
     await sleep(5000);
     const s = await host.getDeployState({ tokens, site });
     if (s === 'ready' || s === 'error') return s;
@@ -532,32 +536,33 @@ async function runProvisionJob(
     return fail(e instanceof Error ? e.message : 'deploy_failed', 'deploy');
   }
 
-  // (d, verify) Wait for the first deploy so we never declare the site live before
-  // the host has actually finished. We poll for a bounded window here so the common
-  // (fast) build is confirmed server-side — the completion email then fires even if
-  // the artist closed the tab. If the build outlasts the window, we hand the wait
-  // off to the client (awaitingDeploy) rather than risk this best-effort waitUntil
-  // job being evicted mid-wait; the reconciling GET handler finishes it from the
-  // client's polls. The site coordinates were recorded in the site stage above so
-  // either path can poll the deploy.
+  // (d, verify) Hand the deploy wait to the durable client poll UP FRONT: mark
+  // awaitingDeploy and persist it now, before the in-worker poll. This background
+  // task runs in a best-effort waitUntil that Cloudflare can evict mid-wait (a Pages
+  // build takes ~2 min, well past the window). If we only set awaitingDeploy *after*
+  // the poll, an eviction would leave the job stuck 'running' forever with the client
+  // never taking over — which is exactly what happened. With the flag set first, each
+  // GET /provision runs reconcileDeploy and finishes the job from the client's polls.
+  // The site coordinates were recorded in the site stage above so either path can poll.
+  job.awaitingDeploy = true;
+  await setJob(env, state, job);
+
+  // Best-effort fast path: if the build finishes inside a short server-side window,
+  // complete the job here so the completion email fires even if the tab closed. A
+  // slow build simply returns 'building' and the client poll carries it to done.
   let deployState: DeployState = 'building';
   try {
     deployState = await pollDeploy(host, tokens, site);
   } catch {
-    /* polling hiccup — fall through to the client handoff below */
+    /* polling hiccup — the client handoff (already armed above) covers it */
   }
   if (deployState === 'error') {
     return fail(buildFailedMessage(host.id), 'deploy');
   }
-  if (deployState !== 'ready') {
-    // Still building after the safe window — let the client finish the wait. The
-    // deploy stage stays 'active' (pulsing) until GET /provision confirms 'ready'.
-    job.awaitingDeploy = true;
-    await setJob(env, state, job);
-    return;
+  if (deployState === 'ready') {
+    await completeJob(env, state, job); // clears awaitingDeploy
   }
-
-  await completeJob(env, state, job);
+  // else: still building — awaitingDeploy is already set, the client finishes it.
 }
 
 /**

@@ -106,7 +106,12 @@ export async function createSite(
     repo: opts.repoPath,
     repo_branch: opts.branch,
     branch: opts.branch,
-    cmd: 'astro build',
+    // Install dependencies *in the build command*. Sites created through the API
+    // with an explicit `cmd` don't reliably get Netlify's automatic dependency
+    // install step, so a bare `astro build` fails with `astro: command not found`
+    // (exit 127) — the binary never gets installed. `npm install` first, then run
+    // the package script (which puts node_modules/.bin on PATH) makes it robust.
+    cmd: 'npm install && npm run build',
     dir: 'dist',
   };
   if (opts.installationId != null) repo.installation_id = opts.installationId;

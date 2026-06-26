@@ -250,7 +250,10 @@ export default {
         // client poll: check the live Netlify deploy and finalize once it's ready
         // (or surface a failed build). This is what keeps us from declaring the
         // site live before Netlify has actually finished.
-        if (job.status === 'running' && job.awaitingDeploy) {
+        // Drive the deploy to completion from the client poll whenever a running job
+        // already has a site — covering both the normal handoff (awaitingDeploy) and a
+        // job left stuck 'running' by a waitUntil eviction that never set the flag.
+        if (job.status === 'running' && (job.awaitingDeploy || job.siteId || job.repoName)) {
           job = await reconcileDeploy(env, jobId, job);
         }
         return json(job, env);
@@ -266,6 +269,8 @@ export default {
 
 interface JobRecord {
   status: 'running' | 'done' | 'error';
+  /** Epoch ms when the run started — lets a retry tell a live job from a stalled one. */
+  startedAt?: number;
   stages: Record<string, StageState>;
   message?: string;
   /** Non-fatal note surfaced to the artist (e.g. CD connection unconfirmed). */
@@ -374,13 +379,23 @@ async function startProvision(
   // return it instead of starting a duplicate. Without this, a double-click or a
   // mid-run "Try again" generates a second repo (portfolio-2) + Netlify site. This
   // is checked before the session lookup because a completed run has already
-  // deleted its transient tokens. Only a hard-errored run is allowed to restart.
+  // deleted its transient tokens. A hard-errored run is allowed to restart — and so
+  // is a run that stalled in the *setup* phase (no site yet) for over 90s, which on a
+  // best-effort waitUntil means the background task was evicted mid-setup and will
+  // never progress. A stalled run that already has a site is left alone: its deploy is
+  // reconciled by GET /provision, so restarting would just orphan a second repo.
+  const nowMs = Date.now();
   const existing = (await env.EASEL_STATE.get(`job:${state}`, 'json')) as JobRecord | null;
   if (existing && existing.status !== 'error') {
-    return json(
-      { jobId: state, status: existing.status, stages: existing.stages },
-      env,
-    );
+    const ageMs = existing.startedAt ? nowMs - existing.startedAt : Infinity;
+    const stalledInSetup =
+      existing.status === 'running' && !existing.siteUrl && ageMs > 90_000;
+    if (!stalledInSetup) {
+      return json(
+        { jobId: state, status: existing.status, stages: existing.stages },
+        env,
+      );
+    }
   }
 
   const sess = await loadSession(env.EASEL_STATE, state);
@@ -392,6 +407,7 @@ async function startProvision(
 
   const job: JobRecord = {
     status: 'running',
+    startedAt: nowMs,
     provider: host.id,
     stages: { repo: 'pending', site: 'pending', deploy: 'pending', admin: 'pending', cleanup: 'pending' },
   };

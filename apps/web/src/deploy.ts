@@ -25,9 +25,11 @@ export interface DeployRecord {
 const COOKIE = 'easel_deploy';
 const ONE_YEAR = 60 * 60 * 24 * 365;
 
-/** Netlify dashboard deep link to a project's domain management. */
+/** Netlify dashboard deep link to a project's add-a-domain setup flow. The
+ *  `/setup` suffix drops the artist straight onto the "add a domain" step rather
+ *  than the domain-management overview. */
 export function netlifyDomainUrl(slug: string): string {
-  return `https://app.netlify.com/projects/${slug}/domain-management`;
+  return `https://app.netlify.com/projects/${slug}/domain-management/setup`;
 }
 
 /** Best-effort: derive the Netlify project slug from its *.netlify.app URL. */

@@ -1,8 +1,6 @@
 ---
-import '@fontsource-variable/syne';
-import '@fontsource/space-grotesk/400.css';
-import '@fontsource/space-grotesk/500.css';
-import '@fontsource/space-grotesk/700.css';
+import '@fontsource-variable/jost';
+import '@fontsource-variable/hanken-grotesk';
 import '../styles/tokens.css';
 import Footer from '../components/Footer.astro';
 import EaselMark from '../components/EaselMark.astro';
@@ -13,7 +11,7 @@ interface Props {
 }
 
 const {
-  title = "Easel — an online portfolio that's truly yours",
+  title = "Easel · an online portfolio that's truly yours",
   description = "Easel is a no-code portfolio site creator for artists. Deeply customizable, extremely accessible, and free forever.",
 } = Astro.props;
 ---
@@ -36,7 +34,7 @@ const {
       <div class="container site-header__inner">
         <a class="brand" href="/" aria-label="Easel home">
           <EaselMark size={34} />
-          <span class="brand__word">Easel</span>
+          <span class="brand__word">easel</span>
         </a>
         <nav class="site-nav" aria-label="Primary">
           <a href="/how-it-works/">How it works</a>
@@ -66,7 +64,7 @@ const {
       .skip-link:focus { left: var(--space-3); top: var(--space-3); }
 
       .site-header {
-        border-bottom: var(--border);
+        border-bottom: var(--border-bold);
         background: var(--c-paper);
         position: sticky;
         top: 0;
@@ -100,6 +98,7 @@ const {
       .site-nav a {
         font-family: var(--font-display);
         font-weight: 600;
+        text-transform: lowercase;
         color: var(--c-ink);
         text-decoration: none;
       }
@@ -109,6 +108,10 @@ const {
 
       @media (max-width: 720px) {
         .site-nav a:not(.site-nav__cta) { display: none; }
+        /* Shorter sticky bar so it doesn't eat the small viewport. */
+        .site-header__inner { padding-block: var(--space-2); }
+        .brand__word { font-size: 1.25rem; }
+        .site-nav__cta { padding: 0.55rem 1.1rem; }
       }
     </style>
   </body>

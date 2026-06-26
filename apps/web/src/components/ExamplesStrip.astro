@@ -7,7 +7,6 @@ import { examples, hasRealExamples } from '../data/examples.ts';
 
 <section class="section examples" id="examples">
   <div class="container">
-    <p class="eyebrow">Made with Easel</p>
     <h2>{hasRealExamples ? 'Portfolios made with Easel' : 'A few looks to start from'}</h2>
     <ul class="examples__grid" role="list">
       {examples.map((ex) => (
@@ -46,12 +45,12 @@ import { examples, hasRealExamples } from '../data/examples.ts';
     display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: var(--space-4);
   }
-  .examples__card { border: var(--border); background: var(--c-white); }
+  .examples__card { border: var(--border-bold); background: var(--c-white); box-shadow: var(--shadow-hard); }
   .examples__link {
     display: block; text-decoration: none; color: inherit;
-    transition: transform 120ms ease;
+    transition: transform 120ms cubic-bezier(0.22, 1, 0.36, 1);
   }
-  .examples__link:hover { transform: translateY(-3px); }
+  .examples__link:hover { transform: translate(-3px, -3px); }
   .examples__img {
     width: 100%; height: 100%; object-fit: cover; display: block;
   }
@@ -61,13 +60,18 @@ import { examples, hasRealExamples } from '../data/examples.ts';
       repeating-linear-gradient(0deg, transparent 0 28px, rgba(22,22,22,0.05) 28px 29px),
       var(--c-paper);
     display: grid; place-items: center;
-    border-bottom: var(--border);
+    border-bottom: var(--border-bold);
   }
   .examples__art .shape--square,
-  .examples__art .shape--circle { width: 72px; height: 72px; background: var(--tint); border: var(--border); }
-  .examples__art .shape--triangle { font-size: 72px; border-bottom-color: var(--tint); }
+  .examples__art .shape--circle { width: 88px; height: 88px; background: var(--tint); border: var(--border-bold); }
+  .examples__art .shape--triangle { font-size: 92px; border-bottom-color: var(--tint); }
   .examples__meta { padding: var(--space-3) var(--space-4); }
   .examples__meta h3 { margin: 0 0 var(--space-1); }
   .examples__meta p { margin: 0; color: var(--c-stone); }
   .examples__note { margin-top: var(--space-4); color: var(--c-stone); }
+
+  @media (max-width: 720px) {
+    .examples__grid { margin-top: var(--space-4); gap: var(--space-3); }
+    .examples__meta { padding: var(--space-3); }
+  }
 </style>

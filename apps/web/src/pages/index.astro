@@ -11,13 +11,13 @@ import Faq from '../components/Faq.astro';
   <FeatureGrid />
   <ExamplesStrip />
 
-  <section class="section cta-band">
+  <section class="section cta-band band--blue">
     <div class="container cta-band__inner">
       <div>
         <h2>Ready when you are</h2>
         <p>No code, no cost, no catch. Your portfolio can be live in under ten minutes. Already have GitHub and Netlify? Even better, just sign in.</p>
       </div>
-      <a class="btn btn--accent" href="/start/">Start free</a>
+      <a class="btn btn--accent cta-band__btn" href="/start/">Start free</a>
     </div>
   </section>
 
@@ -26,17 +26,20 @@ import Faq from '../components/Faq.astro';
 
 <style>
   .cta-band {
-    background: var(--c-blue);
-    color: var(--c-white);
-    border-block: var(--border);
+    border-block: var(--border-thick);
   }
   .cta-band__inner {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-4);
+    gap: var(--space-5);
     flex-wrap: wrap;
   }
-  .cta-band h2 { color: var(--c-white); margin-bottom: var(--space-2); }
+  .cta-band h2 { margin-bottom: var(--space-3); max-width: 16ch; }
   .cta-band p { margin: 0; color: var(--c-paper); max-width: 46ch; }
+
+  @media (max-width: 540px) {
+    .cta-band__inner { flex-direction: column; align-items: stretch; }
+    .cta-band__btn { width: 100%; justify-content: center; padding-block: 0.9rem; }
+  }
 </style>

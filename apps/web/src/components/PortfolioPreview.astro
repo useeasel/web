@@ -1,0 +1,181 @@
+---
+// A pure-CSS mockup of an Easel-built portfolio, framed in a browser chrome and
+// set on a dark band so it reads as a real product shot (the move every site
+// builder leads with). No image asset needed — built from the shared Bauhaus
+// primitives. When a real artist site is live, a screenshot can replace
+// .preview__feature / .preview__thumbs (see ExamplesStrip's `ex.image` wiring).
+const thumbs = [
+  { shape: 'circle', tint: 'var(--c-blue)' },
+  { shape: 'triangle', tint: 'var(--c-yellow)' },
+  { shape: 'square', tint: 'var(--c-red)' },
+];
+---
+
+<section class="section preview-section">
+  <div class="container">
+    <p class="eyebrow preview__eyebrow">A site built with Easel</p>
+    <div class="preview" role="img" aria-label="Example of an artist portfolio built with Easel">
+      <div class="preview__bar" aria-hidden="true">
+        <span class="preview__dot"></span>
+        <span class="preview__dot"></span>
+        <span class="preview__dot"></span>
+        <span class="preview__url">mira.studio</span>
+      </div>
+      <div class="preview__canvas" aria-hidden="true">
+        <div class="preview__nav">
+          <span class="preview__name">Mira Okonkwo</span>
+          <span class="preview__links"><span>Work</span><span>About</span><span>Contact</span></span>
+        </div>
+        <div class="preview__feature">
+          <span class="shape shape--circle preview__art"></span>
+        </div>
+        <div class="preview__caption">
+          <span class="preview__meta">
+            <span class="preview__title">Bloom Study No. 4</span>
+            <span class="preview__medium">Oil on canvas · 2025</span>
+          </span>
+          <span class="preview__status">Available</span>
+        </div>
+        <ul class="preview__thumbs">
+          {thumbs.map((t) => (
+            <li class="preview__thumb" style={`--tint:${t.tint}`}>
+              <span class={`shape shape--${t.shape}`}></span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Dark full-bleed band — breaks the all-paper rhythm and makes the white
+     frame pop, the way Format/Carrd present their product shots. */
+  .preview-section {
+    background: var(--c-ink);
+    color: var(--c-paper);
+    border-block: var(--border-thick);
+    padding-block: var(--space-6);
+  }
+  .preview__eyebrow { color: var(--c-yellow); text-align: center; }
+
+  .preview {
+    position: relative;
+    max-width: 660px;
+    margin-inline: auto;
+    border: var(--border-thick);
+    background: var(--c-white);
+    /* Hard offset block (no blur) — the Bauhaus device already used on .btn:hover. */
+    box-shadow: 10px 10px 0 var(--c-blue);
+  }
+
+  .preview__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border-bottom: var(--border);
+    background: var(--c-paper);
+  }
+  .preview__dot { width: 11px; height: 11px; border: var(--border); background: var(--c-white); }
+  .preview__url {
+    margin-left: var(--space-2);
+    font-family: var(--font-body);
+    font-size: 0.8125rem;
+    color: var(--c-stone);
+    border: var(--border);
+    padding: 2px var(--space-3);
+    background: var(--c-white);
+    flex: 1;
+  }
+
+  .preview__canvas { padding: var(--space-4); color: var(--c-ink); }
+
+  .preview__nav {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-bottom: var(--space-3);
+    border-bottom: var(--border);
+  }
+  .preview__name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.375rem;
+    letter-spacing: -0.02em;
+  }
+  .preview__links { display: inline-flex; gap: var(--space-3); }
+  .preview__links span {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--c-stone);
+  }
+
+  /* The "hero artwork" — a flat tinted ground with a bold primitive, reading as
+     a piece of abstract work rather than a wireframe tile. */
+  .preview__feature {
+    margin-top: var(--space-3);
+    aspect-ratio: 16 / 10;
+    border: var(--border);
+    background:
+      repeating-linear-gradient(45deg, transparent 0 16px, rgba(22,22,22,0.04) 16px 17px),
+      var(--c-paper);
+    display: grid;
+    place-items: center;
+  }
+  .preview__art { width: 38%; height: 56%; background: var(--c-red); border: var(--border); border-radius: 50%; }
+
+  .preview__caption {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+  }
+  .preview__meta { display: flex; flex-direction: column; }
+  .preview__title { font-family: var(--font-display); font-weight: 700; font-size: 1rem; }
+  .preview__medium { font-size: 0.8125rem; color: var(--c-stone); }
+  .preview__status {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--c-white);
+    background: var(--status-available);
+    border: var(--border);
+    padding: 3px var(--space-2);
+    white-space: nowrap;
+  }
+
+  .preview__thumbs {
+    list-style: none; margin: var(--space-3) 0 0; padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-3);
+  }
+  .preview__thumb {
+    aspect-ratio: 1 / 1;
+    border: var(--border);
+    background: var(--c-paper);
+    display: grid;
+    place-items: center;
+  }
+  .preview__thumb .shape--square,
+  .preview__thumb .shape--circle { width: 42%; height: 42%; background: var(--tint); border: var(--border); }
+  .preview__thumb .shape--triangle { font-size: 2.25rem; border-bottom-color: var(--tint); }
+
+  @media (max-width: 540px) {
+    .preview-section { padding-block: var(--space-5); }
+    .preview { box-shadow: 6px 6px 0 var(--c-blue); }
+    .preview__canvas { padding: var(--space-3); }
+    /* Let the mock nav wrap rather than overflow on very narrow phones. */
+    .preview__nav { flex-wrap: wrap; gap: var(--space-1) var(--space-3); }
+    .preview__name { font-size: 1.125rem; }
+    .preview__links { gap: var(--space-2); }
+    .preview__thumbs { gap: var(--space-2); }
+    .preview__thumb .shape--triangle { font-size: 1.5rem; }
+  }
+</style>

@@ -2,7 +2,11 @@
 const faqs = [
   {
     q: 'What does Easel cost?',
-    a: "Provisioning and hosting an Easel site is completely free. You should expect to pay around $20 a year at max for a custom domain, if you aren't already.",
+    a: "Setting up and hosting an Easel site is completely free. A custom domain will run about $11 a year, if you don't already have one.",
+  },
+  {
+    q: 'How can I trust Easel to be free forever?',
+    a: "Once you've set up your instance, Easel has no control over your site. Even if we started charging a subscription fee tomorrow, we wouldn't be able to touch your site.",
   },
   {
     q: 'What accounts do I need?',
@@ -10,7 +14,7 @@ const faqs = [
   },
   {
     q: 'What prior coding knowledge do I need?',
-    a: "None! Easel uses a simple sitebuilder, and you'll never need to interact with the code that makes your site work.",
+    a: "None! Easel uses a simple editor, and you'll never touch the code behind your site if you don't want to. If you have some experience, we support custom HTML, CSS, and JS for making tweaks you want.",
   },
   {
     q: 'Can I use a custom domain?',
@@ -22,7 +26,7 @@ const faqs = [
   },
   {
     q: 'Can I change how my site looks?',
-    a: "Yes! You can adjust colors, fonts, and layout right from the sitebuilder, no code required.",
+    a: "Yes! You can adjust colors, fonts, and layout right from the editor, no code required.",
   },
   {
     q: 'Who owns my site and content?',
@@ -37,7 +41,6 @@ const faqs = [
 
 <section class="section faq" id="faq">
   <div class="container">
-    <p class="eyebrow">Questions</p>
     <h2>You should know&hellip;</h2>
     <div class="faq__list">
       {faqs.map((item) => (
@@ -58,8 +61,9 @@ const faqs = [
     max-width: 760px;
   }
   .faq__item {
-    border: var(--border);
+    border: var(--border-bold);
     background: var(--c-white);
+    box-shadow: var(--shadow-hard-sm);
   }
   .faq__item summary {
     cursor: pointer;
@@ -84,5 +88,16 @@ const faqs = [
     padding: 0 var(--space-4) var(--space-4);
     margin: 0;
     color: var(--c-stone);
+  }
+
+  @media (max-width: 720px) {
+    .faq__list { margin-top: var(--space-4); }
+    /* Roomier tap targets for thumbs. */
+    .faq__item summary {
+      padding: var(--space-4) var(--space-3);
+      font-size: 1.0625rem;
+      gap: var(--space-3);
+    }
+    .faq__item p { padding: 0 var(--space-3) var(--space-4); }
   }
 </style>

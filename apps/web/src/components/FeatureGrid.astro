@@ -1,5 +1,6 @@
 ---
-// Feature blocks. Each gets one of the three Bauhaus primitives as its glyph.
+// What you get — a numbered editorial composition on a yellow field, not a grid
+// of identical cards. Big index numerals + one large primitive anchor each row.
 const features = [
   {
     shape: 'square',
@@ -24,39 +25,85 @@ const features = [
 ];
 ---
 
-<section class="section features">
+<section class="section features band--yellow">
   <div class="container">
-    <p class="eyebrow">What you get</p>
     <h2>Built for showing your work</h2>
-    <ul class="features__grid" role="list">
-      {features.map((f) => (
-        <li class="card feature">
+    <ol class="features__list" role="list">
+      {features.map((f, i) => (
+        <li class="feature">
+          <span class="feature__num">{String(i + 1).padStart(2, '0')}</span>
           <span class={`shape shape--${f.shape} feature__glyph`} aria-hidden="true"></span>
-          <h3>{f.title}</h3>
-          <p>{f.body}</p>
+          <div class="feature__body">
+            <h3>{f.title}</h3>
+            <p>{f.body}</p>
+          </div>
         </li>
       ))}
-    </ul>
+    </ol>
   </div>
 </section>
 
 <style>
-  .features__grid {
+  .features__list {
     list-style: none;
     margin: var(--space-5) 0 0;
     padding: 0;
+  }
+  .feature {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: var(--space-4);
+    grid-template-columns: clamp(3rem, 7vw, 5.5rem) 72px minmax(0, 1fr);
+    gap: var(--space-5);
+    align-items: center;
+    padding-block: var(--space-4);
+    border-top: var(--border-bold);
   }
-  .feature { display: flex; flex-direction: column; }
+  .feature:last-child { border-bottom: var(--border-bold); }
+
+  .feature__num {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(2.25rem, 6vw, 3.75rem);
+    line-height: 1;
+    color: var(--c-ink);
+  }
+
   .feature__glyph {
-    width: 40px;
-    height: 40px;
-    margin-bottom: var(--space-3);
+    width: 72px;
+    height: 72px;
+    border: var(--border-bold);
   }
+  /* Yellow primitives vanish on a yellow field — the triangle is rebuilt in ink
+     (the box border from .feature__glyph would otherwise smother it). */
   .feature .shape--triangle {
-    width: 0; height: 0; font-size: 40px;
+    width: 0; height: 0;
+    border-left: 40px solid transparent;
+    border-right: 40px solid transparent;
+    border-bottom: 72px solid var(--c-ink);
+    border-top: 0;
+    box-shadow: none;
   }
-  .feature p { margin: 0; color: var(--c-stone); }
+
+  .feature__body h3 { margin: 0 0 var(--space-1); }
+  .feature__body p { margin: 0; color: var(--c-ink); max-width: 60ch; }
+
+  @media (max-width: 720px) {
+    .feature {
+      grid-template-columns: auto 1fr;
+      grid-template-areas:
+        'num glyph'
+        'body body';
+      gap: var(--space-3) var(--space-4);
+      align-items: center;
+      padding-block: var(--space-4);
+    }
+    .feature__num { grid-area: num; }
+    .feature__glyph { grid-area: glyph; justify-self: start; width: 56px; height: 56px; }
+    .feature .shape--triangle {
+      width: 0; height: 0;
+      border-left: 32px solid transparent;
+      border-right: 32px solid transparent;
+      border-bottom: 56px solid var(--c-ink);
+    }
+    .feature__body { grid-area: body; }
+  }
 </style>

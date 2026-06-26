@@ -6,7 +6,7 @@ interface Props {
 }
 const {
   headline = "An online portfolio that's truly yours.",
-  sub = "Easel is a no-code portfolio site creator for artists of all practices. It's deeply customizable, extremely accessible, and free forever.",
+  sub = "Easel is a no-code portfolio site creator for artists of all practices. It's customizable, accessible, and free forever.",
 } = Astro.props;
 ---
 
@@ -17,72 +17,187 @@ const {
       <p class="hero__sub">{sub}</p>
       <div class="hero__actions">
         <a class="btn btn--primary" href="/start/">Start free</a>
-        <a class="btn btn--ghost" href="/how-it-works/">See how it works</a>
+        <a class="btn btn--ghost hero__see" href="/how-it-works/">See how it works</a>
       </div>
-      <p class="hero__note">Initial setup takes less than ten minutes.</p>
+      <p class="hero__note">No credit card, no code, and your site stays yours. Live in ten minutes.</p>
     </div>
 
     <div class="hero__art" aria-hidden="true">
-      <div class="hero__mark"><EaselMark size={120} title="" /></div>
-      <span class="shape shape--square hero__s1"></span>
-      <span class="shape shape--circle hero__s2"></span>
-      <span class="shape shape--triangle hero__s3"></span>
+      <span class="shape shape--circle hero__s-circle"></span>
+      <span class="shape shape--triangle hero__s-tri"></span>
+      <div class="hero__mark"><EaselMark size={128} title="" /></div>
+      <span class="shape shape--square hero__s-square"></span>
     </div>
   </div>
 </section>
 
 <style>
   .hero {
-    border-bottom: var(--border);
-    background:
-      repeating-linear-gradient(
-        45deg,
-        transparent 0 22px,
-        rgba(22, 22, 22, 0.03) 22px 23px
-      ),
-      var(--c-paper);
+    border-bottom: var(--border-thick);
+    background: var(--c-paper);
+    overflow: hidden;
   }
   .hero__inner {
     display: grid;
-    grid-template-columns: 1.2fr 0.8fr;
+    grid-template-columns: 1.5fr 1fr;
     gap: var(--space-6);
     align-items: center;
-    padding-block: var(--space-7);
+    padding-block: var(--space-6);
   }
+  /* Scoped smaller than the global h1 so the headline lands in three lines,
+     not four — other pages keep the larger display size. */
+  .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); }
   .hero__sub {
     font-size: 1.25rem;
-    max-width: 38ch;
+    line-height: 1.45;
+    max-width: 40ch;
     color: var(--c-ink);
   }
   .hero__actions {
     display: flex;
     gap: var(--space-3);
     flex-wrap: wrap;
-    margin-block: var(--space-4) var(--space-3);
+    margin-block: var(--space-5) var(--space-3);
   }
   .hero__note {
     color: var(--c-stone);
     font-size: 0.9375rem;
+    font-weight: 500;
     margin: 0;
   }
 
+  /* One tight, overlapping composition with a top-left → bottom-right diagonal
+     and consistent hard depth on every primitive (the triangle via drop-shadow). */
   .hero__art {
     position: relative;
-    min-height: 280px;
+    min-height: 440px;
   }
   .hero__mark {
+    position: absolute;
+    left: 150px; top: 132px;
+    z-index: 4;
     border: var(--border-thick);
     background: var(--c-white);
-    padding: var(--space-5);
+    box-shadow: var(--shadow-hard);
+    padding: var(--space-4);
     display: inline-flex;
-    width: fit-content;
   }
-  .hero__s1 { position: absolute; width: 56px; height: 56px; right: 8px; top: -18px; border: var(--border); }
-  .hero__s2 { position: absolute; width: 64px; height: 64px; right: -16px; bottom: 24px; border: var(--border); }
-  .hero__s3 { position: absolute; font-size: 56px; left: -20px; bottom: -10px; }
+  .hero__s-circle {
+    position: absolute;
+    z-index: 1;
+    width: 200px; height: 200px;
+    left: 8px; top: 20px;
+    background: var(--c-blue);
+    border: var(--border-bold);
+    box-shadow: var(--shadow-hard);
+  }
+  .hero__s-square {
+    position: absolute;
+    z-index: 3;
+    width: 122px; height: 122px;
+    right: -28px; bottom: 40px;
+    background: var(--c-red);
+    border: var(--border-bold);
+    box-shadow: var(--shadow-hard);
+  }
+  .hero__s-tri {
+    position: absolute;
+    z-index: 2;
+    right: 26px; top: -6px;
+    font-size: 116px;
+    filter: drop-shadow(5px 5px 0 var(--c-ink));
+  }
 
+  /* Entrance choreography, only when motion is allowed. Copy rises; shapes pop
+     in (scale) then drift forever (translate). Using the independent `scale`
+     and `translate` properties lets the two shape animations compose instead of
+     fighting over `transform`. */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__copy > * { animation: hero-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    .hero__copy > *:nth-child(1) { animation-delay: 0.04s; }
+    .hero__copy > *:nth-child(2) { animation-delay: 0.10s; }
+    .hero__copy > *:nth-child(3) { animation-delay: 0.18s; }
+    .hero__copy > *:nth-child(4) { animation-delay: 0.26s; }
+    .hero__copy > *:nth-child(5) { animation-delay: 0.34s; }
+    .hero__art > * {
+      animation:
+        hero-pop 0.55s cubic-bezier(0.16, 1, 0.3, 1) both,
+        hero-drift 7s ease-in-out infinite;
+    }
+    /* Staggered entrance + offset drift phases — a slow Calder-mobile sway. */
+    .hero__mark { animation-delay: 0.10s, 0.8s; }
+    .hero__s-circle { animation-delay: 0.18s, 1.3s; }
+    .hero__s-tri { animation-delay: 0.28s, 0.3s; }
+    .hero__s-square { animation-delay: 0.38s, 1.9s; }
+  }
+  @keyframes hero-rise {
+    from { opacity: 0; translate: 0 18px; }
+    to { opacity: 1; translate: 0 0; }
+  }
+  @keyframes hero-pop {
+    from { opacity: 0; scale: 0.8; }
+    to { opacity: 1; scale: 1; }
+  }
+  @keyframes hero-drift {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 -9px; }
+  }
+
+  /* Mobile: stack to one column and lead with a compact branded cluster. */
   @media (max-width: 900px) {
-    .hero__inner { grid-template-columns: 1fr; }
-    .hero__art { display: none; }
+    .hero__inner {
+      grid-template-columns: 1fr;
+      gap: var(--space-5);
+      padding-block: var(--space-6);
+    }
+    .hero__art {
+      order: -1;
+      min-height: 0;
+      min-width: 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-3);
+    }
+    .hero__mark {
+      position: static;
+      padding: var(--space-4);
+    }
+    .hero__mark :global(svg) { width: 88px; height: 88px; }
+    .hero__s-circle, .hero__s-square, .hero__s-tri {
+      position: static;
+      inset: auto;
+    }
+    .hero__s-circle { width: 54px; height: 54px; }
+    .hero__s-square { width: 50px; height: 50px; box-shadow: var(--shadow-hard-sm); }
+    .hero__s-tri { font-size: 56px; filter: drop-shadow(3px 3px 0 var(--c-ink)); }
+  }
+
+  @media (max-width: 540px) {
+    .hero__inner { padding-block: var(--space-5); }
+    .hero__sub { font-size: 1.125rem; }
+    .hero__actions {
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--space-3);
+    }
+    /* One dominant action: primary stays a full-width button, "See how it
+       works" demotes to a quiet centered link. */
+    .hero__actions .btn--primary {
+      width: 100%;
+      justify-content: center;
+      padding-block: 0.9rem;
+    }
+    .hero__see {
+      border: none;
+      background: transparent;
+      box-shadow: none;
+      padding: var(--space-1) 0;
+      align-self: center;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+    .hero__see:hover { transform: none; box-shadow: none; color: var(--c-blue); }
   }
 </style>

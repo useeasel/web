@@ -1,19 +1,28 @@
 /*
- * Easel — Bauhaus design tokens.
- * Shared with easel/template. Color encodes role; hard edges (radius 0); 2px ink
- * borders instead of shadows; geometric circle/square/triangle motif; Syne for
- * display + Space Grotesk for body.
+ * Easel — bold neo-Bauhaus design tokens.
+ * Shared with easel/template. True primaries (red/yellow/blue) + near-black ink on
+ * paper; hard edges (radius 0); thick ink borders + committed hard offset shadows
+ * (solid, no blur) instead of soft elevation; geometric circle/square/triangle
+ * motif used as structure, not garnish. Jost (Futura-lineage geometric) for
+ * display, Hanken Grotesk for body. Headlines run lowercase (Bayer universal spirit).
  */
 
 :root {
-  /* Palette */
-  --c-blue: #1d4ed8;   /* primary action */
-  --c-red: #e63946;    /* accent */
-  --c-yellow: #f4c20d; /* highlight */
-  --c-ink: #161616;    /* text + borders */
-  --c-paper: #f7f4ec;  /* page background */
+  /* Palette — OKLCH true Bauhaus primaries, hex fallbacks first for old engines */
+  --c-blue: #1235d6;   /* primary action */
+  --c-blue: oklch(0.48 0.20 264);
+  --c-red: #e8132b;    /* accent */
+  --c-red: oklch(0.58 0.225 27);
+  --c-yellow: #ffce00; /* highlight */
+  --c-yellow: oklch(0.86 0.17 95);
+  --c-ink: #16181d;    /* text + borders, near-true black */
+  --c-ink: oklch(0.20 0.012 265);
+  --c-paper: #f5f1e6;  /* page background */
+  --c-paper: oklch(0.96 0.014 95);
   --c-white: #ffffff;  /* surface */
-  --c-stone: #6b6b63;  /* muted text */
+  --c-white: oklch(0.995 0 0);
+  --c-stone: #57564f;  /* muted secondary text — darker, AA on paper */
+  --c-stone: oklch(0.44 0.012 110);
 
   /* Status pills (artwork status mapping) */
   --status-available: var(--c-blue);
@@ -22,13 +31,17 @@
   --status-nfs: var(--c-stone);
 
   /* Type */
-  --font-display: 'Syne Variable', system-ui, sans-serif;
-  --font-body: 'Space Grotesk', system-ui, sans-serif;
+  --font-display: 'Jost Variable', system-ui, sans-serif;
+  --font-body: 'Hanken Grotesk Variable', system-ui, sans-serif;
 
   /* Geometry — Bauhaus = hard edges, no rounding */
   --radius: 0;
   --border: 2px solid var(--c-ink);
+  --border-bold: 3px solid var(--c-ink);
   --border-thick: 4px solid var(--c-ink);
+  /* Committed hard shadow — solid single-colour offset, no blur */
+  --shadow-hard: 6px 6px 0 var(--c-ink);
+  --shadow-hard-sm: 4px 4px 0 var(--c-ink);
 
   /* Spacing scale */
   --space-1: 0.25rem;
@@ -47,6 +60,12 @@
   box-sizing: border-box;
 }
 
+/* The `hidden` attribute must win over component `display` rules (e.g. a flex
+   confirmation that's toggled with [hidden]); the UA rule alone loses to a class. */
+[hidden] {
+  display: none !important;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -63,15 +82,19 @@ body {
 
 h1, h2, h3, h4 {
   font-family: var(--font-display);
-  font-weight: 700;
-  line-height: 1.05;
-  letter-spacing: -0.01em;
-  margin: 0 0 var(--space-3);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--space-4);
 }
 
-h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); }
-h2 { font-size: clamp(1.875rem, 4vw, 2.75rem); }
-h3 { font-size: 1.375rem; }
+/* Display headlines run lowercase — Bayer's universal-alphabet spirit. Proper
+   nouns (GitHub, Netlify) live only in body copy, which keeps normal casing. */
+h1, h2 { text-transform: lowercase; }
+
+h1 { font-size: clamp(3rem, 9vw, 6rem); }
+h2 { font-size: clamp(2.25rem, 5vw, 3.5rem); }
+h3 { font-size: 1.5rem; font-weight: 700; line-height: 1.1; }
 
 p { margin: 0 0 var(--space-3); }
 
@@ -99,16 +122,25 @@ img { max-width: 100%; height: auto; display: block; }
 
 .section {
   padding-block: var(--space-7);
+  /* Anchor links (#examples, #faq) land below the sticky header instead of
+     tucking the section top underneath it. ~92px header + a little breathing room. */
+  scroll-margin-top: var(--space-7);
+}
+
+/* Tighten the page rhythm on phones — desktop 6rem gaps read as empty voids. */
+@media (max-width: 720px) {
+  .container { padding-inline: var(--space-3); }
+  .section { padding-block: var(--space-6); }
 }
 
 .eyebrow {
-  font-family: var(--font-body);
+  font-family: var(--font-display);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.18em;
   font-size: 0.8125rem;
-  color: var(--c-stone);
-  margin-bottom: var(--space-3);
+  color: var(--c-blue);
+  margin-bottom: var(--space-4);
 }
 
 /* ---- Buttons ---- */
@@ -119,18 +151,21 @@ img { max-width: 100%; height: auto; display: block; }
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 1.0625rem;
+  text-transform: lowercase;
   padding: 0.75rem 1.5rem;
-  border: var(--border);
+  border: var(--border-bold);
   border-radius: var(--radius);
   background: var(--c-white);
   color: var(--c-ink);
   text-decoration: none;
   cursor: pointer;
-  transition: transform 0.08s ease, background 0.12s ease;
+  box-shadow: var(--shadow-hard-sm);
+  transition: transform 0.1s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.1s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.btn:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--c-ink); }
-.btn:active { transform: translate(0, 0); box-shadow: none; }
+/* Committed offset shadow that deepens on hover, then presses flat on click. */
+.btn:hover { transform: translate(-2px, -2px); box-shadow: var(--shadow-hard); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--c-ink); }
 
 .btn--primary { background: var(--c-blue); color: var(--c-white); }
 .btn--accent { background: var(--c-red); color: var(--c-white); }
@@ -140,10 +175,23 @@ img { max-width: 100%; height: auto; display: block; }
 /* ---- Card ---- */
 .card {
   background: var(--c-white);
-  border: var(--border);
+  border: var(--border-bold);
   border-radius: var(--radius);
   padding: var(--space-4);
+  box-shadow: var(--shadow-hard);
 }
+
+/* ---- Colour-blocked section bands (Bauhaus rhythm) ---- */
+.band--paper { background: var(--c-paper); color: var(--c-ink); }
+.band--yellow { background: var(--c-yellow); color: var(--c-ink); }
+.band--blue { background: var(--c-blue); color: var(--c-white); }
+.band--red { background: var(--c-red); color: var(--c-white); }
+.band--ink { background: var(--c-ink); color: var(--c-paper); }
+/* On dark bands, eyebrows + headings flip to a light hue for contrast. */
+.band--blue .eyebrow, .band--red .eyebrow, .band--ink .eyebrow { color: var(--c-yellow); }
+.band--blue h2, .band--red h2, .band--ink h2 { color: var(--c-white); }
+/* Blue-on-yellow falls just under AA — ink reads cleanly and stays Bauhaus. */
+.band--yellow .eyebrow { color: var(--c-ink); }
 
 /* ---- Geometric motif primitives (inline decoration) ---- */
 .shape { display: inline-block; }

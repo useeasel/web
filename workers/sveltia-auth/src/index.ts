@@ -179,15 +179,35 @@ function renderResult(
   var TARGET = ${JSON.stringify(targetOrigin)};
   var MESSAGE = ${JSON.stringify(message)};
   function receiveMessage(e) {
-    // The opener pings us first; reply with the result, then clean up. TARGET is
-    // always a concrete, allowlisted origin (never '*') so the token can't be
-    // delivered to an unexpected window.
+    // The opener pings us back; reply with the result. TARGET is always a
+    // concrete, allowlisted origin (never '*') so the token can't be delivered
+    // to an unexpected window. We do NOT unbind here: on a slow or lossy
+    // connection the opener may ping more than once, and replying to each ping
+    // is idempotent — the opener closes this popup once it has the token, which
+    // is what actually ends the exchange.
     window.opener && window.opener.postMessage(MESSAGE, TARGET);
-    window.removeEventListener('message', receiveMessage, false);
   }
   window.addEventListener('message', receiveMessage, false);
-  // Announce we're ready so the opener (Sveltia) knows to ping back.
-  window.opener && window.opener.postMessage('authorizing:${PROVIDER}', TARGET);
+  function announce() {
+    if (window.opener && !window.opener.closed) {
+      window.opener.postMessage('authorizing:${PROVIDER}', TARGET);
+    }
+  }
+  // Re-announce until the opener acks. A single announcement can be missed if it
+  // races the opener attaching its listener, or is dropped on a flaky/slow
+  // connection — which deadlocks the handshake (the opener only pings back once
+  // it hears us, so a lost announce strands the token here forever). Retrying
+  // makes the whole exchange self-healing; the opener closing this popup ends the
+  // loop. Capped so a popup whose opener vanished doesn't spin indefinitely.
+  announce();
+  var tries = 0;
+  var timer = setInterval(function () {
+    if (!window.opener || window.opener.closed || ++tries > 240) {
+      clearInterval(timer);
+      return;
+    }
+    announce();
+  }, 500);
 })();
 </script>
 </body></html>`;

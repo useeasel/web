@@ -117,10 +117,39 @@ import { ROUTES } from '../config.ts';
       </ConnectStep>
     </div>
   </section>
+
+  <div id="mobile-gate" class="mobilegate" hidden>
+    <div class="mobilegate__card">
+      <h2>Set this up on a computer</h2>
+      <p>
+        Building your portfolio means dragging in photos and arranging your site —
+        fiddly, frustrating work on a phone. You'll have a much better time on a
+        laptop or desktop.
+      </p>
+      <p><strong>Open this page on a computer to get started.</strong></p>
+      <a class="btn btn--primary" href="/">Back to home</a>
+      <button type="button" id="mobile-bypass" class="mobilegate__bypass">Continue anyway — I understand it'll be rough</button>
+    </div>
+  </div>
 </Base>
 
 <script>
   import { ROUTES } from '../config.ts';
+
+  // Steer phone users to a desktop before they start the fiddly setup. The gate
+  // is a hard overlay with a deliberately understated bypass; dismissal sticks
+  // for the session so a determined artist isn't nagged on every reload.
+  (() => {
+    const gate = document.getElementById('mobile-gate');
+    if (!gate) return;
+    const narrow = window.matchMedia('(max-width: 760px)').matches;
+    const bypassed = sessionStorage.getItem('easel_mobile_ok') === '1';
+    if (narrow && !bypassed) gate.hidden = false;
+    document.getElementById('mobile-bypass')?.addEventListener('click', () => {
+      sessionStorage.setItem('easel_mobile_ok', '1');
+      gate.hidden = true;
+    });
+  })();
 
   type Stage = 'repo' | 'site' | 'deploy' | 'admin' | 'cleanup';
 
@@ -577,5 +606,40 @@ import { ROUTES } from '../config.ts';
     border: solid var(--c-white);
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
+  }
+
+  .mobilegate {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: grid;
+    place-items: center;
+    padding: var(--space-4);
+    background: var(--c-paper);
+  }
+  .mobilegate__card {
+    max-width: 30rem;
+    background: var(--c-white);
+    border: var(--border);
+    box-shadow: var(--shadow-hard, none);
+    padding: var(--space-5);
+    display: grid;
+    gap: var(--space-3);
+    text-align: center;
+  }
+  .mobilegate__card h2 {
+    font-family: var(--font-display);
+    margin: 0;
+  }
+  .mobilegate__card p { margin: 0; color: var(--c-stone); }
+  .mobilegate__card .btn { margin-top: var(--space-2); justify-self: center; }
+  .mobilegate__bypass {
+    background: none;
+    border: 0;
+    padding: var(--space-2);
+    color: var(--c-stone);
+    font-size: 0.85rem;
+    text-decoration: underline;
+    cursor: pointer;
   }
 </style>

@@ -206,15 +206,18 @@ export async function patchAdminConfig(
   // immediate read can 404 even though the file ships in the template. Retry with
   // backoff before giving up — a missed patch here leaves the artist's /admin stuck
   // on the REPLACED_AT_PROVISION placeholder (a dead end in the editor).
+  const MAX_ATTEMPTS = 10;
   let file: { content: string; sha: string } | null = null;
-  for (let attempt = 1; attempt <= 6; attempt++) {
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const getRes = await fetch(fileUrl, { headers: authHeaders(token) });
     if (getRes.ok) {
       file = (await getRes.json()) as { content: string; sha: string };
       break;
     }
-    if (getRes.status === 404 && attempt < 6) {
-      await sleep(2000);
+    // Template population can lag the repo's own creation by more than the old
+    // ~10s window, so widen it: 10 tries × 3s ≈ 30s before we give up.
+    if (getRes.status === 404 && attempt < MAX_ATTEMPTS) {
+      await sleep(3000);
       continue;
     }
     throw new Error(`read config.json failed (${getRes.status}) after ${attempt} attempt(s)`);

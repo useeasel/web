@@ -193,30 +193,45 @@ export async function triggerBuild(token: string, siteId: string): Promise<void>
 
 export type DeployState = 'building' | 'ready' | 'error' | 'enqueued' | 'unknown';
 
-/** Step (c, part 2): poll the latest deploy's state. */
+// Netlify deploy states that mean "still working" (not yet success or failure).
+const IN_PROGRESS_STATES = new Set([
+  'new',
+  'pending_review',
+  'accepted',
+  'enqueued',
+  'building',
+  'preparing',
+  'prepared',
+  'processing',
+  'uploading',
+  'uploaded',
+]);
+
+/**
+ * Step (c, part 2): summarize the site's recent deploys into one status.
+ *
+ * We look at a *window* rather than just the single latest deploy because a fresh
+ * site fires several deploys in quick succession — the initial build, our explicit
+ * trigger, and the webhook build from the admin-config commit — and Netlify marks
+ * the redundant ones `skipped`. Reading only `per_page=1` and hitting a `skipped`
+ * (or otherwise non-terminal) deploy maps to `unknown`, which is never terminal, so
+ * the wizard hangs on "Building…" forever even though a `ready` deploy sits right
+ * below it. So: any recent deploy `ready` ⇒ the site is live; else anything still
+ * in progress ⇒ building; else a hard `error` with nothing live ⇒ error.
+ */
 export async function getLatestDeployState(
   token: string,
   siteId: string,
 ): Promise<DeployState> {
-  const res = await fetch(`${NETLIFY_API}/sites/${siteId}/deploys?per_page=1`, {
+  const res = await fetch(`${NETLIFY_API}/sites/${siteId}/deploys?per_page=10`, {
     headers: authHeaders(token),
   });
   if (!res.ok) return 'unknown';
-  const data = (await res.json()) as Array<{ state: string }>;
-  const state = data[0]?.state;
-  switch (state) {
-    case 'ready':
-      return 'ready';
-    case 'error':
-      return 'error';
-    case 'building':
-    case 'processing':
-    case 'uploading':
-      return 'building';
-    case 'enqueued':
-    case 'new':
-      return 'enqueued';
-    default:
-      return 'unknown';
-  }
+  const deploys = (await res.json()) as Array<{ state: string }>;
+  if (!deploys.length) return 'unknown';
+  const states = deploys.map((d) => d.state);
+  if (states.includes('ready')) return 'ready';
+  if (states.some((s) => IN_PROGRESS_STATES.has(s))) return 'building';
+  if (states.includes('error')) return 'error';
+  return 'unknown'; // e.g. only `skipped` so far — keep polling
 }

@@ -12,7 +12,7 @@ interface Props {
 
 const {
   title = "Easel · an online portfolio that's truly yours",
-  description = "Easel is a no-code portfolio site creator for artists. Deeply customizable, extremely accessible, and free forever.",
+  description = "A no-code portfolio site creator for artists. Customizable, accessible, and free forever.",
 } = Astro.props;
 ---
 
@@ -99,12 +99,14 @@ const {
         font-family: var(--font-display);
         font-weight: 600;
         text-transform: lowercase;
-        color: var(--c-ink);
         text-decoration: none;
       }
-      .site-nav a:hover { color: var(--c-blue); }
+      /* Exclude the button so its own (white-on-blue) colour isn't overridden by
+         the nav link colour/hover — that override is what made the CTA text turn
+         blue on hover and vanish against its background. */
+      .site-nav a:not(.site-nav__cta) { color: var(--c-ink); }
+      .site-nav a:not(.site-nav__cta):hover { color: var(--c-blue); }
       .site-nav__cta { color: var(--c-white); }
-      .site-nav__cta:hover { color: var(--c-white); }
 
       @media (max-width: 720px) {
         .site-nav a:not(.site-nav__cta) { display: none; }

@@ -1,5 +1,4 @@
 ---
-import EaselMark from './EaselMark.astro';
 interface Props {
   headline?: string;
   sub?: string;
@@ -8,6 +7,11 @@ const {
   headline = "An online portfolio that's truly yours.",
   sub = "Easel is a no-code portfolio site creator for artists of all practices. It's customizable, accessible, and free forever.",
 } = Astro.props;
+
+// Decorative demo shown in the hero browser — a stand-in artist site that types
+// its own domain and then fills in. Purely illustrative (aria-hidden).
+const demoDomain = 'maya-okonkwo.art';
+const demoName = 'maya okonkwo';
 ---
 
 <section class="hero">
@@ -17,35 +21,67 @@ const {
       <p class="hero__sub">{sub}</p>
       <div class="hero__actions">
         <a class="btn btn--primary" href="/start/">Start free</a>
-        <a class="btn btn--ghost hero__see" href="/how-it-works/">See how it works</a>
+        <a class="btn hero__see" href="/how-it-works/">See how it works</a>
       </div>
       <p class="hero__note">No credit card, no code, and your site stays yours. Live in ten minutes.</p>
     </div>
 
     <div class="hero__art" aria-hidden="true">
-      <span class="shape shape--circle hero__s-circle"></span>
-      <span class="shape shape--triangle hero__s-tri"></span>
-      <div class="hero__mark"><EaselMark size={128} title="" /></div>
-      <span class="shape shape--square hero__s-square"></span>
+      <div class="bw">
+        <div class="bw__top">
+          <span class="bw__dot" style="background: var(--c-red)"></span>
+          <span class="bw__dot" style="background: var(--c-yellow)"></span>
+          <span class="bw__dot" style="background: var(--c-blue)"></span>
+          <span class="bw__url" data-type={demoDomain}><span class="bw__caret">&nbsp;</span></span>
+        </div>
+        <div class="bw__body" data-fill>
+          <div class="bw__banner"><span>{demoName}</span></div>
+          <span class="bw__cell" style="background: var(--c-yellow)"></span>
+          <span class="bw__cell" style="background: var(--c-red)"></span>
+          <span class="bw__cell" style="background: var(--c-blue)"></span>
+          <span class="bw__cell" style="background: var(--c-white)"></span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
+<!-- All-black marquee: the graphic border between the hero and "Built for
+     showing your work". Decorative, so hidden from assistive tech. -->
+<div class="hero-divider" aria-hidden="true">
+  <div class="hero-divider__track">
+    <div class="hero-divider__group">
+      <span>truly yours</span><span class="hd-sq"></span>
+      <span>no code</span><span class="hd-ci"></span>
+      <span>free forever</span><span class="hd-tr"></span>
+      <span>drag photos in</span><span class="hd-sq"></span>
+      <span>live in ten minutes</span><span class="hd-ci"></span>
+    </div>
+    <div class="hero-divider__group">
+      <span>truly yours</span><span class="hd-sq"></span>
+      <span>no code</span><span class="hd-ci"></span>
+      <span>free forever</span><span class="hd-tr"></span>
+      <span>drag photos in</span><span class="hd-sq"></span>
+      <span>live in ten minutes</span><span class="hd-ci"></span>
+    </div>
+  </div>
+</div>
+
 <style>
+  /* Neon-yellow field. The hero owns the loud colour; the marquee divider below
+     hands off to the calmer paper "Built for showing your work" section. */
   .hero {
-    border-bottom: var(--border-thick);
-    background: var(--c-paper);
+    background: var(--c-yellow);
     overflow: hidden;
   }
   .hero__inner {
     display: grid;
-    grid-template-columns: 1.5fr 1fr;
+    grid-template-columns: 1.3fr 1fr;
     gap: var(--space-6);
     align-items: center;
     padding-block: var(--space-6);
   }
-  /* Scoped smaller than the global h1 so the headline lands in three lines,
-     not four — other pages keep the larger display size. */
+  /* Scoped smaller than the global h1 so the headline lands in three lines. */
   .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); }
   .hero__sub {
     font-size: 1.25rem;
@@ -59,119 +95,151 @@ const {
     flex-wrap: wrap;
     margin-block: var(--space-5) var(--space-3);
   }
+  /* Stone reads muddy on yellow — ink at reduced opacity keeps it AA. */
   .hero__note {
-    color: var(--c-stone);
+    color: var(--c-ink);
+    opacity: 0.72;
     font-size: 0.9375rem;
-    font-weight: 500;
+    font-weight: 600;
     margin: 0;
   }
 
-  /* One tight, overlapping composition with a top-left → bottom-right diagonal
-     and consistent hard depth on every primitive (the triangle via drop-shadow). */
-  .hero__art {
-    position: relative;
-    min-height: 440px;
-  }
-  .hero__mark {
-    position: absolute;
-    left: 150px; top: 132px;
-    z-index: 4;
+  /* ---- The live-site browser (types its domain, then fills in) ---- */
+  .bw {
     border: var(--border-thick);
     background: var(--c-white);
     box-shadow: var(--shadow-hard);
-    padding: var(--space-4);
-    display: inline-flex;
   }
-  .hero__s-circle {
-    position: absolute;
-    z-index: 1;
-    width: 200px; height: 200px;
-    left: 8px; top: 20px;
+  .bw__top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: var(--border-bold);
+    background: var(--c-paper);
+  }
+  .bw__dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--c-ink);
+    flex: none;
+  }
+  .bw__url {
+    flex: 1;
+    min-width: 0;
+    background: var(--c-white);
+    border: var(--border);
+    padding: 4px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .bw__caret {
+    display: inline-block;
+    width: 2px;
+    background: var(--c-ink);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .bw__caret { animation: bw-blink 1s steps(1) infinite; }
+  }
+  @keyframes bw-blink { 50% { opacity: 0; } }
+  .bw__body {
+    padding: var(--space-4);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  /* Holds at opacity 0 until the URL finishes typing (JS adds .is-filled). With
+     no JS / reduced motion the body is shown immediately (see below). */
+  @media (prefers-reduced-motion: no-preference) {
+    .bw__body { opacity: 0; }
+    .bw__body.is-filled { animation: bw-fade 0.6s ease both; }
+  }
+  @keyframes bw-fade {
+    from { opacity: 0; translate: 0 10px; }
+    to { opacity: 1; translate: 0 0; }
+  }
+  .bw__banner {
+    grid-column: 1 / 3;
+    height: 90px;
     background: var(--c-blue);
     border: var(--border-bold);
-    box-shadow: var(--shadow-hard);
+    display: flex;
+    align-items: center;
+    padding-inline: 16px;
   }
-  .hero__s-square {
-    position: absolute;
-    z-index: 3;
-    width: 122px; height: 122px;
-    right: -28px; bottom: 40px;
-    background: var(--c-red);
+  .bw__banner span {
+    font-family: var(--font-display);
+    font-weight: 800;
+    color: var(--c-white);
+    font-size: 1.35rem;
+  }
+  .bw__cell {
+    height: 64px;
     border: var(--border-bold);
-    box-shadow: var(--shadow-hard);
-  }
-  .hero__s-tri {
-    position: absolute;
-    z-index: 2;
-    right: 26px; top: -6px;
-    font-size: 116px;
-    filter: drop-shadow(5px 5px 0 var(--c-ink));
   }
 
-  /* Entrance choreography, only when motion is allowed. Copy rises; shapes pop
-     in (scale) then drift forever (translate). Using the independent `scale`
-     and `translate` properties lets the two shape animations compose instead of
-     fighting over `transform`. */
+  /* Copy rises on load. */
   @media (prefers-reduced-motion: no-preference) {
     .hero__copy > * { animation: hero-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
     .hero__copy > *:nth-child(1) { animation-delay: 0.04s; }
     .hero__copy > *:nth-child(2) { animation-delay: 0.10s; }
     .hero__copy > *:nth-child(3) { animation-delay: 0.18s; }
     .hero__copy > *:nth-child(4) { animation-delay: 0.26s; }
-    .hero__copy > *:nth-child(5) { animation-delay: 0.34s; }
-    .hero__art > * {
-      animation:
-        hero-pop 0.55s cubic-bezier(0.16, 1, 0.3, 1) both,
-        hero-drift 7s ease-in-out infinite;
-    }
-    /* Staggered entrance + offset drift phases — a slow Calder-mobile sway. */
-    .hero__mark { animation-delay: 0.10s, 0.8s; }
-    .hero__s-circle { animation-delay: 0.18s, 1.3s; }
-    .hero__s-tri { animation-delay: 0.28s, 0.3s; }
-    .hero__s-square { animation-delay: 0.38s, 1.9s; }
   }
   @keyframes hero-rise {
     from { opacity: 0; translate: 0 18px; }
     to { opacity: 1; translate: 0 0; }
   }
-  @keyframes hero-pop {
-    from { opacity: 0; scale: 0.8; }
-    to { opacity: 1; scale: 1; }
+
+  /* ---- All-black marquee divider ---- */
+  .hero-divider {
+    background: var(--c-ink);
+    color: var(--c-paper);
+    border-block: var(--border-thick);
+    overflow: hidden;
+    display: flex;
   }
-  @keyframes hero-drift {
-    0%, 100% { translate: 0 0; }
-    50% { translate: 0 -9px; }
+  .hero-divider__track {
+    display: flex;
+    flex: none;
+    white-space: nowrap;
+    align-items: center;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-divider__track { animation: hero-marquee 26s linear infinite; }
+  }
+  @keyframes hero-marquee { to { transform: translateX(-50%); } }
+  .hero-divider__group {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-display);
+    font-weight: 900;
+    text-transform: lowercase;
+    font-size: 1.9rem;
+    padding-block: 0.55rem;
+  }
+  .hero-divider__group > span:not([class]) { padding-inline: 1.3rem; }
+  .hd-sq, .hd-ci, .hd-tr { flex: none; color: var(--c-yellow); }
+  .hd-sq { width: 1em; height: 1em; border: 2px solid currentColor; }
+  .hd-ci { width: 1em; height: 1em; border-radius: 50%; border: 2px solid currentColor; }
+  .hd-tr {
+    width: 0; height: 0;
+    border-left: 0.6em solid transparent;
+    border-right: 0.6em solid transparent;
+    border-bottom: 1em solid currentColor;
   }
 
-  /* Mobile: stack to one column and lead with a compact branded cluster. */
+  /* ---- Mobile: stack, lead with the browser ---- */
   @media (max-width: 900px) {
     .hero__inner {
       grid-template-columns: 1fr;
       gap: var(--space-5);
-      padding-block: var(--space-6);
     }
-    .hero__art {
-      order: -1;
-      min-height: 0;
-      min-width: 0;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: var(--space-3);
-    }
-    .hero__mark {
-      position: static;
-      padding: var(--space-4);
-    }
-    .hero__mark :global(svg) { width: 88px; height: 88px; }
-    .hero__s-circle, .hero__s-square, .hero__s-tri {
-      position: static;
-      inset: auto;
-    }
-    .hero__s-circle { width: 54px; height: 54px; }
-    .hero__s-square { width: 50px; height: 50px; box-shadow: var(--shadow-hard-sm); }
-    .hero__s-tri { font-size: 56px; filter: drop-shadow(3px 3px 0 var(--c-ink)); }
+    .hero__art { order: -1; }
   }
 
   @media (max-width: 540px) {
@@ -199,5 +267,40 @@ const {
       text-underline-offset: 4px;
     }
     .hero__see:hover { transform: none; box-shadow: none; color: var(--c-blue); }
+    .hero-divider__group { font-size: 1.5rem; }
   }
 </style>
+
+<script>
+  // Type the demo domain, then reveal the site body. Loops gently. Honours
+  // reduced-motion by showing the finished state with no animation.
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll<HTMLElement>('.hero [data-type]').forEach((el) => {
+    const full = el.dataset.type ?? '';
+    const caret = el.querySelector('.bw__caret');
+    const body = el.closest('.bw')?.querySelector<HTMLElement>('[data-fill]');
+    const textNode = document.createTextNode('');
+    if (caret) el.insertBefore(textNode, caret);
+
+    const run = () => {
+      let i = 0;
+      body?.classList.remove('is-filled');
+      textNode.nodeValue = '';
+      if (reduce) {
+        textNode.nodeValue = full;
+        body?.classList.add('is-filled');
+        return;
+      }
+      const iv = window.setInterval(() => {
+        textNode.nodeValue = full.slice(0, ++i);
+        if (i >= full.length) {
+          window.clearInterval(iv);
+          window.setTimeout(() => body?.classList.add('is-filled'), 250);
+        }
+      }, 95);
+    };
+
+    run();
+    if (!reduce) window.setInterval(run, 7000);
+  });
+</script>

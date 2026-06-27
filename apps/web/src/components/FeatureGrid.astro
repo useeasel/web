@@ -10,7 +10,7 @@ const features = [
   {
     shape: 'circle',
     title: 'Hosting you own, free',
-    body: "Publish to GitHub Pages or Netlify — whichever you pick, the site lives on an account you own and control. Easel handles setup once, and after that it's all yours.",
+    body: "Publish to GitHub Pages or Netlify. Either way, the site lives on an account you own. Easel handles setup once, then it's all yours.",
   },
   {
     shape: 'triangle',
@@ -25,7 +25,7 @@ const features = [
 ];
 ---
 
-<section class="section features band--yellow">
+<section class="section features band--paper">
   <div class="container">
     <h2>Built for showing your work</h2>
     <ol class="features__list" role="list">
@@ -57,6 +57,22 @@ const features = [
     padding-block: var(--space-4);
     border-top: var(--border-bold);
   }
+
+  /* Subtle staggered pop-in as each row scrolls into view. Only armed once JS
+     adds .js-reveal (so no-JS keeps every row visible), and skipped entirely
+     under reduced-motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .features.js-reveal .feature {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      transition-delay: calc(var(--i, 0) * 70ms);
+    }
+    .features.js-reveal .feature.is-in {
+      opacity: 1;
+      transform: none;
+    }
+  }
   .feature:last-child { border-bottom: var(--border-bold); }
 
   .feature__num {
@@ -72,15 +88,16 @@ const features = [
     height: 72px;
     border: var(--border-bold);
   }
-  /* Yellow primitives vanish on a yellow field — the triangle is rebuilt in ink
-     (the box border from .feature__glyph would otherwise smother it). */
+  /* The glyph's box border would smother a triangle, so it's rebuilt from
+     borders and given the hard offset shadow for presence on the paper field. */
   .feature .shape--triangle {
     width: 0; height: 0;
     border-left: 40px solid transparent;
     border-right: 40px solid transparent;
-    border-bottom: 72px solid var(--c-ink);
+    border-bottom: 72px solid var(--c-yellow);
     border-top: 0;
     box-shadow: none;
+    filter: drop-shadow(4px 4px 0 var(--c-ink));
   }
 
   .feature__body h3 { margin: 0 0 var(--space-1); }
@@ -102,8 +119,32 @@ const features = [
       width: 0; height: 0;
       border-left: 32px solid transparent;
       border-right: 32px solid transparent;
-      border-bottom: 56px solid var(--c-ink);
+      border-bottom: 56px solid var(--c-yellow);
     }
     .feature__body { grid-area: body; }
   }
 </style>
+
+<script>
+  // Reveal feature rows as they scroll in — a small, staggered pop. Progressive
+  // enhancement: without this script the rows are simply always visible.
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const section = document.querySelector<HTMLElement>('.features');
+  if (section && !reduce && 'IntersectionObserver' in window) {
+    const rows = Array.from(section.querySelectorAll<HTMLElement>('.feature'));
+    rows.forEach((row, i) => row.style.setProperty('--i', String(i)));
+    section.classList.add('js-reveal');
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-in');
+            io.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: 0.25, rootMargin: '0px 0px -8% 0px' }
+    );
+    rows.forEach((row) => io.observe(row));
+  }
+</script>

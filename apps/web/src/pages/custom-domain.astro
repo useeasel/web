@@ -10,7 +10,7 @@ import Base from '../layouts/Base.astro';
 
 const getDomain = {
   title: 'Get a domain name',
-  body: 'If you don\'t already own one, buy a domain from a registrar like Cloudflare, Namecheap, or Porkbun. It usually costs about $10–15 a year. You buy it directly, so it\'s yours — Easel and your host never sell you the domain or lock it up. Already have one? Skip ahead.',
+  body: 'If you don\'t already own one, buy a domain from a registrar like Cloudflare, Namecheap, or Porkbun. It costs about $10–15 a year. You buy it directly, so it\'s yours. Easel and your host never sell you the domain or lock it up. Already have one? Skip ahead.',
 };
 
 // Two host-specific step sets. The client shows whichever matches the deploy cookie
@@ -20,7 +20,7 @@ const stepsByHost: Record<'netlify' | 'github-pages', { title: string; body: str
     getDomain,
     {
       title: 'Open your site\'s domain settings in Netlify',
-      body: 'In Netlify, open your site and go to **Domain management**. That\'s where every domain change for your site happens. (If you just set up with Easel, the button below jumps straight there.)',
+      body: 'In Netlify, open your site and go to **Domain management**. That\'s where every domain change for your site happens. (If you set up with Easel, the button below jumps straight there.)',
     },
     {
       title: 'Add your domain',
@@ -28,11 +28,11 @@ const stepsByHost: Record<'netlify' | 'github-pages', { title: string; body: str
     },
     {
       title: 'Point your domain at Netlify',
-      body: 'The easiest path is to let **Netlify manage your DNS**: it shows you four nameservers — set those at your registrar (replacing the ones already there) and Netlify handles the rest. Prefer to keep your registrar\'s DNS? Netlify instead shows the exact records to add (an A or ALIAS record for the bare domain, a CNAME for `www`).',
+      body: 'The easiest path is to let **Netlify manage your DNS**: it shows you four nameservers. Set those at your registrar (replacing the ones already there) and Netlify handles the rest. Prefer to keep your registrar\'s DNS? Netlify instead shows the exact records to add (an A or ALIAS record for the bare domain, a CNAME for `www`).',
     },
     {
       title: 'Wait for it to go live',
-      body: 'DNS changes take anywhere from a few minutes to a few hours to spread across the internet — this is normal, nothing is broken. Once Netlify sees your domain pointing correctly, it provisions a free HTTPS certificate automatically, so your site loads securely with no extra work.',
+      body: 'DNS changes take a few minutes to a few hours to spread across the internet. This is normal. Once Netlify sees your domain pointing the right way, it provisions a free HTTPS certificate, so your site loads securely.',
     },
     {
       title: 'Make it your primary domain',
@@ -43,7 +43,7 @@ const stepsByHost: Record<'netlify' | 'github-pages', { title: string; body: str
     getDomain,
     {
       title: 'Open your repository\'s Pages settings',
-      body: 'On GitHub, open your repository, then go to **Settings → Pages**. That\'s where the custom domain for your site is set. (If you just set up with Easel, the button below jumps straight there.)',
+      body: 'On GitHub, open your repository, then go to **Settings → Pages**. That\'s where the custom domain for your site is set. (If you set up with Easel, the button below jumps straight there.)',
     },
     {
       title: 'Add your domain',
@@ -51,11 +51,11 @@ const stepsByHost: Record<'netlify' | 'github-pages', { title: string; body: str
     },
     {
       title: 'Point your domain at GitHub Pages',
-      body: 'At your registrar, add a `CNAME` record for **www** pointing to `your-username.github.io`. For the bare `your-name.com`, add the four GitHub **A records** (`185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`) — or an `ALIAS`/`ANAME` to `your-username.github.io` if your registrar supports it.',
+      body: 'At your registrar, add a `CNAME` record for **www** pointing to `your-username.github.io`. For the bare `your-name.com`, add the four GitHub **A records** (`185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`). Or use an `ALIAS`/`ANAME` to `your-username.github.io` if your registrar supports it.',
     },
     {
       title: 'Wait for it, then turn on HTTPS',
-      body: 'DNS changes take anywhere from a few minutes to a few hours to spread — this is normal. Once GitHub shows the domain as verified, tick **Enforce HTTPS** on the same Pages settings page; GitHub provisions a free certificate so your site loads securely.',
+      body: 'DNS changes take a few minutes to a few hours to spread. This is normal. Once GitHub shows the domain as verified, tick **Enforce HTTPS** on the same Pages settings page, and GitHub provisions a free certificate so your site loads securely.',
     },
   ],
 };
@@ -68,15 +68,15 @@ const md = (s: string) =>
 
 <Base
   title="Add a custom domain · Easel"
-  description="A step-by-step guide to pointing your own domain (like your-name.com) at your Easel portfolio, whether it's hosted on Netlify or GitHub Pages. Easel never touches your DNS — your domain stays yours."
+  description="A step-by-step guide to pointing your own domain (like your-name.com) at your Easel portfolio, whether it's hosted on Netlify or GitHub Pages. Easel never touches your DNS, so your domain stays yours."
 >
   <section class="section domain-hero">
     <div class="container">
       <h1>Add your own domain</h1>
       <p class="domain-hero__sub">
         Give your portfolio a real address like <strong>your-name.com</strong>. Your domain
-        lives in your own registrar and Netlify accounts — Easel never touches your DNS. Here's
-        the whole thing, start to finish.
+        lives in your own registrar and host accounts, and Easel never touches your DNS.
+        The whole process, start to finish.
       </p>
 
       <div id="domain-welcome" class="domain-welcome" hidden>

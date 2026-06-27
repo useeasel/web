@@ -16,15 +16,17 @@ const { size = 40, title = 'Easel' } = Astro.props;
   aria-label={title}
   xmlns="http://www.w3.org/2000/svg"
 >
+  <!-- Easel structure uses currentColor so the mark inverts with its context:
+       ink on the paper header, paper on the dark footer. -->
   <!-- easel legs + crossbar -->
-  <g stroke="var(--c-ink)" stroke-width="2.5" stroke-linecap="square" fill="none">
+  <g stroke="currentColor" stroke-width="2.5" stroke-linecap="square" fill="none">
     <line x1="11" y1="6" x2="6" y2="44" />
     <line x1="37" y1="6" x2="42" y2="44" />
     <line x1="9.5" y1="32" x2="38.5" y2="32" />
   </g>
 
   <!-- the canvas board the primitives sit on -->
-  <rect x="9" y="6" width="30" height="24" fill="var(--c-white)" stroke="var(--c-ink)" stroke-width="2.5" />
+  <rect x="9" y="6" width="30" height="24" fill="var(--c-white)" stroke="currentColor" stroke-width="2.5" />
 
   <!-- red square -->
   <rect x="12.5" y="9.5" width="9" height="9" fill="var(--c-red)" />

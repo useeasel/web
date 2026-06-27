@@ -23,7 +23,7 @@ import { ROUTES } from '../config.ts';
         <h1>Let's build your portfolio</h1>
         <p class="start__sub">
           Three short steps. You'll connect two free accounts, then Easel does the rest.
-          Nothing is charged, and we don't host a thing.
+          We charge nothing, and we don't host a thing.
         </p>
         <p id="start-over-wrap" class="start__over" hidden>
           Connected the wrong account? <button type="button" id="btn-start-over" class="linklike">Start over</button>.
@@ -54,7 +54,7 @@ import { ROUTES } from '../config.ts';
       <ConnectStep step={2} title="Choose where to publish" state="todo" shape="circle">
         <p>
           Pick where your site goes live. Both are free, and either way the site stays
-          entirely yours — Easel never hosts a thing.
+          yours. Easel never hosts a thing.
         </p>
         <fieldset class="host-picker" id="host-picker">
           <legend class="start__visually-hidden">Hosting provider</legend>
@@ -63,9 +63,9 @@ import { ROUTES } from '../config.ts';
             <span class="host-option__body">
               <span class="host-option__name">GitHub Pages <span class="host-option__tag">Recommended</span></span>
               <span class="host-option__desc">
-                Publishes straight from the GitHub account you just connected — no extra
-                sign-up. Free, with free custom domains. Your contact form is handled by a
-                free service called <abbr class="hint" title="A free form-to-email service. The messages land in your inbox; no account needed.">FormSubmit</abbr>.
+                Publishes straight from the GitHub account you connected, no extra
+                sign-up. Free, with free custom domains. A free service called
+                <abbr class="hint" title="A free form-to-email service. The messages land in your inbox; no account needed.">FormSubmit</abbr> handles your contact form.
               </span>
             </span>
           </label>
@@ -93,7 +93,7 @@ import { ROUTES } from '../config.ts';
           <span class="start__check" aria-hidden="true"></span>Netlify connected.
         </p>
         <p id="pages-note" class="start__connected" hidden>
-          <span class="start__check" aria-hidden="true"></span>Publishing to GitHub Pages — no extra account needed.
+          <span class="start__check" aria-hidden="true"></span>Publishing to GitHub Pages. No extra account needed.
         </p>
       </ConnectStep>
 
@@ -122,13 +122,12 @@ import { ROUTES } from '../config.ts';
     <div class="mobilegate__card">
       <h2>Set this up on a computer</h2>
       <p>
-        Building your portfolio means dragging in photos and arranging your site —
-        fiddly, frustrating work on a phone. You'll have a much better time on a
-        laptop or desktop.
+        Building your portfolio means dragging in photos and arranging your site,
+        fiddly work on a phone. You'll have a better time on a laptop or desktop.
       </p>
       <p><strong>Open this page on a computer to get started.</strong></p>
       <a class="btn btn--primary" href="/">Back to home</a>
-      <button type="button" id="mobile-bypass" class="mobilegate__bypass">Continue anyway — I understand it'll be rough</button>
+      <button type="button" id="mobile-bypass" class="mobilegate__bypass">Continue anyway. I know it'll be rough</button>
     </div>
   </div>
 </Base>

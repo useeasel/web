@@ -56,10 +56,32 @@ const moves = [
         ))}
       </ol>
 
-      <p class="own-moves__note">
-        If Easel disappeared tomorrow, your site would keep running. Once setup is done,
-        none of it depends on us.
-      </p>
+    </div>
+  </section>
+
+  <section class="section permanence band--paper">
+    <div class="container">
+      <h2 class="permanence__title">If Easel vanished tomorrow</h2>
+      <p class="permanence__lead">Your site would keep running, with nothing to move and nothing to fix. Here is exactly why.</p>
+      <ul class="permanence__grid" role="list">
+        <li class="permanence__card">
+          <span class="permanence__tag">Your repository</span>
+          <p>The whole site sits in a GitHub repo on your account. Easel only had permission while you were connected; revoke it and the repo is still entirely yours.</p>
+        </li>
+        <li class="permanence__card">
+          <span class="permanence__tag">Your files</span>
+          <p>Every page and artwork is a plain text file, every image a normal image. Open them in any editor. Nothing is locked in a format only we can read.</p>
+        </li>
+        <li class="permanence__card">
+          <span class="permanence__tag">Your host</span>
+          <p>GitHub Pages or Netlify builds and serves the site straight from your repo. That build runs without us, on every change, forever.</p>
+        </li>
+        <li class="permanence__card">
+          <span class="permanence__tag">Your domain</span>
+          <p>Your domain is set up at your own host and registrar. Easel never touches it, so it points where you say no matter what happens to us.</p>
+        </li>
+      </ul>
+      <p class="permanence__kicker">Easel runs the one-time setup, then steps out. After that, taking Easel away changes nothing about your live site.</p>
     </div>
   </section>
 </Base>
@@ -85,11 +107,39 @@ const moves = [
     border: 1px solid var(--c-stone);
     padding: 0.05em 0.3em;
   }
-  .own-moves__note {
-    margin-top: var(--space-6);
+  .permanence { border-top: var(--border); }
+  .permanence__title { font-size: 1.75rem; }
+  .permanence__lead { max-width: 60ch; color: var(--c-stone); margin-bottom: var(--space-5); }
+  .permanence__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: var(--space-4);
+  }
+  .permanence__card {
+    border: var(--border);
+    background: var(--c-white);
+    padding: var(--space-4);
+  }
+  .permanence__card p { margin: var(--space-2) 0 0; color: var(--c-stone); }
+  .permanence__tag {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.8rem;
+    color: var(--c-white);
+    background: var(--c-blue);
+    padding: 0.15em 0.5em;
+  }
+  .permanence__kicker {
+    margin-top: var(--space-5);
     max-width: 760px;
     border-left: var(--border-thick);
     padding-left: var(--space-3);
-    color: var(--c-stone);
+    font-weight: 700;
   }
 </style>

@@ -2,51 +2,44 @@
 const faqs = [
   {
     q: 'What does Easel cost?',
-    a: "Setting up and hosting an Easel site is free. A custom domain runs about $11 a year, if you don't already have one.",
+    a: "Absolutely nothing! Easel provides a simple interface for you to use free web hosting services. For a better experience, you should buy a custom domain, which costs around $12 a year, but it's not required to use Easel.",
   },
   {
     q: 'How can I trust Easel to be free forever?',
-    a: "Once you've set up your instance, Easel has no control over your site. Even if we started charging a subscription fee tomorrow, we couldn't touch your site.",
+    a: "Simple, we don't own or manage your site! Once you've set up your instance, you're in control of everything. Even if we started charging a subscription fee or set-up fee tomorrow, your site would remain completely yours.",
   },
   {
     q: 'What accounts do I need?',
-    a: "A free GitHub account is all you need: GitHub stores your site's files, and you can publish it straight to GitHub Pages from there. Prefer Netlify? Connect a free Netlify account instead, and Easel sets up whichever you choose.",
+    a: "You'll need a free GitHub account to store your site's files. GitHub offers free web hosting with GitHub Pages. If you prefer Netlify for hosting, you'll also need a separate Netlify account.",
   },
   {
     q: 'What prior coding knowledge do I need?',
-    a: "None! Easel uses a simple editor, and you'll never touch the code behind your site if you don't want to. If you have some experience, we support custom HTML, CSS, and JS for making tweaks you want.",
+    a: "None! Easel uses a simple editor, and you'll never touch the code behind your site if you don't want to. If you have some experience, we support custom CSS and JavaScript snippets for making tweaks you want.",
   },
   {
     q: 'Can I use a custom domain?',
-    a: 'Absolutely! Custom domains are free on both GitHub Pages and Netlify.',
+    a: "Absolutely! Custom domains are free on both GitHub Pages and Netlify. If you don't already have one, we suggest Porkbun as a no-frills registrar.",
   },
   {
-    q: 'What kind of work can I show?',
-    a: "Anything visual! Easel is built around image galleries, so it's a great fit for illustrators, photographers, painters, designers, and more.",
+    q: 'What generative AI defense tools does Easel offer?',
+    a: "Easel wants you to have control over how your work is used, and offers no integrated AI features. Enabling llms.txt will tell web-crawlers to not use your data for training. Easel also supports serving raw images run through Glaze and Nightshade.",
   },
   {
-    q: 'Can I change how my site looks?',
-    a: "Yes! You can adjust colors, fonts, and layout right from the editor, no code required.",
-  },
-  {
-    q: 'Who owns my site and content?',
-    a: "You do, fully. Your site lives on your own GitHub account (and Netlify, if you chose it), so it stays online whether or not you keep using Easel.",
-  },
-  {
-    q: 'I have an unanswered question or idea for a feature!',
-    a: 'Shoot me an email at easel@rosematcha.com.',
+    q: 'I have an unanswered question or idea for a feature.',
+    a: 'Awesome! Shoot us an email at <a href="mailto:hello@easel.rosematcha.com">hello@easel.rosematcha.com</a>.',
+    html: true,
   },
 ];
 ---
 
 <section class="section faq" id="faq">
   <div class="container">
-    <h2>Questions, answered</h2>
+    <h2>Questions?</h2>
     <div class="faq__list">
       {faqs.map((item) => (
         <details class="faq__item">
           <summary>{item.q}</summary>
-          <p>{item.a}</p>
+          {item.html ? <p set:html={item.a} /> : <p>{item.a}</p>}
         </details>
       ))}
     </div>
@@ -82,12 +75,24 @@ const faqs = [
     font-size: 1.5rem;
     line-height: 1;
     color: var(--c-blue);
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  .faq__item[open] summary::after { content: '\2013'; }
+  /* Rotate the + into a × instead of swapping glyphs, so the marker turns smoothly. */
+  .faq__item[open] summary::after { transform: rotate(45deg); }
   .faq__item p {
     padding: 0 var(--space-4) var(--space-4);
     margin: 0;
     color: var(--c-stone);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .faq__item[open] p {
+      animation: faq-reveal 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes faq-reveal {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   }
 
   @media (max-width: 720px) {

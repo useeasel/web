@@ -1,9 +1,9 @@
 {
-  "name": "easel-sveltia-auth",
+  "name": "gesso-sveltia-auth",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Easel shared Sveltia CMS GitHub OAuth relay — serves /admin login for every artist site.",
+  "description": "Gesso shared Sveltia CMS GitHub OAuth relay — serves /admin login for every artist site.",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",

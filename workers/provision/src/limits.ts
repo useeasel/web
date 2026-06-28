@@ -1,7 +1,7 @@
 /**
  * Lightweight abuse-throttling + observability for the provisioning Worker.
  *
- * Both lean on the existing EASEL_STATE KV namespace (no new infra). KV isn't a
+ * Both lean on the existing GESSO_STATE KV namespace (no new infra). KV isn't a
  * strongly-consistent counter, so neither is exact — but for "stop a script from
  * spamming repo generation" and "roughly how many signups/failures per day" that's
  * the right trade for the free tier. Hard-accuracy needs would move to a Durable

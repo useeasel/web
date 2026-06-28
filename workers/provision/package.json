@@ -1,9 +1,9 @@
 {
-  "name": "easel-provision",
+  "name": "gesso-provision",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Easel provisioning Worker — GitHub + Netlify OAuth and repo/site provisioning.",
+  "description": "Gesso provisioning Worker — GitHub + Netlify OAuth and repo/site provisioning.",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",

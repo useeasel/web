@@ -1,8 +1,8 @@
 /**
- * Easel provisioning Worker.
+ * Gesso provisioning Worker.
  *
  * Orchestrates the two-click onboarding: GitHub + Netlify OAuth, then generates
- * the artist's repo from easel/template and stands up their Netlify site. Easel
+ * the artist's repo from gesso/template and stands up their Netlify site. Gesso
  * never stores long-lived tokens — they live in KV for one run (10-min TTL) and
  * are deleted on completion.
  *
@@ -18,12 +18,12 @@
  *   NETLIFY_OAUTH_CLIENT_ID, NETLIFY_OAUTH_CLIENT_SECRET
  *   STATE_SIGNING_KEY        (HMAC key for OAuth state)
  * Vars (wrangler.toml [vars]):
- *   APP_ORIGIN               (the marketing site, e.g. https://easel.rosematcha.com)
+ *   APP_ORIGIN               (the marketing site, e.g. https://usegesso.com)
  *   WORKER_ORIGIN            (this worker's public origin, for OAuth redirect_uri)
  *   SVELTIA_AUTH_URL         (the sveltia-auth relay origin)
- *   TEMPLATE_OWNER           (default 'easel'),  TEMPLATE_REPO (default 'template')
+ *   TEMPLATE_OWNER           (default 'gesso'),  TEMPLATE_REPO (default 'template')
  * Bindings:
- *   EASEL_STATE              (KV namespace for transient session/tokens)
+ *   GESSO_STATE              (KV namespace for transient session/tokens)
  */
 
 import { createState, verifyState, loadSession, saveSession, clearSession } from './state';
@@ -60,7 +60,7 @@ function resolveHost(provider?: string): HostProvider {
 }
 
 export interface Env {
-  EASEL_STATE: KVNamespace;
+  GESSO_STATE: KVNamespace;
   GITHUB_OAUTH_CLIENT_ID: string;
   GITHUB_OAUTH_CLIENT_SECRET: string;
   NETLIFY_OAUTH_CLIENT_ID: string;
@@ -73,7 +73,7 @@ export interface Env {
   TEMPLATE_REPO?: string;
   /** Optional: enables the completion email when both are set (see email.ts). */
   RESEND_API_KEY?: string;
-  EASEL_FROM_EMAIL?: string;
+  GESSO_FROM_EMAIL?: string;
 }
 
 type StageState = 'pending' | 'active' | 'done' | 'error';
@@ -131,14 +131,14 @@ export default {
       (pathname === '/provision' && request.method === 'POST');
     if (isSensitive) {
       const limited = await isRateLimited(
-        env.EASEL_STATE,
+        env.GESSO_STATE,
         `${clientIp(request)}:${pathname}`,
         // ~10 starts/min per IP — generous for a human, useless for a flood.
         10,
         60,
       );
       if (limited) {
-        await trackEvent(env.EASEL_STATE, 'rate_limited', { path: pathname });
+        await trackEvent(env.GESSO_STATE, 'rate_limited', { path: pathname });
         return json({ status: 'error', message: 'rate_limited' }, env, 429);
       }
     }
@@ -147,7 +147,7 @@ export default {
       // ---- Step 1: GitHub OAuth ----
       if (pathname === '/auth/github' && request.method === 'GET') {
         const state = await createState(env.STATE_SIGNING_KEY);
-        await saveSession(env.EASEL_STATE, state, {}); // reserve the session slot
+        await saveSession(env.GESSO_STATE, state, {}); // reserve the session slot
         return Response.redirect(
           githubAuthorizeUrl({
             clientId: env.GITHUB_OAUTH_CLIENT_ID,
@@ -170,7 +170,7 @@ export default {
           `${env.WORKER_ORIGIN}/auth/github/cb`,
         );
         const user = await getGithubUser(token);
-        await saveSession(env.EASEL_STATE, state, {
+        await saveSession(env.GESSO_STATE, state, {
           githubToken: token,
           githubLogin: user.login,
           ...(user.email ? { email: user.email } : {}),
@@ -186,9 +186,9 @@ export default {
           return redirectToStartError(env, 'netlify_state');
         }
         // The GitHub step must have run first.
-        const sess = await loadSession(env.EASEL_STATE, state);
+        const sess = await loadSession(env.GESSO_STATE, state);
         if (!sess?.githubToken) return redirectToStartError(env, 'github_required');
-        if (siteName) await saveSession(env.EASEL_STATE, state, { siteName });
+        if (siteName) await saveSession(env.GESSO_STATE, state, { siteName });
         return Response.redirect(
           netlifyAuthorizeUrl({
             clientId: env.NETLIFY_OAUTH_CLIENT_ID,
@@ -210,7 +210,7 @@ export default {
           code,
           `${env.WORKER_ORIGIN}/auth/netlify/cb`,
         );
-        await saveSession(env.EASEL_STATE, state, { netlifyToken: token });
+        await saveSession(env.GESSO_STATE, state, { netlifyToken: token });
         return redirectToStart(env, 'provision', state);
       }
 
@@ -225,7 +225,7 @@ export default {
         if (!state || !(await verifyState(state, env.STATE_SIGNING_KEY))) {
           return json({ github: false, netlify: false, githubLogin: null }, env);
         }
-        const sess = await loadSession(env.EASEL_STATE, state);
+        const sess = await loadSession(env.GESSO_STATE, state);
         return json(
           {
             github: !!sess?.githubToken,
@@ -244,7 +244,7 @@ export default {
       }
       if (pathname === '/provision' && request.method === 'GET') {
         const jobId = url.searchParams.get('job') ?? '';
-        let job = (await env.EASEL_STATE.get(`job:${jobId}`, 'json')) as JobRecord | null;
+        let job = (await env.GESSO_STATE.get(`job:${jobId}`, 'json')) as JobRecord | null;
         if (!job) return json({ status: 'unknown' }, env, 404);
         // If the background job handed off the deploy wait, advance it from this
         // client poll: check the live Netlify deploy and finalize once it's ready
@@ -346,7 +346,7 @@ function siteFromJob(job: JobRecord): SiteHandle {
 }
 
 async function setJob(env: Env, jobId: string, job: JobRecord): Promise<void> {
-  await env.EASEL_STATE.put(`job:${jobId}`, JSON.stringify(job), { expirationTtl: JOB_TTL });
+  await env.GESSO_STATE.put(`job:${jobId}`, JSON.stringify(job), { expirationTtl: JOB_TTL });
 }
 
 /**
@@ -373,7 +373,7 @@ async function startProvision(
   // client-driven deploy reconcile knows which host to poll.
   const patch: { email?: string; provider: string } = { provider: host.id };
   if (email && /.+@.+\..+/.test(email)) patch.email = email;
-  await saveSession(env.EASEL_STATE, state, patch);
+  await saveSession(env.GESSO_STATE, state, patch);
 
   // Idempotency: if a run for this state is already underway (or has finished),
   // return it instead of starting a duplicate. Without this, a double-click or a
@@ -385,7 +385,7 @@ async function startProvision(
   // never progress. A stalled run that already has a site is left alone: its deploy is
   // reconciled by GET /provision, so restarting would just orphan a second repo.
   const nowMs = Date.now();
-  const existing = (await env.EASEL_STATE.get(`job:${state}`, 'json')) as JobRecord | null;
+  const existing = (await env.GESSO_STATE.get(`job:${state}`, 'json')) as JobRecord | null;
   if (existing && existing.status !== 'error') {
     const ageMs = existing.startedAt ? nowMs - existing.startedAt : Infinity;
     const stalledInSetup =
@@ -398,7 +398,7 @@ async function startProvision(
     }
   }
 
-  const sess = await loadSession(env.EASEL_STATE, state);
+  const sess = await loadSession(env.GESSO_STATE, state);
   // GitHub is always required; Netlify only when the chosen host needs it. GitHub
   // Pages publishes with the GitHub token already in hand — no second connection.
   if (!sess?.githubToken || !sess.githubLogin || (host.needsNetlify && !sess.netlifyToken)) {
@@ -449,12 +449,12 @@ async function runProvisionJob(
     job.status = 'error';
     job.message = message;
     await setJob(env, state, job);
-    await trackEvent(env.EASEL_STATE, 'provision_failed', { stage: String(stage) });
+    await trackEvent(env.GESSO_STATE, 'provision_failed', { stage: String(stage) });
   };
 
-  await trackEvent(env.EASEL_STATE, 'provision_started');
+  await trackEvent(env.GESSO_STATE, 'provision_started');
 
-  const templateOwner = env.TEMPLATE_OWNER ?? 'useeasel';
+  const templateOwner = env.TEMPLATE_OWNER ?? 'usegesso';
   const templateRepo = env.TEMPLATE_REPO ?? 'template';
 
   // (a) GitHub: generate repo from template ('portfolio', with suffix if taken).
@@ -493,7 +493,7 @@ async function runProvisionJob(
     // Stamp the template version this site is born at, so the editor's "Update my
     // site" check has a baseline to compare against. Best-effort — a null just
     // means no baseline (the editor still offers the update).
-    const easelVersion = await getTemplateVersion(sess.githubToken, {
+    const gessoVersion = await getTemplateVersion(sess.githubToken, {
       owner: templateOwner,
       repo: templateRepo,
     });
@@ -510,7 +510,7 @@ async function runProvisionJob(
       repo: repo.name,
       branch: repo.defaultBranch,
       authBaseUrl: env.SVELTIA_AUTH_URL,
-      easelVersion,
+      gessoVersion,
       host: host.id,
       formEndpoint,
     });
@@ -586,7 +586,7 @@ async function runProvisionJob(
  * transient tokens, and fire the best-effort completion email. Callable from either
  * the background job or the reconciling GET handler; no-ops if already terminal.
  *
- * The email is a no-op unless RESEND_API_KEY + EASEL_FROM_EMAIL are configured and
+ * The email is a no-op unless RESEND_API_KEY + GESSO_FROM_EMAIL are configured and
  * we have an address. It runs after the job is marked done so it can never affect
  * success.
  */
@@ -598,12 +598,12 @@ async function completeJob(env: Env, state: string, job: JobRecord): Promise<voi
   await setJob(env, state, job);
 
   // (e) Read the email before clearing the session, then delete the transient tokens.
-  const sess = await loadSession(env.EASEL_STATE, state);
-  await clearSession(env.EASEL_STATE, state);
+  const sess = await loadSession(env.GESSO_STATE, state);
+  await clearSession(env.GESSO_STATE, state);
   job.stages.cleanup = 'done';
   job.status = 'done';
   await setJob(env, state, job);
-  await trackEvent(env.EASEL_STATE, 'provision_done');
+  await trackEvent(env.GESSO_STATE, 'provision_done');
 
   if (sess?.email && job.siteUrl && job.adminUrl) {
     const sent = await sendCompletionEmail(env, {
@@ -612,7 +612,7 @@ async function completeJob(env: Env, state: string, job: JobRecord): Promise<voi
       adminUrl: job.adminUrl,
       repoUrl: job.repoUrl,
     });
-    if (sent) await trackEvent(env.EASEL_STATE, 'completion_email_sent');
+    if (sent) await trackEvent(env.GESSO_STATE, 'completion_email_sent');
   }
 }
 
@@ -625,7 +625,7 @@ async function completeJob(env: Env, state: string, job: JobRecord): Promise<voi
  */
 async function reconcileDeploy(env: Env, state: string, job: JobRecord): Promise<JobRecord> {
   const host = resolveHost(job.provider);
-  const sess = await loadSession(env.EASEL_STATE, state);
+  const sess = await loadSession(env.GESSO_STATE, state);
   // Each host polls with a different token: Netlify its OAuth token, Pages the GitHub
   // token. If the relevant one TTL'd out before the build finished (rare — we refresh
   // it on every poll below), don't strand the artist: treat the site as published.
@@ -649,7 +649,7 @@ async function reconcileDeploy(env: Env, state: string, job: JobRecord): Promise
     job.awaitingDeploy = false;
     job.message = buildFailedMessage(host.id);
     await setJob(env, state, job);
-    await trackEvent(env.EASEL_STATE, 'provision_failed', { stage: 'deploy' });
+    await trackEvent(env.GESSO_STATE, 'provision_failed', { stage: 'deploy' });
     return job;
   }
   if (deployState === 'ready') {
@@ -669,6 +669,6 @@ async function reconcileDeploy(env: Env, state: string, job: JobRecord): Promise
   job.stages.deploy = 'active';
   // Refresh the job + session TTLs so neither lapses mid-wait, then poll again.
   await setJob(env, state, job);
-  await saveSession(env.EASEL_STATE, state, {});
+  await saveSession(env.GESSO_STATE, state, {});
   return job;
 }

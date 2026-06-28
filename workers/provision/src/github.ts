@@ -18,7 +18,7 @@
  */
 
 const GH_API = 'https://api.github.com';
-const UA = 'easel-provision-worker';
+const UA = 'gesso-provision-worker';
 
 export const GITHUB_AUTHORIZE_URL = 'https://github.com/login/oauth/authorize';
 const GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token';
@@ -150,13 +150,13 @@ export interface GeneratedRepo {
 }
 
 /**
- * Step (a): generate the artist's repo from easel/template.
+ * Step (a): generate the artist's repo from gesso/template.
  * POST /repos/{template_owner}/{template_repo}/generate
  */
 export async function generateRepoFromTemplate(
   token: string,
   opts: {
-    templateOwner: string; // 'useeasel'
+    templateOwner: string; // 'usegesso'
     templateRepo: string; // 'template'
     owner: string; // artist's login
     name: string; // base repo name; a numeric suffix is added if it's taken
@@ -185,7 +185,7 @@ export async function generateRepoFromTemplate(
         body: JSON.stringify({
           owner: opts.owner,
           name,
-          description: opts.description ?? 'My portfolio, made with Easel.',
+          description: opts.description ?? 'My portfolio, made with Gesso.',
           private: false,
           include_all_branches: false,
         }),
@@ -219,7 +219,7 @@ export async function generateRepoFromTemplate(
 
 /**
  * Read the template's own `package.json` version. This is the value we stamp onto
- * each generated site as `easelVersion`, so the editor's "Update my site" feature
+ * each generated site as `gessoVersion`, so the editor's "Update my site" feature
  * can later tell whether a newer template has shipped. Best-effort: returns null if
  * the file can't be read or parsed, in which case we simply don't stamp a version
  * (the editor treats a missing version as "pre-history" and still offers the update).
@@ -243,7 +243,7 @@ export async function getTemplateVersion(
 }
 
 /**
- * Step (d): patch the new repo's `public/admin/config.json` so the Easel editor
+ * Step (d): patch the new repo's `public/admin/config.json` so the Gesso editor
  * points at the artist's own repo and our shared auth relay (replacing the
  * shipped REPLACED_AT_PROVISION placeholder).
  */
@@ -253,10 +253,10 @@ export async function patchAdminConfig(
     owner: string;
     repo: string;
     branch: string;
-    /** Full https URL of the auth worker, e.g. https://auth.easel.rosematcha.com */
+    /** Full https URL of the auth worker, e.g. https://auth.usegesso.com */
     authBaseUrl: string;
     /** Template version this site was generated from; powers the editor's update check. */
-    easelVersion?: string | null;
+    gessoVersion?: string | null;
     /** Host this site is published to ('netlify' | 'github-pages'); the template adapts copy. */
     host?: string;
     /**
@@ -301,7 +301,7 @@ export async function patchAdminConfig(
   cfg.repo = `${opts.owner}/${opts.repo}`;
   cfg.branch = opts.branch;
   cfg.authBaseUrl = opts.authBaseUrl;
-  if (opts.easelVersion) cfg.easelVersion = opts.easelVersion;
+  if (opts.gessoVersion) cfg.gessoVersion = opts.gessoVersion;
   if (opts.host) cfg.host = opts.host;
   // Always write the form endpoint (even empty) so re-provisioning can clear it.
   cfg.formEndpoint = opts.formEndpoint ?? '';
@@ -311,7 +311,7 @@ export async function patchAdminConfig(
     method: 'PUT',
     headers: authHeaders(token),
     body: JSON.stringify({
-      message: 'chore(easel): point the editor at this repo and the auth relay',
+      message: 'chore(gesso): point the editor at this repo and the auth relay',
       content: encodeBase64(updated),
       sha: file.sha,
       branch: opts.branch,

@@ -1,9 +1,9 @@
 {
-  "name": "easel-web",
+  "name": "gesso-web",
   "type": "module",
   "version": "1.0.0",
   "private": true,
-  "description": "Easel marketing site + two-click onboarding flow. Deploys to easel.rosematcha.com on Cloudflare Pages.",
+  "description": "Gesso marketing site + two-click onboarding flow. Deploys to usegesso.com on Cloudflare Pages.",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",

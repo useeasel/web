@@ -1,7 +1,7 @@
 /**
  * Host-provider abstraction.
  *
- * Easel can publish an artist's site to more than one host. The provisioning flow
+ * Gesso can publish an artist's site to more than one host. The provisioning flow
  * is almost entirely host-agnostic — generating the GitHub repo, patching the admin
  * config, polling the first deploy — so each host only has to supply the few bits
  * that genuinely differ: how a site is created, whether a build needs an explicit

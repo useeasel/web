@@ -1,6 +1,6 @@
-// Client-side record of the artist's most recent Easel deployment.
+// Client-side record of the artist's most recent Gesso deployment.
 //
-// Provisioning happens once and then Easel steps out — but the artist often comes
+// Provisioning happens once and then Gesso steps out — but the artist often comes
 // back later to do the one thing we can't do for them: point a custom domain at
 // their site. We stash a small first-party cookie at /start/done so any later page
 // (the custom-domain guide especially) can pick up where they left off and deep-link
@@ -26,7 +26,7 @@ export interface DeployRecord {
   at: string;
 }
 
-const COOKIE = 'easel_deploy';
+const COOKIE = 'gesso_deploy';
 const ONE_YEAR = 60 * 60 * 24 * 365;
 
 /** Netlify dashboard deep link to a project's add-a-domain setup flow. The

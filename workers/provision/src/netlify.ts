@@ -255,7 +255,7 @@ export const netlifyProvider: HostProvider = {
     await addDeployKey(tokens.githubToken, {
       owner: repo.owner,
       repo: repo.name,
-      title: 'Easel · Netlify deploy',
+      title: 'Gesso · Netlify deploy',
       publicKey: deployKey.publicKey,
     });
     const site = await createSite(tokens.netlifyToken, {

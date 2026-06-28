@@ -1,12 +1,12 @@
-# Easel — `easel/web`
+# Gesso — `gesso/web`
 
-The public face of **Easel**: the marketing site, the two-click onboarding flow
+The public face of **Gesso**: the marketing site, the two-click onboarding flow
 that provisions an artist's portfolio, and the shared Cloudflare Workers that make
-it work. Deploys to **easel.rosematcha.com** on Cloudflare Pages. Everything here
+it work. Deploys to **usegesso.com** on Cloudflare Pages. Everything here
 runs on Cloudflare's free tier.
 
-Easel never hosts artist content. It orchestrates a one-time OAuth setup (GitHub +
-Netlify), generates a repo from `easel/template` into the artist's own GitHub,
+Gesso never hosts artist content. It orchestrates a one-time OAuth setup (GitHub +
+Netlify), generates a repo from `gesso/template` into the artist's own GitHub,
 creates their Netlify site, and then steps out of the way. The artist owns their
 repo and their site.
 
@@ -14,8 +14,8 @@ repo and their site.
 
 | Repo | What it is |
 |---|---|
-| **`easel/template`** | The Astro portfolio template + Sveltia CMS at `/admin`. A GitHub *template repo*, generated fresh into each artist's account. |
-| **`easel/web`** (this repo) | Marketing site + onboarding/provisioning + the shared Workers. Deploys to `easel.rosematcha.com`. |
+| **`gesso/template`** | The Astro portfolio template + Sveltia CMS at `/admin`. A GitHub *template repo*, generated fresh into each artist's account. |
+| **`gesso/web`** (this repo) | Marketing site + onboarding/provisioning + the shared Workers. Deploys to `usegesso.com`. |
 
 ## What's in this repo
 
@@ -24,9 +24,9 @@ web/
   apps/web/              # Astro marketing + onboarding UI  → Cloudflare Pages
     src/
       pages/             # index, how-it-works, start, start/done
-      components/        # EaselMark, Hero, FeatureGrid, ConnectStep, ProgressView, Faq, Footer, ExamplesStrip
+      components/        # GessoMark, Hero, FeatureGrid, ConnectStep, ProgressView, Faq, Footer, ExamplesStrip
       layouts/Base.astro
-      styles/tokens.css  # Bauhaus design tokens (shared look with easel/template)
+      styles/tokens.css  # Bauhaus design tokens (shared look with gesso/template)
       config.ts          # PROVISION_BASE + worker route helpers
   workers/provision/     # GitHub + Netlify OAuth and the 5-step provisioning run
     src/index.ts         # router
@@ -51,7 +51,7 @@ web/
     GET  /auth/netlify        → redirect to Netlify OAuth (carries the same state + site name)
     GET  /auth/netlify/cb     → code → token; stash under same state; back to /start?step=provision
   Step 3 — Provision
-    POST /provision           → (a) GitHub: generate repo from easel/template
+    POST /provision           → (a) GitHub: generate repo from gesso/template
                                 (b) Netlify: create site linked to repo (astro build / dist, Forms on)
                                 (c) Netlify: trigger first deploy + poll until ready
                                 (d) GitHub: patch public/admin/config.yml → point auth at sveltia-auth
@@ -72,7 +72,7 @@ the opaque, signed `state` value — the worker holds the tokens (briefly, in KV
 | Step 3 "Build my site" button | `POST /provision` (returns `{status, stages, siteUrl, adminUrl}`) |
 | `start/done.astro` links | uses `siteUrl` / `adminUrl` from the provision result |
 
-Every generated `easel/template` repo's `/admin` points its Sveltia `base_url` at
+Every generated `gesso/template` repo's `/admin` points its Sveltia `base_url` at
 the **`workers/sveltia-auth`** relay, which handles editor login for all artists.
 
 ## Local development
@@ -99,8 +99,8 @@ PUBLIC_PROVISION_BASE=http://127.0.0.1:8787 npm run dev
 cd workers/provision
 npm install
 # create the KV namespace once, paste ids into wrangler.toml:
-npx wrangler kv namespace create EASEL_STATE
-npx wrangler kv namespace create EASEL_STATE --preview
+npx wrangler kv namespace create GESSO_STATE
+npx wrangler kv namespace create GESSO_STATE --preview
 # set secrets (see below), then:
 npm run dev        # http://127.0.0.1:8787
 npm run typecheck
@@ -129,7 +129,7 @@ Set per worker with `wrangler secret put <NAME>` (never commit these). For local
 | `STATE_SIGNING_KEY` | Long random string; HMAC key for signing OAuth `state`. |
 
 Plus `[vars]` in `wrangler.toml`: `APP_ORIGIN`, `WORKER_ORIGIN`, `SVELTIA_AUTH_URL`,
-`TEMPLATE_OWNER`, `TEMPLATE_REPO`; and the `EASEL_STATE` KV binding.
+`TEMPLATE_OWNER`, `TEMPLATE_REPO`; and the `GESSO_STATE` KV binding.
 
 **`workers/sveltia-auth`**
 
@@ -141,9 +141,9 @@ Plus `[vars]` in `wrangler.toml`: `APP_ORIGIN`, `WORKER_ORIGIN`, `SVELTIA_AUTH_U
 
 | Piece | Target |
 |---|---|
-| `apps/web` | Cloudflare Pages → `easel.rosematcha.com` (build `npm run build` in `apps/web`, output `dist`). |
-| `workers/provision` | Cloudflare Worker (e.g. route `provision.easel.rosematcha.com`). `cd workers/provision && npm run deploy`. |
-| `workers/sveltia-auth` | Cloudflare Worker (e.g. route `auth.easel.rosematcha.com`). `cd workers/sveltia-auth && npm run deploy`. |
+| `apps/web` | Cloudflare Pages → `usegesso.com` (build `npm run build` in `apps/web`, output `dist`). |
+| `workers/provision` | Cloudflare Worker (e.g. route `provision.usegesso.com`). `cd workers/provision && npm run deploy`. |
+| `workers/sveltia-auth` | Cloudflare Worker (e.g. route `auth.usegesso.com`). `cd workers/sveltia-auth && npm run deploy`. |
 
 Wire the OAuth apps' callback URLs to the deployed worker origins:
 GitHub provisioning → `…/auth/github/cb`; Netlify → `…/auth/netlify/cb`;
@@ -164,4 +164,4 @@ Sveltia editor → `…/callback`.
 Bauhaus: blue `#1D4ED8`, red `#E63946`, yellow `#F4C20D`, ink `#161616`, paper
 `#F7F4EC`, stone `#6B6B63`. Hard edges (radius 0), 2px ink borders instead of
 shadows, circle/square/triangle motif, Syne headings + Space Grotesk body. Tokens
-live in `apps/web/src/styles/tokens.css` and mirror `easel/template`.
+live in `apps/web/src/styles/tokens.css` and mirror `gesso/template`.

@@ -3,7 +3,7 @@ import '@fontsource-variable/jost';
 import '@fontsource-variable/hanken-grotesk';
 import '../styles/tokens.css';
 import Footer from '../components/Footer.astro';
-import EaselMark from '../components/EaselMark.astro';
+import GessoMark from '../components/GessoMark.astro';
 
 interface Props {
   title?: string;
@@ -11,7 +11,7 @@ interface Props {
 }
 
 const {
-  title = "Easel · an online portfolio that's truly yours",
+  title = "Gesso · an online portfolio that's truly yours",
   description = "A no-code portfolio site creator for artists. Customizable, accessible, and free forever.",
 } = Astro.props;
 ---
@@ -32,9 +32,9 @@ const {
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
       <div class="container site-header__inner">
-        <a class="brand" href="/" aria-label="Easel home">
-          <EaselMark size={34} />
-          <span class="brand__word">easel</span>
+        <a class="brand" href="/" aria-label="Gesso home">
+          <GessoMark size={34} />
+          <span class="brand__word">gesso</span>
         </a>
         <nav class="site-nav" aria-label="Primary">
           <a href="/how-it-works/">How it works</a>

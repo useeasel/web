@@ -16,13 +16,13 @@ import { ROUTES } from '../config.ts';
 // by the signed `state`. This page only ever holds the opaque `state` value.
 ---
 
-<Base title="Start your portfolio · Easel" description="Connect GitHub and Netlify, name your site, and Easel builds your portfolio.">
+<Base title="Start your portfolio · Gesso" description="Connect GitHub and Netlify, name your site, and Gesso builds your portfolio.">
   <section class="section start">
     <div class="container start__inner">
       <header class="start__head">
         <h1>Let's build your portfolio</h1>
         <p class="start__sub">
-          Three short steps. You'll connect two free accounts, then Easel does the rest.
+          Three short steps. You'll connect two free accounts, then Gesso does the rest.
           We charge nothing, and we don't host a thing.
         </p>
         <p id="start-over-wrap" class="start__over" hidden>
@@ -54,7 +54,7 @@ import { ROUTES } from '../config.ts';
       <ConnectStep step={2} title="Choose where to publish" state="todo" shape="circle">
         <p>
           Pick where your site goes live. Both are free, and either way the site stays
-          yours. Easel never hosts a thing.
+          yours. Gesso never hosts a thing.
         </p>
         <fieldset class="host-picker" id="host-picker">
           <legend class="start__visually-hidden">Hosting provider</legend>
@@ -143,10 +143,10 @@ import { ROUTES } from '../config.ts';
     const gate = document.getElementById('mobile-gate');
     if (!gate) return;
     const narrow = window.matchMedia('(max-width: 760px)').matches;
-    const bypassed = sessionStorage.getItem('easel_mobile_ok') === '1';
+    const bypassed = sessionStorage.getItem('gesso_mobile_ok') === '1';
     if (narrow && !bypassed) gate.hidden = false;
     document.getElementById('mobile-bypass')?.addEventListener('click', () => {
-      sessionStorage.setItem('easel_mobile_ok', '1');
+      sessionStorage.setItem('gesso_mobile_ok', '1');
       gate.hidden = true;
     });
   })();
@@ -155,8 +155,8 @@ import { ROUTES } from '../config.ts';
 
   const params = new URLSearchParams(location.search);
   // The worker round-trips this opaque, HMAC-signed value through both OAuth hops.
-  const state = params.get('state') ?? sessionStorage.getItem('easel_state') ?? '';
-  if (state) sessionStorage.setItem('easel_state', state);
+  const state = params.get('state') ?? sessionStorage.getItem('gesso_state') ?? '';
+  if (state) sessionStorage.setItem('gesso_state', state);
 
   // Record progress from the worker's return hop. These flags give the UI an
   // instant, optimistic render; the worker is the real source of truth and we
@@ -164,11 +164,11 @@ import { ROUTES } from '../config.ts';
   // 'netlify' = GitHub just connected; 'provision' = Netlify just connected.
   const returnedStep = params.get('step');
   if (returnedStep === 'netlify' || returnedStep === 'provision') {
-    sessionStorage.setItem('easel_gh', '1');
+    sessionStorage.setItem('gesso_gh', '1');
     const login = params.get('login');
-    if (login) sessionStorage.setItem('easel_gh_login', login);
+    if (login) sessionStorage.setItem('gesso_gh_login', login);
   }
-  if (returnedStep === 'provision') sessionStorage.setItem('easel_nf', '1');
+  if (returnedStep === 'provision') sessionStorage.setItem('gesso_nf', '1');
 
   // The worker reports OAuth failures by redirecting to /start?error=<reason>.
   // Surface them instead of leaving the artist staring at a button that "did
@@ -181,10 +181,10 @@ import { ROUTES } from '../config.ts';
   };
   if (errorReason) {
     if (errorReason.startsWith('github')) {
-      sessionStorage.removeItem('easel_gh');
-      sessionStorage.removeItem('easel_gh_login');
+      sessionStorage.removeItem('gesso_gh');
+      sessionStorage.removeItem('gesso_gh_login');
     }
-    if (errorReason.startsWith('netlify')) sessionStorage.removeItem('easel_nf');
+    if (errorReason.startsWith('netlify')) sessionStorage.removeItem('gesso_nf');
   }
 
   // Drop the signed state + step + error out of the address bar now that they're
@@ -206,8 +206,8 @@ import { ROUTES } from '../config.ts';
 
   const DEFAULT_HOST: HostId = 'github-pages';
   const getProvider = (): HostId =>
-    (sessionStorage.getItem('easel_provider') as HostId) || DEFAULT_HOST;
-  const setProvider = (h: HostId) => sessionStorage.setItem('easel_provider', h);
+    (sessionStorage.getItem('gesso_provider') as HostId) || DEFAULT_HOST;
+  const setProvider = (h: HostId) => sessionStorage.setItem('gesso_provider', h);
 
   const netlifyBtn = document.querySelector<HTMLAnchorElement>('#btn-netlify');
   const hostRadios = Array.from(
@@ -239,7 +239,7 @@ import { ROUTES } from '../config.ts';
 
   // Clear all per-run progress and return to a fresh /start.
   const resetFlow = () => {
-    ['easel_state', 'easel_gh', 'easel_gh_login', 'easel_nf'].forEach((k) =>
+    ['gesso_state', 'gesso_gh', 'gesso_gh_login', 'gesso_nf'].forEach((k) =>
       sessionStorage.removeItem(k),
     );
   };
@@ -312,9 +312,9 @@ import { ROUTES } from '../config.ts';
   // Repaint from the current stored flags (used after a host-choice change).
   const repaint = () => {
     render(
-      sessionStorage.getItem('easel_gh') === '1',
-      sessionStorage.getItem('easel_nf') === '1',
-      sessionStorage.getItem('easel_gh_login'),
+      sessionStorage.getItem('gesso_gh') === '1',
+      sessionStorage.getItem('gesso_nf') === '1',
+      sessionStorage.getItem('gesso_gh_login'),
     );
     updateSiteLabel();
   };
@@ -354,12 +354,12 @@ import { ROUTES } from '../config.ts';
       const gh = !!s.github;
       const nf = !!s.netlify;
       // Persist the corrected truth so the next paint/refresh starts accurate.
-      if (gh) sessionStorage.setItem('easel_gh', '1');
-      else { sessionStorage.removeItem('easel_gh'); sessionStorage.removeItem('easel_gh_login'); }
-      if (nf) sessionStorage.setItem('easel_nf', '1');
-      else sessionStorage.removeItem('easel_nf');
-      if (s.githubLogin) sessionStorage.setItem('easel_gh_login', s.githubLogin);
-      render(gh, nf, s.githubLogin ?? sessionStorage.getItem('easel_gh_login'));
+      if (gh) sessionStorage.setItem('gesso_gh', '1');
+      else { sessionStorage.removeItem('gesso_gh'); sessionStorage.removeItem('gesso_gh_login'); }
+      if (nf) sessionStorage.setItem('gesso_nf', '1');
+      else sessionStorage.removeItem('gesso_nf');
+      if (s.githubLogin) sessionStorage.setItem('gesso_gh_login', s.githubLogin);
+      render(gh, nf, s.githubLogin ?? sessionStorage.getItem('gesso_gh_login'));
     } catch {
       // Network error — leave the optimistic view in place.
     }

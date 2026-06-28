@@ -1,5 +1,5 @@
 /**
- * Easel shared GitHub OAuth relay for the editor.
+ * Gesso shared GitHub OAuth relay for the editor.
  *
  * One deployment serves the editor login for EVERY artist site. Each generated
  * template repo's `public/admin/config.json` sets `authBaseUrl` to this worker's
@@ -8,7 +8,7 @@
  *
  *   GET /auth      → redirect to GitHub authorize, with signed state
  *   GET /callback  → exchange code → token, then 302 the popup back to the artist
- *                    site carrying the token in a URL fragment (#easel_token=...).
+ *                    site carrying the token in a URL fragment (#gesso_token=...).
  *
  * Why a redirect and not window.opener.postMessage: the popup lives on a
  * different origin from the editor that opened it, and cross-origin
@@ -18,14 +18,14 @@
  * stuck on 'Completing sign-in…'"). Redirecting back to the artist's OWN origin
  * lets the editor pick the token up over a same-origin channel (localStorage +
  * BroadcastChannel), which every engine treats as first-party. The token only
- * ever rides a fragment to a verified Easel origin, so its trust boundary is
+ * ever rides a fragment to a verified Gesso origin, so its trust boundary is
  * unchanged — see resolveTargetOrigin (fail-closed) below.
  *
  * Required secrets (wrangler secret put ...):
  *   SVELTIA_GITHUB_CLIENT_ID
  *   SVELTIA_GITHUB_CLIENT_SECRET
  * Optional var:
- *   ALLOWED_ORIGINS  comma-separated list (e.g. "*.netlify.app,easel.rosematcha.com")
+ *   ALLOWED_ORIGINS  comma-separated list (e.g. "*.netlify.app,usegesso.com")
  *                    fast-path allowlist of origins that may receive the token.
  */
 
@@ -52,7 +52,7 @@ export default {
 
     // A bare GET to / is handy as a health check.
     if (url.pathname === '/') {
-      return new Response('Easel auth relay. Use /auth to begin.', {
+      return new Response('Gesso auth relay. Use /auth to begin.', {
         headers: { 'Content-Type': 'text/plain' },
       });
     }
@@ -120,8 +120,8 @@ async function handleCallback(request: Request, url: URL, env: Env): Promise<Res
   }
 
   // Fail closed: only ever hand a repo-scoped token to an origin we can verify is a real
-  // Easel site. A missing/untrusted origin gets a dead-end page (renderError) and NO token.
-  // Custom domains (which artists set up in Netlify — Easel never manages DNS) and GitHub
+  // Gesso site. A missing/untrusted origin gets a dead-end page (renderError) and NO token.
+  // Custom domains (which artists set up in Netlify — Gesso never manages DNS) and GitHub
   // Pages sites are recognised without an allowlist edit: the resolver fetches the origin's
   // /admin/config.json and trusts it only if its authBaseUrl points back at this relay.
   // Resolved BEFORE the code exchange so an untrusted opener never even triggers a mint.
@@ -129,7 +129,7 @@ async function handleCallback(request: Request, url: URL, env: Env): Promise<Res
   if (!targetOrigin) {
     return renderError(
       siteId
-        ? `This site (${siteId}) is not an allowed Easel editor origin.`
+        ? `This site (${siteId}) is not an allowed Gesso editor origin.`
         : 'Missing site origin; cannot complete sign-in securely.',
     );
   }
@@ -159,9 +159,9 @@ async function handleCallback(request: Request, url: URL, env: Env): Promise<Res
   // Where to send the popup back to — always on the verified origin (never off it).
   const returnUrl = safeReturnUrl(redirectUri, targetOrigin);
   if (!data.access_token) {
-    return redirectBack(returnUrl, 'easel_auth_error', data.error_description ?? 'No token.');
+    return redirectBack(returnUrl, 'gesso_auth_error', data.error_description ?? 'No token.');
   }
-  return redirectBack(returnUrl, 'easel_token', data.access_token);
+  return redirectBack(returnUrl, 'gesso_token', data.access_token);
 }
 
 /**
@@ -291,7 +291,7 @@ function readCookie(request: Request, name: string): string | null {
  * Resolve the return target to a concrete, trusted origin — or null if we can't, so the
  * caller fails closed. Trust is established in order:
  *   1. ALLOWED_ORIGINS match (fast path; default covers `*.netlify.app`), or
- *   2. the origin hosts an Easel site whose /admin/config.json delegates auth back to this
+ *   2. the origin hosts an Gesso site whose /admin/config.json delegates auth back to this
  *      very relay (`authBaseUrl` === our origin). This lets artist custom domains and
  *      GitHub Pages sites sign in without us maintaining an allowlist of them.
  * Returns null (never '*') when the origin is missing, unparseable, or unverified.
@@ -317,7 +317,7 @@ async function resolveTargetOrigin(
   );
   if (allowed) return origin;
 
-  // Not on the allowlist — accept it only if it proves itself an Easel site that delegates
+  // Not on the allowlist — accept it only if it proves itself an Gesso site that delegates
   // auth to us. Defeats a drive-by opener that just sets its own site_id.
   return (await originDelegatesToRelay(origin, relayOrigin)) ? origin : null;
 }

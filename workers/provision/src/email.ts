@@ -6,18 +6,18 @@
  * into a durable artifact.
  *
  * Provider-agnostic but ships a Resend implementation (simple REST, works from
- * Workers). It is *gated on configuration*: with no RESEND_API_KEY / EASEL_FROM_EMAIL
+ * Workers). It is *gated on configuration*: with no RESEND_API_KEY / GESSO_FROM_EMAIL
  * set, send is a silent no-op so provisioning is never blocked or broken by email.
  *
  * To enable (decisions the operator must make — see AGENTS.md):
  *   1. Pick/verify a sending domain in Resend (or swap in another provider here).
  *   2. wrangler secret put RESEND_API_KEY
- *   3. Set EASEL_FROM_EMAIL in wrangler.toml [vars] (e.g. "Easel <hello@easel.rosematcha.com>")
+ *   3. Set GESSO_FROM_EMAIL in wrangler.toml [vars] (e.g. "Gesso <hello@usegesso.com>")
  */
 
 export interface EmailEnv {
   RESEND_API_KEY?: string;
-  EASEL_FROM_EMAIL?: string;
+  GESSO_FROM_EMAIL?: string;
 }
 
 export interface CompletionEmailData {
@@ -34,7 +34,7 @@ function displayUrl(url: string): string {
 
 /** True when the email feature is configured; lets callers skip work cleanly. */
 export function emailEnabled(env: EmailEnv): boolean {
-  return !!(env.RESEND_API_KEY && env.EASEL_FROM_EMAIL);
+  return !!(env.RESEND_API_KEY && env.GESSO_FROM_EMAIL);
 }
 
 /**
@@ -55,9 +55,9 @@ export async function sendCompletionEmail(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: env.EASEL_FROM_EMAIL,
+        from: env.GESSO_FROM_EMAIL,
         to: [data.to],
-        subject: 'Your Easel portfolio is live 🎉',
+        subject: 'Your Gesso portfolio is live 🎉',
         html: completionHtml(data),
         text: completionText(data),
       }),
@@ -72,23 +72,23 @@ function completionText(d: CompletionEmailData): string {
   return [
     'Howdy!',
     '',
-    'Thank you for choosing Easel as your portfolio software. Your site has been',
+    'Thank you for choosing Gesso as your portfolio software. Your site has been',
     `deployed to ${displayUrl(d.siteUrl)}, and your admin portal can be found at`,
     `${displayUrl(d.adminUrl)}. If you've added a custom domain, use that instead!`,
     "(And frankly, you really should, if you haven't already.)",
     '',
-    "I'd also like to plug my Ko-Fi (https://ko-fi.com/useeasel) if you'd like to",
-    "optionally leave me a tip. I'm a working teacher and artist, and made Easel in",
+    "I'd also like to plug my Ko-Fi (https://ko-fi.com/usegesso) if you'd like to",
+    "optionally leave me a tip. I'm a working teacher and artist, and made Gesso in",
     'my free time out of my distaste for expensive, low-agency site builders you’re',
-    'probably familiar with. Easel will never charge for the self-hosted plan, and',
+    'probably familiar with. Gesso will never charge for the self-hosted plan, and',
     'donations help keep new features in development.',
     d.repoUrl ? `\nYour files live in your own GitHub repo — ${d.repoUrl} — you own them.` : '',
     '',
-    'Thanks again for choosing Easel, and feel free to reach out to me with any',
+    'Thanks again for choosing Gesso, and feel free to reach out to me with any',
     'questions or feature requests you may have!',
     '',
     'Reese',
-    'easel@rosematcha.com',
+    'hello@usegesso.com',
   ].join('\n');
 }
 
@@ -143,7 +143,7 @@ function completionHtml(d: CompletionEmailData): string {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="light only">
-  <title>Your Easel portfolio is live</title>
+  <title>Your Gesso portfolio is live</title>
   <!--[if !mso]><!-->
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=Jost:wght@600;800&display=swap" rel="stylesheet">
   <!--<![endif]-->
@@ -160,7 +160,7 @@ function completionHtml(d: CompletionEmailData): string {
             <td style="padding:0 0 22px">
               <table role="presentation" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="font-family:${display};font-weight:800;font-size:26px;letter-spacing:-0.02em;color:${ink};padding-right:14px">easel</td>
+                  <td style="font-family:${display};font-weight:800;font-size:26px;letter-spacing:-0.02em;color:${ink};padding-right:14px">gesso</td>
                   <td style="padding-right:7px"><span style="display:inline-block;width:14px;height:14px;background:${red}"></span></td>
                   <td style="padding-right:7px"><span style="display:inline-block;width:14px;height:14px;background:${blue};border-radius:50%"></span></td>
                   <td><span style="display:inline-block;width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:14px solid ${yellow}"></span></td>
@@ -172,7 +172,7 @@ function completionHtml(d: CompletionEmailData): string {
           <!-- Yellow headline band -->
           <tr>
             <td style="background:${yellow};border:3px solid ${ink};padding:30px 28px">
-              <h1 style="margin:0;font-family:${display};font-weight:800;text-transform:lowercase;font-size:40px;line-height:0.95;letter-spacing:-0.02em;color:${ink}">welcome to easel</h1>
+              <h1 style="margin:0;font-family:${display};font-weight:800;text-transform:lowercase;font-size:40px;line-height:0.95;letter-spacing:-0.02em;color:${ink}">welcome to gesso</h1>
             </td>
           </tr>
 
@@ -184,7 +184,7 @@ function completionHtml(d: CompletionEmailData): string {
               ${card(`
                 <p style="margin:0 0 16px;color:${ink};font-size:17px;line-height:1.6;font-family:${body}">Howdy!</p>
                 <p style="margin:0 0 22px;color:${ink};font-size:17px;line-height:1.6;font-family:${body}">
-                  Thank you for choosing Easel as your portfolio software. Your site has been deployed, and your admin portal is ready whenever you are.
+                  Thank you for choosing Gesso as your portfolio software. Your site has been deployed, and your admin portal is ready whenever you are.
                 </p>
 
                 <!-- Link block -->
@@ -227,11 +227,11 @@ function completionHtml(d: CompletionEmailData): string {
           <!-- Ko-Fi band -->
           <tr>
             <td style="background:${ink};border:3px solid ${ink};padding:24px 28px">
-              <div style="font-family:${display};font-weight:700;text-transform:uppercase;letter-spacing:0.18em;font-size:12px;color:${yellow};margin:0 0 10px">support easel</div>
+              <div style="font-family:${display};font-weight:700;text-transform:uppercase;letter-spacing:0.18em;font-size:12px;color:${yellow};margin:0 0 10px">support gesso</div>
               <p style="margin:0 0 16px;color:${paper};font-size:15px;line-height:1.6;font-family:${body}">
-                I'm a working teacher and artist, and made Easel in my free time out of my distaste for expensive, low-agency site builders you're probably familiar with. Easel will never charge for the self-hosted plan — donations just help keep new features in development.
+                I'm a working teacher and artist, and made Gesso in my free time out of my distaste for expensive, low-agency site builders you're probably familiar with. Gesso will never charge for the self-hosted plan — donations just help keep new features in development.
               </p>
-              <a href="https://ko-fi.com/useeasel" style="display:inline-block;font-family:${display};font-weight:700;text-transform:lowercase;font-size:15px;color:${ink};background:${yellow};border:3px solid ${yellow};padding:10px 20px;text-decoration:none">leave a tip on ko-fi</a>
+              <a href="https://ko-fi.com/usegesso" style="display:inline-block;font-family:${display};font-weight:700;text-transform:lowercase;font-size:15px;color:${ink};background:${yellow};border:3px solid ${yellow};padding:10px 20px;text-decoration:none">leave a tip on ko-fi</a>
             </td>
           </tr>
 
@@ -242,11 +242,11 @@ function completionHtml(d: CompletionEmailData): string {
             <td style="padding:0 2px">
               ${repoLine ? repoLine + `<div style="height:16px;line-height:16px;font-size:0">&nbsp;</div>` : ''}
               <p style="margin:0 0 16px;color:${ink};font-size:16px;line-height:1.6;font-family:${body}">
-                Thanks again for choosing Easel, and feel free to reach out with any questions or feature requests you may have!
+                Thanks again for choosing Gesso, and feel free to reach out with any questions or feature requests you may have!
               </p>
               <p style="margin:0;color:${ink};font-size:16px;line-height:1.5;font-family:${body}">
                 <span style="font-family:${display};font-weight:800;font-size:18px">Reese</span><br>
-                <a href="mailto:easel@rosematcha.com" style="color:${blue};font-weight:600;text-decoration:none">easel@rosematcha.com</a>
+                <a href="mailto:hello@usegesso.com" style="color:${blue};font-weight:600;text-decoration:none">hello@usegesso.com</a>
               </p>
             </td>
           </tr>
@@ -258,7 +258,7 @@ function completionHtml(d: CompletionEmailData): string {
             <td style="border-top:2px solid ${ink};padding:16px 2px 0">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="font-family:${display};font-weight:700;font-size:13px;letter-spacing:0.04em;color:${stone}">made with easel</td>
+                  <td style="font-family:${display};font-weight:700;font-size:13px;letter-spacing:0.04em;color:${stone}">made with gesso</td>
                   <td align="right">
                     <span style="display:inline-block;width:10px;height:10px;background:${red};margin-left:6px"></span>
                     <span style="display:inline-block;width:10px;height:10px;background:${blue};border-radius:50%;margin-left:6px"></span>

@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 
-// Custom-domain walkthrough. Pointing a domain is the one post-setup task Easel
+// Custom-domain walkthrough. Pointing a domain is the one post-setup task Gesso
 // can't do for the artist (we never touch DNS — the domain lives in their own
 // registrar + host accounts). This page is the friendly, end-to-end version of the
 // one-liner on /own-your-site. If we have a deploy cookie from /start/done, the
@@ -10,7 +10,7 @@ import Base from '../layouts/Base.astro';
 
 const getDomain = {
   title: 'Get a domain name',
-  body: 'If you don\'t already own one, buy a domain from a registrar like Cloudflare, Namecheap, or Porkbun. It costs about $10–15 a year. You buy it directly, so it\'s yours. Easel and your host never sell you the domain or lock it up. Already have one? Skip ahead.',
+  body: 'If you don\'t already own one, buy a domain from a registrar like Cloudflare, Namecheap, or Porkbun. It costs about $10–15 a year. You buy it directly, so it\'s yours. Gesso and your host never sell you the domain or lock it up. Already have one? Skip ahead.',
 };
 
 // Two host-specific step sets. The client shows whichever matches the deploy cookie
@@ -20,7 +20,7 @@ const stepsByHost: Record<'netlify' | 'github-pages', { title: string; body: str
     getDomain,
     {
       title: 'Open your site\'s domain settings in Netlify',
-      body: 'In Netlify, open your site and go to **Domain management**. That\'s where every domain change for your site happens. (If you set up with Easel, the button below jumps straight there.)',
+      body: 'In Netlify, open your site and go to **Domain management**. That\'s where every domain change for your site happens. (If you set up with Gesso, the button below jumps straight there.)',
     },
     {
       title: 'Add your domain',
@@ -43,7 +43,7 @@ const stepsByHost: Record<'netlify' | 'github-pages', { title: string; body: str
     getDomain,
     {
       title: 'Open your repository\'s Pages settings',
-      body: 'On GitHub, open your repository, then go to **Settings → Pages**. That\'s where the custom domain for your site is set. (If you set up with Easel, the button below jumps straight there.)',
+      body: 'On GitHub, open your repository, then go to **Settings → Pages**. That\'s where the custom domain for your site is set. (If you set up with Gesso, the button below jumps straight there.)',
     },
     {
       title: 'Add your domain',
@@ -67,21 +67,21 @@ const md = (s: string) =>
 ---
 
 <Base
-  title="Add a custom domain · Easel"
-  description="A step-by-step guide to pointing your own domain (like your-name.com) at your Easel portfolio, whether it's hosted on Netlify or GitHub Pages. Easel never touches your DNS, so your domain stays yours."
+  title="Add a custom domain · Gesso"
+  description="A step-by-step guide to pointing your own domain (like your-name.com) at your Gesso portfolio, whether it's hosted on Netlify or GitHub Pages. Gesso never touches your DNS, so your domain stays yours."
 >
   <section class="section domain-hero">
     <div class="container">
       <h1>Add your own domain</h1>
       <p class="domain-hero__sub">
         Give your portfolio a real address like <strong>your-name.com</strong>. Your domain
-        lives in your own registrar and host accounts, and Easel never touches your DNS.
+        lives in your own registrar and host accounts, and Gesso never touches your DNS.
         The whole process, start to finish.
       </p>
 
       <div id="domain-welcome" class="domain-welcome" hidden>
         <p class="domain-welcome__line">
-          Your Easel site <strong id="domain-welcome-slug"></strong> went live
+          Your Gesso site <strong id="domain-welcome-slug"></strong> went live
           <span id="domain-welcome-when"></span>. Pick up right where you left off:
         </p>
         <a id="domain-welcome-link" class="btn btn--accent" href="#" target="_blank" rel="noopener">
@@ -119,13 +119,13 @@ const md = (s: string) =>
       <p class="domain-steps__note" id="domain-docs-netlify">
         Stuck on a specific record or registrar? Netlify's
         <a href="https://docs.netlify.com/domains-https/custom-domains/" target="_blank" rel="noopener">custom domain docs</a>
-        cover the edge cases. And because your domain never depends on Easel, you can change or
+        cover the edge cases. And because your domain never depends on Gesso, you can change or
         move it any time without us.
       </p>
       <p class="domain-steps__note" id="domain-docs-github-pages" hidden>
         Stuck on a specific record or registrar? GitHub's
         <a href="https://docs.github.com/pages/configuring-a-custom-domain-for-your-github-pages-site" target="_blank" rel="noopener">custom domain docs</a>
-        cover the edge cases. And because your domain never depends on Easel, you can change or
+        cover the edge cases. And because your domain never depends on Gesso, you can change or
         move it any time without us.
       </p>
     </div>
@@ -135,7 +135,7 @@ const md = (s: string) =>
 <script>
   import { domainSetupUrl, readDeploy } from '../deploy';
 
-  // If the artist provisioned through Easel, show the step set for *their* host,
+  // If the artist provisioned through Gesso, show the step set for *their* host,
   // deep-link straight into it, and greet them by site + date.
   const rec = readDeploy();
   const provider = rec?.provider === 'github-pages' ? 'github-pages' : 'netlify';

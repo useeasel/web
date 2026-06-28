@@ -1,23 +1,23 @@
 ---
 import Base from '../layouts/Base.astro';
 
-// "Take it with you" guide. Easel's promise is that the artist owns their site;
+// "Take it with you" guide. Gesso's promise is that the artist owns their site;
 // this page makes that tangible — what the repo is, how to move hosts, how to hand
-// it to a developer. Custom domains are explicitly a host task (Easel never
+// it to a developer. Custom domains are explicitly a host task (Gesso never
 // manages DNS), so we point there rather than pretending to do it in-app.
 
 const moves = [
   {
     title: 'See everything that makes up your site',
-    body: 'Your GitHub repository holds it all: every image lives in `src/assets`, every page and artwork is a plain text file in `src/content`, and your design choices are one `settings.json`. Nothing is trapped in a database only Easel can read.',
+    body: 'Your GitHub repository holds it all: every image lives in `src/assets`, every page and artwork is a plain text file in `src/content`, and your design choices are one `settings.json`. Nothing is trapped in a database only Gesso can read.',
   },
   {
     title: 'Add a custom domain',
-    body: 'Your host, GitHub Pages or Netlify, handles your domain. Easel never touches DNS. Our [step-by-step domain guide](/custom-domain/) walks you through pointing your domain (e.g. your-name.com) at the site, and your host sets up HTTPS for you.',
+    body: 'Your host, GitHub Pages or Netlify, handles your domain. Gesso never touches DNS. Our [step-by-step domain guide](/custom-domain/) walks you through pointing your domain (e.g. your-name.com) at the site, and your host sets up HTTPS for you.',
   },
   {
     title: 'Move to a different host',
-    body: 'Because your site is a standard Astro project, any static host (GitHub Pages, Netlify, Cloudflare Pages, your own server) can build it. Point the host at your GitHub repo, set the build command to `astro build` and the output directory to `dist`, and you\'re live elsewhere. No Easel involved.',
+    body: 'Because your site is a standard Astro project, any static host (GitHub Pages, Netlify, Cloudflare Pages, your own server) can build it. Point the host at your GitHub repo, set the build command to `astro build` and the output directory to `dist`, and you\'re live elsewhere. No Gesso involved.',
   },
   {
     title: 'Hand it to a developer',
@@ -27,14 +27,14 @@ const moves = [
 ---
 
 <Base
-  title="Own your site · Easel"
-  description="Your Easel portfolio lives in your own GitHub repository. Add a domain, move hosts, or hand it to a developer. Any time, no lock-in."
+  title="Own your site · Gesso"
+  description="Your Gesso portfolio lives in your own GitHub repository. Add a domain, move hosts, or hand it to a developer. Any time, no lock-in."
 >
   <section class="section own-hero">
     <div class="container">
       <h1>Own your site, for real</h1>
       <p class="own-hero__sub">
-        Easel sets your portfolio up and then steps out. Everything lives on accounts you
+        Gesso sets your portfolio up and then steps out. Everything lives on accounts you
         control, so you can take it anywhere.
       </p>
     </div>
@@ -61,12 +61,12 @@ const moves = [
 
   <section class="section permanence band--paper">
     <div class="container">
-      <h2 class="permanence__title">If Easel vanished tomorrow</h2>
+      <h2 class="permanence__title">If Gesso vanished tomorrow</h2>
       <p class="permanence__lead">Your site would keep running, with nothing to move and nothing to fix. Here is exactly why.</p>
       <ul class="permanence__grid" role="list">
         <li class="permanence__card">
           <span class="permanence__tag">Your repository</span>
-          <p>The whole site sits in a GitHub repo on your account. Easel only had permission while you were connected; revoke it and the repo is still entirely yours.</p>
+          <p>The whole site sits in a GitHub repo on your account. Gesso only had permission while you were connected; revoke it and the repo is still entirely yours.</p>
         </li>
         <li class="permanence__card">
           <span class="permanence__tag">Your files</span>
@@ -78,10 +78,10 @@ const moves = [
         </li>
         <li class="permanence__card">
           <span class="permanence__tag">Your domain</span>
-          <p>Your domain is set up at your own host and registrar. Easel never touches it, so it points where you say no matter what happens to us.</p>
+          <p>Your domain is set up at your own host and registrar. Gesso never touches it, so it points where you say no matter what happens to us.</p>
         </li>
       </ul>
-      <p class="permanence__kicker">Easel runs the one-time setup, then steps out. After that, taking Easel away changes nothing about your live site.</p>
+      <p class="permanence__kicker">Gesso runs the one-time setup, then steps out. After that, taking Gesso away changes nothing about your live site.</p>
     </div>
   </section>
 </Base>

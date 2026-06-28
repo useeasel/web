@@ -1,4 +1,4 @@
-name = "easel-provision"
+name = "gesso-provision"
 main = "src/index.ts"
 compatibility_date = "2024-11-01"
 # node_compat not required; we use only WebCrypto + fetch.
@@ -6,29 +6,29 @@ compatibility_date = "2024-11-01"
 # Custom domain. With custom_domain=true, `wrangler deploy` provisions the route
 # AND auto-creates the DNS record in the rosematcha.com Cloudflare zone.
 [[routes]]
-pattern = "provision.easel.rosematcha.com"
+pattern = "provision.usegesso.com"
 custom_domain = true
 
 # Transient OAuth state + per-run tokens (10-min TTL, deleted on completion).
-# Create with: wrangler kv namespace create EASEL_STATE
+# Create with: wrangler kv namespace create GESSO_STATE
 # then paste the returned id below (and a preview_id for `wrangler dev`).
 [[kv_namespaces]]
-binding = "EASEL_STATE"
+binding = "GESSO_STATE"
 id = "7fd0a452988c4757981d7149b255cf2e"          # production namespace id
 preview_id = "376f92f3648446e893547328938af593"   # used by `wrangler dev`
 
 [vars]
 # Public origin of the marketing/onboarding site (where we redirect users back to).
-APP_ORIGIN = "https://easel.rosematcha.com"
+APP_ORIGIN = "https://usegesso.com"
 # This worker's own public origin (used to build OAuth redirect_uri callbacks).
-WORKER_ORIGIN = "https://provision.easel.rosematcha.com"
+WORKER_ORIGIN = "https://provision.usegesso.com"
 # The shared sveltia-auth relay origin; patched into each new repo's admin config.
-SVELTIA_AUTH_URL = "https://auth.easel.rosematcha.com"
+SVELTIA_AUTH_URL = "https://auth.usegesso.com"
 # GitHub template to generate each artist's repo from.
-TEMPLATE_OWNER = "useeasel"
+TEMPLATE_OWNER = "usegesso"
 TEMPLATE_REPO = "template"
 # From-address for the optional completion email (domain must be Resend-verified).
-EASEL_FROM_EMAIL = "Easel <hello@easel.rosematcha.com>"
+GESSO_FROM_EMAIL = "Gesso <hello@usegesso.com>"
 
 # ---------------------------------------------------------------------------
 # Secrets — set with `wrangler secret put <NAME>` (never commit these):

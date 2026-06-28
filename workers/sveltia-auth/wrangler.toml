@@ -1,11 +1,11 @@
-name = "easel-sveltia-auth"
+name = "gesso-sveltia-auth"
 main = "src/index.ts"
 compatibility_date = "2024-11-01"
 
 # Custom domain. With custom_domain=true, `wrangler deploy` provisions the route
 # AND auto-creates the DNS record in the rosematcha.com Cloudflare zone.
 [[routes]]
-pattern = "auth.easel.rosematcha.com"
+pattern = "auth.usegesso.com"
 custom_domain = true
 
 [vars]
@@ -20,5 +20,5 @@ ALLOWED_ORIGINS = "*.netlify.app"
 #   SVELTIA_GITHUB_CLIENT_SECRET
 #
 # The GitHub OAuth app's "Authorization callback URL" must be this worker's
-# /callback route, e.g. https://auth.easel.rosematcha.com/callback
+# /callback route, e.g. https://auth.usegesso.com/callback
 # ---------------------------------------------------------------------------

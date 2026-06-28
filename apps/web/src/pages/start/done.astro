@@ -1,19 +1,19 @@
 ---
 import Base from '../../layouts/Base.astro';
-import EaselMark from '../../components/EaselMark.astro';
+import GessoMark from '../../components/GessoMark.astro';
 
 // Success screen. The live site + admin URLs are passed as query params by the
 // provisioning flow (?site=...&admin=...). We read them on the client because
 // this is a static page.
 ---
 
-<Base title="Your site is live · Easel" description="Your Easel portfolio is live. Start adding your work.">
+<Base title="Your site is live · Gesso" description="Your Gesso portfolio is live. Start adding your work.">
   <section class="section done">
     <div class="container done__inner">
-      <div class="done__mark"><EaselMark size={88} title="" /></div>
+      <div class="done__mark"><GessoMark size={88} title="" /></div>
       <h1>Your portfolio is live</h1>
       <p class="done__sub">
-        Easel created your repository, built your site, and set up your editor.
+        Gesso created your repository, built your site, and set up your editor.
         Everything from here lives on accounts you own.
       </p>
 
@@ -46,7 +46,7 @@ import EaselMark from '../../components/EaselMark.astro';
         <p>
           Your whole site (every image, page, and setting) lives in
           <a id="link-repo" href="#" target="_blank" rel="noopener">your own GitHub repository</a>.
-          Easel doesn't host it and can't lock you in. If you ever want to move hosts or hand it
+          Gesso doesn't host it and can't lock you in. If you ever want to move hosts or hand it
           to a developer, the <a href="/own-your-site/">take-it-with-you guide</a> shows you how.
         </p>
       </div>

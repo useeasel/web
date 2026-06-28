@@ -28,7 +28,7 @@ SVELTIA_AUTH_URL = "https://auth.usegesso.com"
 TEMPLATE_OWNER = "usegesso"
 TEMPLATE_REPO = "template"
 # From-address for the optional completion email (domain must be Resend-verified).
-GESSO_FROM_EMAIL = "Gesso <hello@usegesso.com>"
+GESSO_FROM_EMAIL = "Gesso Support <howdy@usegesso.com>"
 
 # ---------------------------------------------------------------------------
 # Secrets — set with `wrangler secret put <NAME>` (never commit these):

@@ -12,7 +12,7 @@
  * To enable (decisions the operator must make — see AGENTS.md):
  *   1. Pick/verify a sending domain in Resend (or swap in another provider here).
  *   2. wrangler secret put RESEND_API_KEY
- *   3. Set GESSO_FROM_EMAIL in wrangler.toml [vars] (e.g. "Gesso <hello@usegesso.com>")
+ *   3. Set GESSO_FROM_EMAIL in wrangler.toml [vars] (e.g. "Gesso Support <howdy@usegesso.com>")
  */
 
 export interface EmailEnv {
@@ -88,7 +88,7 @@ function completionText(d: CompletionEmailData): string {
     'questions or feature requests you may have!',
     '',
     'Reese',
-    'hello@usegesso.com',
+    'howdy@usegesso.com',
   ].join('\n');
 }
 
@@ -246,7 +246,7 @@ function completionHtml(d: CompletionEmailData): string {
               </p>
               <p style="margin:0;color:${ink};font-size:16px;line-height:1.5;font-family:${body}">
                 <span style="font-family:${display};font-weight:800;font-size:18px">Reese</span><br>
-                <a href="mailto:hello@usegesso.com" style="color:${blue};font-weight:600;text-decoration:none">hello@usegesso.com</a>
+                <a href="mailto:howdy@usegesso.com" style="color:${blue};font-weight:600;text-decoration:none">howdy@usegesso.com</a>
               </p>
             </td>
           </tr>

@@ -22,7 +22,7 @@ export function isHostId(value: unknown): value is HostId {
   return typeof value === 'string' && (HOST_IDS as readonly string[]).includes(value);
 }
 
-export type DeployState = 'building' | 'ready' | 'error' | 'enqueued' | 'unknown';
+export type DeployState = 'building' | 'ready' | 'error' | 'unknown';
 
 /** Tokens available for a single provisioning run. Netlify's is absent for Pages. */
 export interface ProvisionTokens {

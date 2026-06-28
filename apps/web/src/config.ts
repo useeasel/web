@@ -1,8 +1,5 @@
 // Site-wide constants for the Easel marketing + onboarding site.
 
-export const SITE_NAME = 'Easel';
-export const SITE_TAGLINE = 'Your art deserves a real home';
-
 // Base URL of the provisioning Worker (workers/provision). The onboarding flow
 // in /start points its OAuth + provision buttons here. Override per environment
 // by editing this value (or wire it to an env var at build time).

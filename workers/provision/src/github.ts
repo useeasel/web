@@ -75,11 +75,6 @@ function authHeaders(token: string): HeadersInit {
   };
 }
 
-/** The authenticated user's login — needed to address their new repo. */
-export async function getGithubLogin(token: string): Promise<string> {
-  return (await getGithubUser(token)).login;
-}
-
 /**
  * The authenticated user's login + public email (if any). We only read the public
  * profile email — no `user:email` scope expansion — so coverage is partial; the
@@ -186,7 +181,7 @@ export async function generateRepoFromTemplate(
       `${GH_API}/repos/${opts.templateOwner}/${opts.templateRepo}/generate`,
       {
         method: 'POST',
-        headers: { ...authHeaders(token), Accept: 'application/vnd.github+json' },
+        headers: authHeaders(token),
         body: JSON.stringify({
           owner: opts.owner,
           name,

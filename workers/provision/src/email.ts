@@ -89,9 +89,7 @@ function completionText(d: CompletionEmailData): string {
     '',
     'Reese',
     'easel@rosematcha.com',
-  ]
-    .filter((line) => line !== null && line !== undefined)
-    .join('\n');
+  ].join('\n');
 }
 
 /**

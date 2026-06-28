@@ -24,12 +24,6 @@
   --c-stone: #57564f;  /* muted secondary text — darker, AA on paper */
   --c-stone: oklch(0.44 0.012 110);
 
-  /* Status pills (artwork status mapping) */
-  --status-available: var(--c-blue);
-  --status-sold: var(--c-red);
-  --status-inquire: var(--c-yellow);
-  --status-nfs: var(--c-stone);
-
   /* Type */
   --font-display: 'Jost Variable', system-ui, sans-serif;
   --font-body: 'Hanken Grotesk Variable', system-ui, sans-serif;

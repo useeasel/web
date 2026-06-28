@@ -134,6 +134,7 @@ import { ROUTES } from '../config.ts';
 
 <script>
   import { ROUTES } from '../config.ts';
+  import { type HostId } from '../deploy';
 
   // Steer phone users to a desktop before they start the fiddly setup. The gate
   // is a hard overlay with a deliberately understated bypass; dismissal sticks
@@ -203,7 +204,6 @@ import { ROUTES } from '../config.ts';
     if (badge) badge.textContent = s === 'done' ? 'Done' : s === 'active' ? 'Now' : 'Next';
   };
 
-  type HostId = 'netlify' | 'github-pages';
   const DEFAULT_HOST: HostId = 'github-pages';
   const getProvider = (): HostId =>
     (sessionStorage.getItem('easel_provider') as HostId) || DEFAULT_HOST;
@@ -577,7 +577,6 @@ import { ROUTES } from '../config.ts';
   }
   .field__optional { font-weight: 400; color: var(--c-stone); }
   .field__help { display: block; color: var(--c-stone); font-size: 0.875rem; margin-top: var(--space-2); }
-  .field input[readonly] { background: var(--c-paper); color: var(--c-stone); }
   .btn[aria-disabled='true'] { opacity: 0.5; pointer-events: none; }
   #provision-progress { margin-top: var(--space-4); }
 

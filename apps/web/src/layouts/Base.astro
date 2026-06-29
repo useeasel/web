@@ -89,6 +89,10 @@ const {
         font-weight: 800;
         font-size: 1.5rem;
         letter-spacing: -0.02em;
+        /* "gesso" is all-lowercase with no ascenders + a descender, so its ink
+           sits low in the line box against the top-heavy mark. Nudge it up to
+           seat the wordmark's optical centre on the mark's mass. */
+        transform: translateY(-0.15em);
       }
       .site-nav {
         display: flex;

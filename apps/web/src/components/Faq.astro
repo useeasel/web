@@ -30,6 +30,21 @@ const faqs = [
     html: true,
   },
 ];
+
+// FAQPage structured data, built straight from the list above so it can't drift.
+// Answers are reduced to plain text (strip any markup) for the schema.
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.a.replace(/<[^>]+>/g, ''),
+    },
+  })),
+};
 ---
 
 <section class="section faq" id="faq">
@@ -44,6 +59,7 @@ const faqs = [
       ))}
     </div>
   </div>
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
 </section>
 
 <style>

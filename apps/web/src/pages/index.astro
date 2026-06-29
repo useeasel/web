@@ -4,9 +4,26 @@ import Hero from '../components/Hero.astro';
 import FeatureGrid from '../components/FeatureGrid.astro';
 import ExamplesStrip from '../components/ExamplesStrip.astro';
 import Faq from '../components/Faq.astro';
+
+// Homepage describes Gesso as a free web app for the search engines.
+const softwareJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Gesso',
+  applicationCategory: 'DesignApplication',
+  operatingSystem: 'Web',
+  url: 'https://usegesso.com',
+  description:
+    'A no-code portfolio site creator for artists. Customizable, accessible, and free forever.',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+};
 ---
 
-<Base>
+<Base jsonLd={softwareJsonLd}>
   <Hero />
   <FeatureGrid />
   <ExamplesStrip />

@@ -1,0 +1,293 @@
+<section class="ll-sec" aria-labelledby="ll-title">
+  <div class="ll-container">
+
+    <div class="ll-head">
+      <p class="ll-eyebrow">the handoff</p>
+      <h2 class="ll-title" id="ll-title">
+        <span class="ll-rise" style="--d:0">we set it up,</span>
+        <span class="ll-rise" style="--d:1">hand you the keys,</span>
+        <span class="ll-rise ll-title--accent" style="--d:2">and step out.</span>
+      </h2>
+      <p class="ll-lede ll-rise" style="--d:3">
+        gesso runs the one-time setup with GitHub and Netlify, then gives you everything.
+        no monthly rent, no platform that owns your work. squarespace, wix, format and cargo
+        keep your site locked inside their walls for $16 to $49 a month. yours is just plain
+        files you already own.
+      </p>
+    </div>
+
+    <div class="ll-body">
+
+      <!-- The key motif -->
+      <div class="ll-keywrap ll-rise" style="--d:4" aria-hidden="true">
+        <div class="ll-key">
+          <span class="ll-key-bow"><span class="ll-key-eye"></span></span>
+          <span class="ll-key-shaft">
+            <span class="ll-key-tooth ll-key-tooth--1"></span>
+            <span class="ll-key-tooth ll-key-tooth--2"></span>
+          </span>
+        </div>
+        <span class="ll-key-tag">your keys</span>
+      </div>
+
+      <!-- Three proof points -->
+      <ol class="ll-proof">
+        <li class="ll-proof-item ll-rise" style="--d:5">
+          <span class="ll-num">01</span>
+          <h3 class="ll-proof-title">it's your github repo</h3>
+          <p class="ll-proof-copy">
+            every page and image is a plain file in a repository under your own name.
+            open it, copy it, keep a backup. no database only we can read.
+          </p>
+        </li>
+        <li class="ll-proof-item ll-rise" style="--d:6">
+          <span class="ll-num">02</span>
+          <h3 class="ll-proof-title">move hosts whenever</h3>
+          <p class="ll-proof-copy">
+            an optional domain runs about $12 a year and points wherever you like.
+            take your files to any host the day you feel like it. nothing to unlock.
+          </p>
+        </li>
+        <li class="ll-proof-item ll-rise" style="--d:7">
+          <span class="ll-num">03</span>
+          <h3 class="ll-proof-title">live even if we're gone</h3>
+          <p class="ll-proof-copy">
+            your site doesn't depend on gesso to stay up. if we vanished tomorrow
+            your portfolio keeps running, exactly as it is.
+          </p>
+        </li>
+      </ol>
+
+    </div>
+  </div>
+
+  <style>
+    .ll-sec {
+      background: var(--c-paper);
+      color: var(--c-ink);
+      padding-block: var(--space-7);
+    }
+    .ll-container {
+      max-width: 1120px;
+      margin-inline: auto;
+      padding-inline: var(--space-4);
+    }
+
+    .ll-head { max-width: 46rem; }
+    .ll-eyebrow {
+      font-family: var(--font-display);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      font-size: .8rem;
+      color: var(--c-red);
+      margin: 0 0 var(--space-4);
+    }
+    .ll-eyebrow::before {
+      content: "";
+      display: inline-block;
+      width: .7rem;
+      height: .7rem;
+      background: var(--c-red);
+      margin-right: .6rem;
+      vertical-align: baseline;
+    }
+    .ll-title {
+      font-family: var(--font-display);
+      font-weight: 800;
+      line-height: .95;
+      letter-spacing: -.02em;
+      text-transform: lowercase;
+      font-size: clamp(2.4rem, 6vw, 4.4rem);
+      margin: 0 0 var(--space-4);
+    }
+    .ll-title span { display: block; }
+    .ll-title--accent { color: var(--c-blue); }
+    .ll-lede {
+      font-family: var(--font-body);
+      font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+      line-height: 1.55;
+      color: var(--c-stone);
+      max-width: 38rem;
+      margin: 0;
+    }
+
+    .ll-body {
+      margin-top: var(--space-6);
+      display: grid;
+      grid-template-columns: minmax(0, 16rem) 1fr;
+      gap: var(--space-6);
+      align-items: start;
+    }
+
+    /* Key motif */
+    .ll-keywrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-5) var(--space-4);
+      border: 3px solid var(--c-ink);
+      background: var(--c-white);
+      box-shadow: 6px 6px 0 var(--c-ink);
+      position: sticky;
+      top: var(--space-4);
+    }
+    .ll-key {
+      display: flex;
+      align-items: center;
+      transform-origin: 1.6rem 50%;
+    }
+    .ll-key-bow {
+      width: 3.2rem;
+      height: 3.2rem;
+      border: 4px solid var(--c-ink);
+      border-radius: 50%;
+      background: var(--c-yellow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+    }
+    .ll-key-eye {
+      width: 1rem;
+      height: 1rem;
+      border: 4px solid var(--c-ink);
+      border-radius: 50%;
+      background: var(--c-white);
+    }
+    .ll-key-shaft {
+      position: relative;
+      width: 4rem;
+      height: .85rem;
+      background: var(--c-ink);
+      margin-left: -2px;
+    }
+    .ll-key-tooth {
+      position: absolute;
+      bottom: 100%;
+      width: .85rem;
+      background: var(--c-ink);
+    }
+    .ll-key-tooth--1 { right: .4rem; height: .9rem; }
+    .ll-key-tooth--2 { right: 1.7rem; height: 1.4rem; }
+    .ll-key-tag {
+      font-family: var(--font-display);
+      font-weight: 800;
+      text-transform: lowercase;
+      letter-spacing: -.01em;
+      font-size: 1.05rem;
+      color: var(--c-ink);
+    }
+
+    /* Proof points */
+    .ll-proof {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: var(--space-5);
+      counter-reset: none;
+    }
+    .ll-proof-item {
+      border-top: 3px solid var(--c-ink);
+      padding-top: var(--space-3);
+      display: grid;
+      grid-template-columns: 4.5rem 1fr;
+      gap: 0 var(--space-3);
+      align-items: baseline;
+    }
+    .ll-num {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.4rem;
+      letter-spacing: -.02em;
+      color: var(--c-blue);
+      line-height: 1;
+    }
+    .ll-proof-title {
+      font-family: var(--font-display);
+      font-weight: 800;
+      line-height: .95;
+      letter-spacing: -.02em;
+      text-transform: lowercase;
+      font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+      margin: 0 0 var(--space-2);
+    }
+    .ll-proof-copy {
+      grid-column: 2;
+      font-family: var(--font-body);
+      font-size: 1rem;
+      line-height: 1.55;
+      color: var(--c-stone);
+      margin: 0;
+      max-width: 32rem;
+    }
+
+    @media (max-width: 720px) {
+      .ll-body {
+        grid-template-columns: 1fr;
+        gap: var(--space-5);
+      }
+      .ll-keywrap { position: static; }
+      .ll-proof-item { grid-template-columns: 3.5rem 1fr; }
+    }
+
+    /* Motion — only when allowed */
+    @media (prefers-reduced-motion: no-preference) {
+      /* Hidden state applies ONLY after JS arms the section, so the
+         no-JS / script-stripped state stays fully legible. */
+      .ll-sec.ll-armed .ll-rise {
+        opacity: 0;
+        transform: translateY(1.1rem);
+      }
+      .ll-sec.ll-armed.ll-in .ll-rise {
+        opacity: 1;
+        transform: none;
+        transition: opacity .7s cubic-bezier(.2,.7,.2,1) calc(var(--d) * 90ms),
+                    transform .7s cubic-bezier(.2,.7,.2,1) calc(var(--d) * 90ms);
+      }
+      .ll-sec.ll-armed .ll-key { transform: rotate(-22deg); }
+      .ll-sec.ll-armed.ll-in .ll-key {
+        transform: rotate(0deg);
+        transition: transform 1.1s cubic-bezier(.34,1.2,.5,1) .55s;
+      }
+    }
+  </style>
+
+  <script>
+    (function () {
+      var cs = document.currentScript;
+      var sec = (cs && cs.closest('.ll-sec'));
+      if (!sec) {
+        var all = document.querySelectorAll('.ll-sec');
+        sec = all[all.length - 1];
+      }
+      if (!sec) return;
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduce || !('IntersectionObserver' in window)) {
+        // Leave content in its visible default; no animation.
+        return;
+      }
+      // Arm: hide content so it can rise in. Done in JS so the no-JS
+      // state is always the final, legible one.
+      sec.classList.add('ll-armed');
+      var reveal = function () { sec.classList.add('ll-in'); };
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            reveal();
+            io.disconnect();
+          }
+        });
+      }, { threshold: 0.15 });
+      io.observe(sec);
+      // Fail-safe: if the section is already in view at load (so the
+      // observer may settle late), reveal on the next frame regardless.
+      requestAnimationFrame(function () {
+        var r = sec.getBoundingClientRect();
+        if (r.top < window.innerHeight && r.bottom > 0) reveal();
+      });
+    })();
+  </script>
+</section>

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gesso · own-your-site section — ten more options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;600;700;800&family=Hanken+Grotesk:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  /* ---- Gesso design tokens (mirrored from apps/web/src/styles/tokens.css) ---- */
+  :root {
+    --c-blue: #1235d6;  --c-blue: oklch(0.48 0.20 264);
+    --c-red: #e8132b;   --c-red: oklch(0.58 0.225 27);
+    --c-yellow: #ffce00;--c-yellow: oklch(0.86 0.17 95);
+    --c-ink: #16181d;   --c-ink: oklch(0.20 0.012 265);
+    --c-paper: #f5f1e6; --c-paper: oklch(0.96 0.014 95);
+    --c-white: #ffffff; --c-white: oklch(0.995 0 0);
+    --c-stone: #57564f; --c-stone: oklch(0.44 0.012 110);
+    --font-display: 'Jost', system-ui, sans-serif;
+    --font-body: 'Hanken Grotesk', system-ui, sans-serif;
+    --radius: 0;
+    --border: 2px solid var(--c-ink);
+    --border-bold: 3px solid var(--c-ink);
+    --border-thick: 4px solid var(--c-ink);
+    --shadow-hard: 6px 6px 0 var(--c-ink);
+    --shadow-hard-sm: 4px 4px 0 var(--c-ink);
+    --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 1rem; --space-4: 1.5rem;
+    --space-5: 2.5rem; --space-6: 4rem; --space-7: 6rem;
+    --maxw: 1120px;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--c-paper);
+    color: var(--c-ink);
+    font-family: var(--font-body);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 0.95; letter-spacing: -0.02em; margin: 0 0 var(--space-4); }
+  h3 { font-size: 1.5rem; font-weight: 700; line-height: 1.1; }
+  p { margin: 0 0 var(--space-3); }
+
+  /* ---- Preview chrome (not part of the real site) ---- */
+  .pv-bar {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;
+    background: var(--c-ink); color: var(--c-paper);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: var(--border-thick);
+  }
+  .pv-bar__brand { font-family: var(--font-display); font-weight: 800; text-transform: lowercase; font-size: 1.1rem; letter-spacing: -0.02em; }
+  .pv-bar__hint { color: var(--c-yellow); font-size: 0.85rem; font-weight: 600; }
+  .pv-tabs { display: flex; gap: var(--space-2); margin-left: auto; flex-wrap: wrap; }
+  .pv-tab {
+    font-family: var(--font-display); font-weight: 700; text-transform: lowercase;
+    font-size: 0.9rem; cursor: pointer;
+    background: var(--c-paper); color: var(--c-ink);
+    border: var(--border-bold); border-radius: 0;
+    padding: 0.35rem 0.8rem; box-shadow: var(--shadow-hard-sm);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .pv-tab:hover { transform: translate(-2px, -2px); box-shadow: var(--shadow-hard); }
+  .pv-tab--top { background: var(--c-yellow); }
+  .pv-caption {
+    max-width: var(--maxw); margin-inline: auto; padding: var(--space-4);
+    color: var(--c-stone); font-size: 0.95rem;
+  }
+  .pv-caption strong { color: var(--c-ink); font-family: var(--font-display); font-weight: 800; }
+  .pv-look { scroll-margin-top: 96px; }
+  .pv-look + .pv-look { border-top: var(--border-thick); }
+  .pv-spacer { background: var(--c-paper); }
+</style>
+</head>
+<body>
+
+<div class="pv-bar">
+  <span class="pv-bar__brand">gesso</span>
+  <span class="pv-bar__hint">own-your-site — ten more options</span>
+  <div class="pv-tabs" role="group" aria-label="Jump to a design look">
+    <button class="pv-tab" type="button" data-look="d">d · deed</button>
+    <button class="pv-tab" type="button" data-look="e">e · anywhere</button>
+    <button class="pv-tab" type="button" data-look="f">f · drag</button>
+    <button class="pv-tab" type="button" data-look="g">g · receipt</button>
+    <button class="pv-tab" type="button" data-look="h">h · files</button>
+    <button class="pv-tab" type="button" data-look="i">i · plug</button>
+    <button class="pv-tab" type="button" data-look="j">j · timeline</button>
+    <button class="pv-tab" type="button" data-look="k">k · numbers</button>
+    <button class="pv-tab" type="button" data-look="l">l · handoff</button>
+    <button class="pv-tab" type="button" data-look="m">m · checklist</button>
+    <button class="pv-tab pv-tab--top" type="button" data-look="top">top</button>
+  </div>
+</div>

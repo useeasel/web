@@ -1,0 +1,208 @@
+<section class="lj" aria-labelledby="lj-title">
+  <div class="lj-inner">
+    <p class="lj-eyebrow"><span class="lj-mark" aria-hidden="true"></span> look j · five years, side by side</p>
+    <h2 class="lj-title" id="lj-title">the longer you stay, the more it costs you (or doesn't)</h2>
+    <p class="lj-lede">same five years, two paths. one keeps charging rent. the other was yours from day one.</p>
+
+    <div class="lj-board" role="img" aria-label="Five-year cost comparison. Subscription builders accrue about $192 per year, reaching roughly $960 over five years, and you keep nothing. Gesso stays at $0 plus an optional domain of about $12 a year, and the site is yours from day one.">
+
+      <!-- competitor track -->
+      <div class="lj-track lj-track--them">
+        <div class="lj-track-head">
+          <span class="lj-tag lj-tag--them">squarespace, wix, format, cargo</span>
+          <span class="lj-track-sub">about $16–49 a month, forever</span>
+        </div>
+        <div class="lj-rail">
+          <div class="lj-fill lj-fill--them" data-fill></div>
+          <ol class="lj-years">
+            <li class="lj-year" data-year style="--i:0"><span class="lj-dot"></span><span class="lj-y">yr 1</span><span class="lj-cost">$192</span></li>
+            <li class="lj-year" data-year style="--i:1"><span class="lj-dot"></span><span class="lj-y">yr 2</span><span class="lj-cost">$384</span></li>
+            <li class="lj-year" data-year style="--i:2"><span class="lj-dot"></span><span class="lj-y">yr 3</span><span class="lj-cost">$576</span></li>
+            <li class="lj-year" data-year style="--i:3"><span class="lj-dot"></span><span class="lj-y">yr 4</span><span class="lj-cost">$768</span></li>
+            <li class="lj-year" data-year style="--i:4"><span class="lj-dot"></span><span class="lj-y">yr 5</span><span class="lj-cost">$960</span></li>
+          </ol>
+        </div>
+        <p class="lj-verdict lj-verdict--them">
+          <span class="lj-counter" data-counter aria-hidden="true">$960</span>
+          <span class="lj-verdict-text">spent over five years. still renting. nothing kept.</span>
+        </p>
+      </div>
+
+      <!-- gesso track -->
+      <div class="lj-track lj-track--us">
+        <div class="lj-track-head">
+          <span class="lj-tag lj-tag--us">gesso</span>
+          <span class="lj-track-sub">free forever, plus an optional domain ~$12/yr</span>
+        </div>
+        <div class="lj-rail">
+          <div class="lj-fill lj-fill--us" data-fill></div>
+          <ol class="lj-years">
+            <li class="lj-year" data-year style="--i:0"><span class="lj-dot lj-dot--us"></span><span class="lj-y">yr 1</span><span class="lj-cost">$0</span></li>
+            <li class="lj-year" data-year style="--i:1"><span class="lj-dot lj-dot--us"></span><span class="lj-y">yr 2</span><span class="lj-cost">$0</span></li>
+            <li class="lj-year" data-year style="--i:2"><span class="lj-dot lj-dot--us"></span><span class="lj-y">yr 3</span><span class="lj-cost">$0</span></li>
+            <li class="lj-year" data-year style="--i:3"><span class="lj-dot lj-dot--us"></span><span class="lj-y">yr 4</span><span class="lj-cost">$0</span></li>
+            <li class="lj-year" data-year style="--i:4"><span class="lj-dot lj-dot--us"></span><span class="lj-y">yr 5</span><span class="lj-cost">$0</span></li>
+          </ol>
+        </div>
+        <p class="lj-verdict lj-verdict--us">
+          <span class="lj-counter lj-counter--us" aria-hidden="true">$0</span>
+          <span class="lj-verdict-text">yours from day one. yours at year five. a plain repo you own.</span>
+        </p>
+      </div>
+
+    </div>
+
+    <p class="lj-foot">if gesso vanished tomorrow, your live site keeps running. no code, no lock-in, no rent.</p>
+  </div>
+
+  <style>
+    .lj{
+      background: var(--c-blue);
+      color: var(--c-white);
+      padding-block: var(--space-7);
+      border-block: 4px solid var(--c-ink);
+    }
+    .lj-inner{ max-width:1120px; margin-inline:auto; padding-inline:var(--space-4); }
+
+    .lj-eyebrow{
+      display:flex; align-items:center; gap:var(--space-2);
+      font-family:var(--font-display); font-weight:800; text-transform:lowercase;
+      letter-spacing:.04em; color:var(--c-yellow); margin:0 0 var(--space-3);
+    }
+    .lj-mark{
+      width:1.1rem; height:1.1rem; background:var(--c-yellow);
+      border:2px solid var(--c-ink); display:inline-block; flex:none;
+    }
+    .lj-title{
+      font-family:var(--font-display); font-weight:800; line-height:.95;
+      letter-spacing:-.02em; text-transform:lowercase;
+      font-size:clamp(1.9rem,4.5vw,3.2rem); margin:0 0 var(--space-3);
+      max-width:18ch;
+    }
+    .lj-lede{
+      font-family:var(--font-body); max-width:46ch; margin:0 0 var(--space-6);
+      color:var(--c-paper); font-size:1.05rem;
+    }
+
+    .lj-board{ display:grid; gap:var(--space-5); }
+
+    .lj-track{
+      background:var(--c-white); color:var(--c-ink);
+      border:3px solid var(--c-ink); box-shadow:6px 6px 0 var(--c-ink);
+      padding:var(--space-4);
+    }
+    .lj-track--us{ background:var(--c-yellow); }
+
+    .lj-track-head{ display:flex; flex-wrap:wrap; align-items:baseline; gap:var(--space-2) var(--space-3); margin-bottom:var(--space-4); }
+    .lj-tag{
+      font-family:var(--font-display); font-weight:800; text-transform:lowercase;
+      letter-spacing:-.01em; font-size:1.25rem;
+      border:2px solid var(--c-ink); padding:.15rem .55rem; line-height:1.1;
+    }
+    .lj-tag--them{ background:var(--c-ink); color:var(--c-white); }
+    .lj-tag--us{ background:var(--c-red); color:var(--c-white); }
+    .lj-track-sub{ font-family:var(--font-body); color:var(--c-stone); font-size:.95rem; }
+
+    .lj-rail{ position:relative; padding-top:var(--space-2); }
+    .lj-rail::before{
+      content:""; position:absolute; left:0; right:0; top:calc(var(--space-2) + .65rem);
+      height:4px; background:var(--c-ink); opacity:.18;
+    }
+    .lj-fill{
+      position:absolute; left:0; top:calc(var(--space-2) + .65rem);
+      height:4px; width:100%; background:var(--c-ink);
+      transform-origin:left center;
+    }
+    .lj-fill--us{ background:var(--c-blue); height:6px; top:calc(var(--space-2) + .55rem); }
+
+    .lj-years{
+      list-style:none; margin:0; padding:0;
+      display:grid; grid-template-columns:repeat(5,1fr); position:relative; z-index:1;
+    }
+    .lj-year{ display:flex; flex-direction:column; align-items:center; gap:.35rem; text-align:center; }
+    .lj-dot{
+      width:1.3rem; height:1.3rem; border:3px solid var(--c-ink);
+      background:var(--c-red); border-radius:50%;
+    }
+    .lj-dot--us{ background:var(--c-blue); border-radius:0; transform:rotate(0deg); }
+    .lj-y{ font-family:var(--font-display); font-weight:800; text-transform:lowercase; font-size:.8rem; letter-spacing:.02em; }
+    .lj-cost{ font-family:var(--font-display); font-weight:800; font-size:clamp(1rem,2.4vw,1.4rem); line-height:1; }
+    .lj-track--us .lj-cost{ color:var(--c-blue); }
+
+    .lj-verdict{
+      display:flex; align-items:baseline; flex-wrap:wrap; gap:.4rem var(--space-3);
+      margin:var(--space-4) 0 0; padding-top:var(--space-3);
+      border-top:2px solid var(--c-ink); font-family:var(--font-body);
+    }
+    .lj-counter{
+      font-family:var(--font-display); font-weight:800; line-height:.9;
+      font-size:clamp(2.2rem,6vw,3.4rem); letter-spacing:-.02em;
+      color:var(--c-red);
+    }
+    .lj-counter--us{ color:var(--c-blue); }
+    .lj-verdict-text{ max-width:34ch; }
+    .lj-verdict--them .lj-verdict-text{ color:var(--c-ink); font-weight:600; }
+
+    .lj-foot{
+      margin:var(--space-6) 0 0; font-family:var(--font-display); font-weight:800;
+      text-transform:lowercase; letter-spacing:-.01em; line-height:1.1;
+      font-size:clamp(1.1rem,2.6vw,1.6rem); color:var(--c-yellow);
+      max-width:30ch;
+    }
+
+    @media (max-width:720px){
+      .lj-years{ grid-template-columns:repeat(5,1fr); }
+      .lj-cost{ font-size:.85rem; }
+      .lj-rail::before,.lj-fill{ top:calc(var(--space-2) + .6rem); }
+    }
+
+    @media (prefers-reduced-motion: no-preference){
+      .lj.is-armed .lj-fill{ transform:scaleX(0); }
+      .lj.is-armed .lj-year{ opacity:0; transform:translateY(10px); }
+      .lj.is-in .lj-fill{ transform:scaleX(1); transition:transform 1.1s cubic-bezier(.2,.7,.2,1); }
+      .lj.is-in .lj-year{
+        opacity:1; transform:translateY(0);
+        transition:opacity .4s ease calc(.25s + var(--i)*.16s), transform .4s ease calc(.25s + var(--i)*.16s);
+      }
+    }
+  </style>
+
+  <script>
+    (function(){
+      var sec = document.currentScript.closest('.lj');
+      if(!sec) return;
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if(reduce || !('IntersectionObserver' in window)) return;
+
+      sec.classList.add('is-armed');
+
+      var counter = sec.querySelector('[data-counter]');
+      var target = 960;
+
+      function countUp(){
+        if(!counter) return;
+        var start = null, dur = 1100;
+        function step(ts){
+          if(start===null) start=ts;
+          var p = Math.min((ts-start)/dur, 1);
+          var eased = 1-Math.pow(1-p,3);
+          counter.textContent = '$' + Math.round(target*eased).toLocaleString();
+          if(p<1) requestAnimationFrame(step);
+          else counter.textContent = '$960';
+        }
+        requestAnimationFrame(step);
+      }
+
+      var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          if(e.isIntersecting){
+            sec.classList.add('is-in');
+            countUp();
+            io.disconnect();
+          }
+        });
+      }, { threshold:.35 });
+      io.observe(sec);
+    })();
+  </script>
+</section>

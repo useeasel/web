@@ -1,0 +1,315 @@
+<section class="lf-band" aria-labelledby="lf-title">
+  <div class="lf-inner">
+    <header class="lf-head">
+      <p class="lf-eyebrow"><span class="lf-tri" aria-hidden="true"></span> rent or own</p>
+      <h2 class="lf-title" id="lf-title">drag the line. see the difference.</h2>
+      <p class="lf-lede">most builders rent you a slot in their machine. gesso hands you the keys. pull the handle and watch what you actually walk away with.</p>
+    </header>
+
+    <div class="lf-stage" data-lf-stage>
+      <!-- OWNED: full-width base layer (revealed on the right) -->
+      <div class="lf-side lf-own" aria-hidden="false">
+        <div class="lf-pad">
+          <p class="lf-tag lf-tag-own"><span class="lf-dot lf-dot-own" aria-hidden="true"></span> own it · gesso</p>
+          <p class="lf-price">free<span class="lf-price-sub"> forever · domain ~$12/yr</span></p>
+          <ul class="lf-list">
+            <li><span class="lf-mk lf-mk-own" aria-hidden="true">+</span> a plain GitHub repo of files that are yours</li>
+            <li><span class="lf-mk lf-mk-own" aria-hidden="true">+</span> move hosts anytime: GitHub Pages, Netlify, your own server</li>
+            <li><span class="lf-mk lf-mk-own" aria-hidden="true">+</span> if gesso vanished, your live site keeps running</li>
+            <li><span class="lf-mk lf-mk-own" aria-hidden="true">+</span> nothing trapped in a database only we can read</li>
+          </ul>
+          <p class="lf-foot lf-foot-own">no code, ever. you hold the deed.</p>
+        </div>
+      </div>
+
+      <!-- RENTED: clipped top layer (covers the left, wipes away) -->
+      <div class="lf-side lf-rent" data-lf-clip aria-hidden="false">
+        <div class="lf-pad">
+          <p class="lf-tag lf-tag-rent"><span class="lf-dot lf-dot-rent" aria-hidden="true"></span> rent it · the others</p>
+          <p class="lf-price">$16–49<span class="lf-price-sub">/mo · ≈$960+ over 5 yrs</span></p>
+          <ul class="lf-list">
+            <li><span class="lf-mk lf-mk-rent" aria-hidden="true">×</span> your work lives inside their database</li>
+            <li><span class="lf-mk lf-mk-rent" aria-hidden="true">×</span> no real export, no moving day</li>
+            <li><span class="lf-mk lf-mk-rent" aria-hidden="true">×</span> stop paying and the site goes dark</li>
+            <li><span class="lf-mk lf-mk-rent" aria-hidden="true">×</span> if they shut down, so does your portfolio</li>
+          </ul>
+          <p class="lf-foot lf-foot-rent">squarespace · wix · format · cargo</p>
+        </div>
+      </div>
+
+      <!-- divider handle -->
+      <div class="lf-divider" data-lf-divider aria-hidden="true">
+        <div class="lf-handle">
+          <span class="lf-arrow lf-arrow-l">‹</span>
+          <span class="lf-arrow lf-arrow-r">›</span>
+        </div>
+      </div>
+
+      <!-- a11y + interaction: real range input overlaid -->
+      <input
+        class="lf-range"
+        type="range"
+        min="0" max="100" value="50" step="1"
+        aria-label="Drag to compare renting a site builder versus owning your gesso site"
+        data-lf-range />
+    </div>
+
+    <p class="lf-hint" aria-hidden="true">drag &middot; or use arrow keys</p>
+  </div>
+</section>
+
+<style>
+  .lf-band {
+    background: var(--c-blue);
+    color: var(--c-white);
+    padding-block: var(--space-7);
+  }
+  .lf-inner {
+    max-width: 1120px;
+    margin-inline: auto;
+    padding-inline: var(--space-4);
+  }
+  .lf-head { max-width: 46rem; }
+  .lf-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-3);
+    font-family: var(--font-display);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    font-size: .82rem;
+    color: var(--c-yellow);
+  }
+  .lf-tri {
+    width: 0; height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 12px solid var(--c-yellow);
+  }
+  .lf-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    line-height: .95;
+    letter-spacing: -.02em;
+    text-transform: lowercase;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    margin: 0 0 var(--space-3);
+  }
+  .lf-lede {
+    font-family: var(--font-body);
+    font-size: 1.08rem;
+    line-height: 1.5;
+    color: var(--c-paper);
+    margin: 0 0 var(--space-5);
+  }
+
+  /* ---- the comparison stage ---- */
+  .lf-stage {
+    position: relative;
+    width: 100%;
+    min-height: 22rem;
+    border: 4px solid var(--c-ink);
+    box-shadow: 6px 6px 0 var(--c-ink);
+    overflow: hidden;
+    --lf-split: 50%;
+    user-select: none;
+    touch-action: pan-y;
+  }
+  .lf-side {
+    position: absolute;
+    inset: 0;
+    display: flex;
+  }
+  .lf-pad {
+    padding: var(--space-5) var(--space-4);
+    width: 100%;
+    max-width: 1120px;
+  }
+  /* base layer = owned, fills whole stage */
+  .lf-own {
+    background: var(--c-yellow);
+    color: var(--c-ink);
+  }
+  /* top layer = rented, clipped to the left of the split */
+  .lf-rent {
+    background: var(--c-ink);
+    color: var(--c-paper);
+    clip-path: inset(0 calc(100% - var(--lf-split)) 0 0);
+  }
+
+  .lf-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-display);
+    font-weight: 800;
+    text-transform: lowercase;
+    letter-spacing: -.01em;
+    font-size: 1rem;
+    margin: 0 0 var(--space-3);
+    padding: var(--space-1) var(--space-2);
+    border: 3px solid currentColor;
+  }
+  .lf-dot {
+    width: .7rem; height: .7rem;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .lf-dot-own { background: var(--c-blue); }
+  .lf-dot-rent { background: var(--c-red); }
+
+  .lf-price {
+    font-family: var(--font-display);
+    font-weight: 800;
+    line-height: .95;
+    letter-spacing: -.03em;
+    font-size: clamp(2.2rem, 6vw, 3rem);
+    margin: 0 0 var(--space-4);
+  }
+  .lf-price-sub {
+    display: block;
+    font-size: .92rem;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    opacity: .85;
+    margin-top: var(--space-1);
+  }
+  .lf-list {
+    list-style: none;
+    margin: 0 0 var(--space-4);
+    padding: 0;
+    display: grid;
+    gap: var(--space-2);
+    max-width: 30rem;
+  }
+  .lf-list li {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.35;
+    display: flex;
+    gap: var(--space-2);
+    align-items: baseline;
+  }
+  .lf-mk {
+    flex: 0 0 1.35rem;
+    width: 1.35rem; height: 1.35rem;
+    display: inline-grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1rem;
+    line-height: 1;
+    border: 2px solid currentColor;
+  }
+  .lf-mk-own { background: var(--c-blue); color: var(--c-white); border-color: var(--c-ink); }
+  .lf-mk-rent { background: var(--c-red); color: var(--c-white); border-color: var(--c-paper); }
+
+  .lf-foot {
+    font-family: var(--font-display);
+    font-weight: 800;
+    text-transform: lowercase;
+    letter-spacing: -.01em;
+    font-size: .95rem;
+    margin: 0;
+  }
+  .lf-foot-rent { color: var(--c-red); }
+
+  /* ---- divider + handle ---- */
+  .lf-divider {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: var(--lf-split);
+    width: 0;
+    border-left: 4px solid var(--c-ink);
+    transform: translateX(-2px);
+    z-index: 3;
+    pointer-events: none;
+  }
+  .lf-handle {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translate(-50%, -50%);
+    width: 3rem; height: 3rem;
+    background: var(--c-red);
+    border: 3px solid var(--c-ink);
+    box-shadow: 4px 4px 0 var(--c-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    color: var(--c-white);
+  }
+  .lf-arrow {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+
+  /* real range input overlaid, invisible but operable */
+  .lf-range {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    z-index: 4;
+    cursor: ew-resize;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    opacity: 0; /* visuals handled by the .lf-handle; keep input invisible but hittable */
+  }
+  .lf-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 3.5rem; height: 100%;
+    cursor: ew-resize;
+  }
+  .lf-range::-moz-range-thumb {
+    width: 3.5rem; height: 22rem;
+    border: 0;
+    cursor: ew-resize;
+  }
+  .lf-range:focus-visible { outline: none; }
+  .lf-range:focus-visible ~ .lf-divider .lf-handle {
+    outline: 3px solid var(--c-yellow);
+    outline-offset: 3px;
+  }
+
+  .lf-hint {
+    font-family: var(--font-display);
+    font-weight: 800;
+    text-transform: lowercase;
+    letter-spacing: .04em;
+    font-size: .85rem;
+    color: var(--c-yellow);
+    margin: var(--space-3) 0 0;
+  }
+
+  /* ---- responsive ---- */
+  @media (max-width: 720px) {
+    .lf-stage { min-height: 26rem; }
+    .lf-pad { padding: var(--space-4) var(--space-3); }
+    .lf-list { max-width: none; }
+    .lf-range::-moz-range-thumb { height: 26rem; }
+  }
+</style>
+
+<script>
+  (function () {
+    var stage = document.querySelector('[data-lf-stage]');
+    if (!stage) return;
+    var range = stage.querySelector('[data-lf-range]');
+    function apply(v) {
+      stage.style.setProperty('--lf-split', v + '%');
+    }
+    if (range) {
+      apply(range.value);
+      range.addEventListener('input', function () { apply(range.value); });
+    }
+  })();
+</script>

@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gesso · own-your-site section — design preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;600;700;800&family=Hanken+Grotesk:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  /* ---- Gesso design tokens (mirrored from apps/web/src/styles/tokens.css) ---- */
+  :root {
+    --c-blue: #1235d6;  --c-blue: oklch(0.48 0.20 264);
+    --c-red: #e8132b;   --c-red: oklch(0.58 0.225 27);
+    --c-yellow: #ffce00;--c-yellow: oklch(0.86 0.17 95);
+    --c-ink: #16181d;   --c-ink: oklch(0.20 0.012 265);
+    --c-paper: #f5f1e6; --c-paper: oklch(0.96 0.014 95);
+    --c-white: #ffffff; --c-white: oklch(0.995 0 0);
+    --c-stone: #57564f; --c-stone: oklch(0.44 0.012 110);
+    --font-display: 'Jost', system-ui, sans-serif;
+    --font-body: 'Hanken Grotesk', system-ui, sans-serif;
+    --radius: 0;
+    --border: 2px solid var(--c-ink);
+    --border-bold: 3px solid var(--c-ink);
+    --border-thick: 4px solid var(--c-ink);
+    --shadow-hard: 6px 6px 0 var(--c-ink);
+    --shadow-hard-sm: 4px 4px 0 var(--c-ink);
+    --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 1rem; --space-4: 1.5rem;
+    --space-5: 2.5rem; --space-6: 4rem; --space-7: 6rem;
+    --maxw: 1120px;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    background: var(--c-paper);
+    color: var(--c-ink);
+    font-family: var(--font-body);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 0.95; letter-spacing: -0.02em; margin: 0 0 var(--space-4); }
+  h3 { font-size: 1.5rem; font-weight: 700; line-height: 1.1; }
+  p { margin: 0 0 var(--space-3); }
+
+  /* ---- Preview chrome (not part of the real site) ---- */
+  .pv-bar {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;
+    background: var(--c-ink); color: var(--c-paper);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: var(--border-thick);
+  }
+  .pv-bar__brand { font-family: var(--font-display); font-weight: 800; text-transform: lowercase; font-size: 1.1rem; letter-spacing: -0.02em; }
+  .pv-bar__hint { color: var(--c-yellow); font-size: 0.85rem; font-weight: 600; }
+  .pv-tabs { display: flex; gap: var(--space-2); margin-left: auto; flex-wrap: wrap; }
+  .pv-tab {
+    font-family: var(--font-display); font-weight: 700; text-transform: lowercase;
+    font-size: 0.95rem; cursor: pointer;
+    background: var(--c-paper); color: var(--c-ink);
+    border: var(--border-bold); border-radius: 0;
+    padding: 0.4rem 1rem; box-shadow: var(--shadow-hard-sm);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .pv-tab:hover { transform: translate(-2px, -2px); box-shadow: var(--shadow-hard); }
+  .pv-tab[aria-pressed="true"] { background: var(--c-yellow); }
+  .pv-caption {
+    max-width: var(--maxw); margin-inline: auto; padding: var(--space-4);
+    color: var(--c-stone); font-size: 0.95rem;
+  }
+  .pv-caption strong { color: var(--c-ink); font-family: var(--font-display); font-weight: 800; }
+  .pv-look { scroll-margin-top: 70px; }
+  .pv-look + .pv-look { border-top: var(--border-thick); }
+  .pv-spacer { background: var(--c-paper); }
+  html { scroll-behavior: smooth; }
+
+  /* ============================================================= LOOK A */
+  .la-section { background: var(--c-blue); color: var(--c-white); padding-block: var(--space-7); overflow: hidden; }
+  .la-container { max-width: 1120px; margin-inline: auto; padding-inline: var(--space-4); }
+  .la-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .la-eyebrow { font-family: var(--font-display); font-weight: 800; text-transform: lowercase; letter-spacing: 0.04em; color: var(--c-yellow); margin: 0 0 var(--space-3); font-size: 0.95rem; }
+  .la-title { font-family: var(--font-display); font-weight: 800; line-height: 0.95; letter-spacing: -0.02em; text-transform: lowercase; color: var(--c-white); margin: 0 0 var(--space-3); font-size: clamp(2rem, 5vw, 3.4rem); }
+  .la-lede { font-family: var(--font-body); color: var(--c-paper); max-width: 46ch; margin: 0 0 var(--space-5); font-size: 1.075rem; line-height: 1.5; }
+  .la-ledger-wrap { overflow-x: auto; }
+  .la-ledger { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--c-paper); border: 4px solid var(--c-ink); box-shadow: 6px 6px 0 var(--c-ink); min-width: 720px; color: var(--c-ink); }
+  .la-ledger th, .la-ledger td { padding: var(--space-3); text-align: center; border-bottom: 2px solid var(--c-ink); border-right: 2px solid var(--c-ink); vertical-align: middle; }
+  .la-ledger tbody tr:last-child th, .la-ledger tbody tr:last-child td { border-bottom: 0; }
+  .la-ledger th:last-child, .la-ledger td:last-child { border-right: 0; }
+  .la-rowhead-col, .la-rowhead { text-align: left; font-family: var(--font-display); font-weight: 800; text-transform: lowercase; letter-spacing: -0.01em; font-size: 1.05rem; width: 24%; background: var(--c-white); }
+  .la-ledger thead th { font-family: var(--font-display); font-weight: 800; background: var(--c-white); border-bottom: 4px solid var(--c-ink); }
+  .la-col-comp span { color: var(--c-stone); font-size: 1rem; }
+  .la-col-gesso { position: relative; background: var(--c-yellow) !important; border-left: 4px solid var(--c-ink); border-right: 4px solid var(--c-ink) !important; }
+  .la-brand { display: block; font-size: 1.5rem; text-transform: lowercase; letter-spacing: -0.02em; color: var(--c-ink); line-height: 1; }
+  .la-badge { display: inline-block; margin-top: var(--space-1); background: var(--c-red); color: var(--c-white); font-family: var(--font-display); font-weight: 800; text-transform: lowercase; font-size: 0.7rem; letter-spacing: 0.02em; padding: 2px 8px; border: 2px solid var(--c-ink); }
+  .la-cell-gesso { background: var(--c-yellow); border-left: 4px solid var(--c-ink); border-right: 4px solid var(--c-ink) !important; }
+  .la-price { font-family: var(--font-display); font-weight: 800; font-size: 1.6rem; text-transform: lowercase; color: var(--c-ink); line-height: 1; }
+  .la-price-comp { font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; color: var(--c-stone); }
+  .la-mark { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 3px solid var(--c-ink); }
+  .la-glyph { position: relative; display: block; width: 18px; height: 18px; }
+  .la-yes { background: var(--c-blue); }
+  .la-yes .la-glyph::before, .la-yes .la-glyph::after { content: ""; position: absolute; background: var(--c-white); }
+  .la-yes .la-glyph::before { width: 4px; height: 9px; left: 2px; top: 7px; transform: rotate(-45deg); transform-origin: bottom left; }
+  .la-yes .la-glyph::after { width: 4px; height: 16px; left: 7px; top: -1px; transform: rotate(40deg); transform-origin: bottom left; }
+  .la-yes-muted { background: var(--c-white); }
+  .la-yes-muted .la-glyph::before, .la-yes-muted .la-glyph::after { background: var(--c-stone); }
+  .la-no { background: var(--c-white); border-color: var(--c-stone); }
+  .la-no .la-glyph::before, .la-no .la-glyph::after { content: ""; position: absolute; width: 22px; height: 4px; background: var(--c-stone); left: -2px; top: 7px; }
+  .la-no .la-glyph::before { transform: rotate(45deg); }
+  .la-no .la-glyph::after { transform: rotate(-45deg); }
+  .la-status { display: inline-block; font-family: var(--font-display); font-weight: 800; text-transform: lowercase; font-size: 0.92rem; line-height: 1.05; padding: var(--space-1) var(--space-2); border: 2px solid var(--c-ink); }
+  .la-status-live { background: var(--c-blue); color: var(--c-white); }
+  .la-status-gone { background: transparent; color: var(--c-stone); border-color: var(--c-stone); }
+  .la-foot { font-family: var(--font-body); color: var(--c-paper); margin: var(--space-4) 0 0; font-size: 1rem; max-width: 52ch; }
+  @media (max-width: 640px) { .la-ledger { min-width: 640px; } }
+  @media (prefers-reduced-motion: no-preference) {
+    .la-js .la-row { opacity: 0; transform: translateY(18px); }
+    .la-js .la-row.la-in { opacity: 1; transform: translateY(0); transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    .la-cell-gesso { animation: la-pulse 2.6s ease-in-out infinite; }
+    @keyframes la-pulse { 0%, 100% { box-shadow: inset 0 0 0 0 rgba(232, 19, 43, 0); } 50% { box-shadow: inset 0 0 0 3px var(--c-red); } }
+  }
+
+  /* ============================================================= LOOK B */
+  .lb-own { background: var(--c-blue); color: var(--c-white); padding-block: var(--space-7); overflow: hidden; }
+  .lb-container { max-width: 1120px; margin-inline: auto; padding-inline: var(--space-4); }
+  .lb-head { max-width: 46rem; margin-bottom: var(--space-6); }
+  .lb-eyebrow { font-family: var(--font-display); font-weight: 800; text-transform: lowercase; letter-spacing: 0.04em; color: var(--c-yellow); margin: 0 0 var(--space-2); }
+  .lb-title { font-family: var(--font-display); font-weight: 800; line-height: 0.95; letter-spacing: -0.02em; text-transform: lowercase; font-size: clamp(2rem, 6vw, 3.4rem); margin: 0 0 var(--space-3); color: var(--c-white); }
+  .lb-lede { font-family: var(--font-body); font-size: 1.125rem; line-height: 1.5; margin: 0; color: var(--c-paper); }
+  .lb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); align-items: stretch; }
+  @media (max-width: 720px) { .lb-grid { grid-template-columns: 1fr; } }
+  .lb-col { border: 4px solid var(--c-ink); box-shadow: 6px 6px 0 var(--c-ink); padding: var(--space-4); position: relative; display: flex; flex-direction: column; }
+  .lb-col--them { background: var(--c-stone); color: var(--c-paper); filter: saturate(0.6); }
+  .lb-col--you { background: var(--c-paper); color: var(--c-ink); }
+  .lb-col-head { margin-bottom: var(--space-4); }
+  .lb-col-title { font-family: var(--font-display); font-weight: 800; line-height: 0.95; letter-spacing: -0.02em; text-transform: lowercase; font-size: clamp(1.6rem, 4vw, 2.4rem); margin: var(--space-1) 0 var(--space-1); }
+  .lb-col--them .lb-col-title { color: var(--c-white); }
+  .lb-col--you .lb-col-title { color: var(--c-blue); }
+  .lb-col-sub { font-family: var(--font-display); font-weight: 800; text-transform: lowercase; letter-spacing: 0.01em; font-size: 0.8rem; margin: 0; opacity: 0.85; }
+  .lb-stamp, .lb-deed { position: absolute; top: var(--space-3); right: var(--space-3); font-family: var(--font-display); font-weight: 800; text-transform: lowercase; font-size: 0.7rem; letter-spacing: 0.08em; padding: 0.2rem 0.5rem; border: 2px solid currentColor; }
+  .lb-stamp { color: var(--c-red); transform: rotate(7deg); }
+  .lb-deed { color: var(--c-ink); background: var(--c-yellow); border-color: var(--c-ink); transform: rotate(-5deg); }
+  .lb-lock { width: 92px; height: 110px; margin: var(--space-2) 0 var(--space-4); position: relative; }
+  .lb-shackle { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 52px; height: 56px; border: 9px solid var(--c-ink); border-bottom: none; border-radius: 30px 30px 0 0; bottom: 44px; }
+  .lb-lockbody { position: absolute; bottom: 0; left: 0; width: 92px; height: 64px; background: var(--c-ink); display: flex; align-items: center; justify-content: center; }
+  .lb-keyhole { width: 16px; height: 16px; border-radius: 50%; background: var(--c-red); position: relative; }
+  .lb-keyhole::after { content: ""; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 6px; height: 14px; background: var(--c-red); }
+  .lb-keys { width: 92px; height: 110px; margin: var(--space-2) 0 var(--space-4); position: relative; }
+  .lb-keyring { position: absolute; top: 8px; left: 14px; width: 22px; height: 22px; border: 5px solid var(--c-ink); border-radius: 50%; }
+  .lb-key { position: absolute; top: 20px; left: 22px; width: 10px; height: 60px; background: var(--c-ink); transform-origin: 5px 5px; }
+  .lb-key--1 { transform: rotate(18deg); }
+  .lb-key--2 { transform: rotate(48deg); background: var(--c-blue); }
+  .lb-key-bit { position: absolute; bottom: 6px; left: 10px; width: 12px; height: 8px; background: inherit; }
+  .lb-key-bit::after { content: ""; position: absolute; top: 12px; left: 0; width: 8px; height: 6px; background: inherit; }
+  .lb-list { list-style: none; margin: auto 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+  .lb-item { display: grid; grid-template-columns: 1.4rem 1fr; gap: var(--space-2); align-items: start; font-family: var(--font-body); font-size: 1rem; line-height: 1.4; }
+  .lb-item strong { font-weight: 700; }
+  .lb-mark { width: 1.1rem; height: 1.1rem; margin-top: 0.15rem; border: 2px solid var(--c-ink); position: relative; flex: none; }
+  .lb-item--bad .lb-mark { background: var(--c-white); }
+  .lb-item--bad .lb-mark::before, .lb-item--bad .lb-mark::after { content: ""; position: absolute; top: 50%; left: 50%; width: 0.85rem; height: 2px; background: var(--c-red); }
+  .lb-item--bad .lb-mark::before { transform: translate(-50%, -50%) rotate(45deg); }
+  .lb-item--bad .lb-mark::after { transform: translate(-50%, -50%) rotate(-45deg); }
+  .lb-item--good .lb-mark { border-radius: 50%; background: var(--c-yellow); }
+  .lb-item--good .lb-mark::before { content: ""; position: absolute; top: 46%; left: 50%; width: 0.3rem; height: 0.6rem; border: solid var(--c-ink); border-width: 0 2px 2px 0; transform: translate(-50%, -55%) rotate(40deg); }
+  .lb-marquee { margin-top: var(--space-6); border-block: 3px solid var(--c-ink); background: var(--c-yellow); color: var(--c-ink); overflow: hidden; white-space: nowrap; }
+  .lb-marquee-track { display: inline-flex; font-family: var(--font-display); font-weight: 800; text-transform: lowercase; letter-spacing: 0.02em; padding-block: var(--space-2); font-size: 0.95rem; }
+  .lb-marquee-track span { padding-right: 1ch; }
+  @media (prefers-reduced-motion: no-preference) {
+    .lb-own[data-js="on"] .lb-shackle { bottom: 60px; left: calc(50% + 14px); transition: bottom 0.5s cubic-bezier(.7,-0.4,.4,1.4), left 0.5s ease; }
+    .lb-own[data-js="on"] .lb-col--them.is-in .lb-shackle { bottom: 44px; left: 50%; }
+    .lb-own[data-js="on"] .lb-key, .lb-own[data-js="on"] .lb-keyring { opacity: 0; transition: transform 0.5s cubic-bezier(.2,.9,.3,1.3), opacity 0.4s ease; }
+    .lb-own[data-js="on"] .lb-key--1 { transform: rotate(18deg) translateY(-30px); }
+    .lb-own[data-js="on"] .lb-key--2 { transform: rotate(48deg) translateY(-40px); }
+    .lb-own[data-js="on"] .lb-col--you.is-in .lb-key, .lb-own[data-js="on"] .lb-col--you.is-in .lb-keyring { opacity: 1; }
+    .lb-own[data-js="on"] .lb-col--you.is-in .lb-key--1 { transform: rotate(18deg); animation: lb-jingle 0.5s 0.1s ease; }
+    .lb-own[data-js="on"] .lb-col--you.is-in .lb-key--2 { transform: rotate(48deg); animation: lb-jingle 0.5s 0.18s ease; }
+    .lb-own[data-js="on"] .lb-col { opacity: 0; transform: translateY(24px); transition: opacity 0.5s ease, transform 0.5s cubic-bezier(.2,.8,.3,1); }
+    .lb-own[data-js="on"] .lb-col.is-in { opacity: 1; transform: none; }
+    .lb-own[data-js="on"] .lb-col--you { transition-delay: 0.08s; }
+    @keyframes lb-jingle { 0%, 100% { rotate: 0deg; } 40% { rotate: -6deg; } 70% { rotate: 4deg; } }
+    .lb-marquee-track { animation: lb-scroll 22s linear infinite; }
+    @keyframes lb-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  }
+
+  /* ============================================================= LOOK C */
+  .lc { background: var(--c-yellow); color: var(--c-ink); padding-block: var(--space-7); font-family: var(--font-body); overflow: hidden; }
+  .lc *, .lc *::before, .lc *::after { box-sizing: border-box; }
+  .lc-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .lc-container { max-width: 1120px; margin-inline: auto; padding-inline: var(--space-4); }
+  .lc-eyebrow { font-family: var(--font-body); font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.8rem; margin: 0 0 var(--space-4); color: var(--c-ink); }
+  .lc-statement { font-family: var(--font-display); font-weight: 800; text-transform: lowercase; line-height: 0.95; letter-spacing: -0.02em; font-size: clamp(2.25rem, 6.5vw, 4.75rem); margin: 0 0 var(--space-6); max-width: 16ch; }
+  .lc-counters { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; gap: var(--space-4); margin-bottom: var(--space-7); }
+  .lc-counter { position: relative; background: var(--c-paper); border: 4px solid var(--c-ink); box-shadow: 8px 8px 0 var(--c-ink); padding: var(--space-5) var(--space-4) var(--space-4); overflow: hidden; }
+  .lc-counter--gesso { background: var(--c-white); }
+  .lc-counter--them { background: var(--c-paper); }
+  .lc-shape { position: absolute; top: var(--space-3); right: var(--space-3); width: 42px; height: 42px; }
+  .lc-shape--circle { border-radius: 50%; background: var(--c-blue); }
+  .lc-shape--triangle { width: 0; height: 0; background: transparent; border-left: 24px solid transparent; border-right: 24px solid transparent; border-bottom: 42px solid var(--c-red); }
+  .lc-counter-label { font-family: var(--font-body); font-weight: 700; text-transform: lowercase; letter-spacing: 0.02em; font-size: 0.95rem; margin: 0 0 var(--space-2); color: var(--c-stone); max-width: 60%; }
+  .lc-figure { font-family: var(--font-display); font-weight: 800; line-height: 0.9; letter-spacing: -0.03em; font-size: clamp(3.5rem, 11vw, 7rem); margin: 0 0 var(--space-3); font-variant-numeric: tabular-nums; }
+  .lc-counter--gesso .lc-figure { color: var(--c-blue); }
+  .lc-counter--them .lc-figure { color: var(--c-red); }
+  .lc-counter-note { font-size: 1rem; line-height: 1.4; margin: 0; max-width: 34ch; color: var(--c-ink); }
+  .lc-vs { align-self: center; font-family: var(--font-display); font-weight: 800; text-transform: lowercase; font-size: 1.5rem; color: var(--c-ink); background: var(--c-yellow); border: 3px solid var(--c-ink); border-radius: 50%; width: 3.25rem; height: 3.25rem; display: grid; place-items: center; box-shadow: 4px 4px 0 var(--c-ink); }
+  .lc-checklist-lead { font-family: var(--font-display); font-weight: 800; text-transform: lowercase; line-height: 1; letter-spacing: -0.02em; font-size: clamp(1.5rem, 3.5vw, 2.25rem); margin: 0 0 var(--space-5); max-width: 24ch; }
+  .lc-tiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); }
+  .lc-tile { position: relative; border: 3px solid var(--c-ink); box-shadow: 6px 6px 0 var(--c-ink); padding: var(--space-4) var(--space-3) var(--space-4); min-height: 220px; display: flex; flex-direction: column; }
+  .lc-tile--blue { background: var(--c-blue); color: var(--c-white); }
+  .lc-tile--red { background: var(--c-red); color: var(--c-white); }
+  .lc-tile--ink { background: var(--c-ink); color: var(--c-paper); }
+  .lc-tile--yellow { background: var(--c-yellow); color: var(--c-ink); }
+  .lc-tile-mark { font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; letter-spacing: 0.04em; opacity: 0.85; margin-bottom: var(--space-4); }
+  .lc-tile-title { font-family: var(--font-display); font-weight: 800; text-transform: lowercase; line-height: 0.95; letter-spacing: -0.02em; font-size: clamp(1.4rem, 2.4vw, 1.85rem); margin: 0 0 var(--space-3); }
+  .lc-tile-body { font-size: 0.95rem; line-height: 1.4; margin: 0; margin-top: auto; }
+  @media (prefers-reduced-motion: no-preference) {
+    .lc-js .lc-counter, .lc-js .lc-vs { opacity: 0; transform: translateY(18px); }
+    .lc-js .lc-counter.lc-in, .lc-js .lc-vs.lc-in { opacity: 1; transform: none; transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1); }
+    .lc-js .lc-tile { opacity: 0; transform: translateY(24px) rotate(-1.5deg); clip-path: inset(0 0 100% 0); }
+    .lc-js .lc-tile.lc-in { opacity: 1; transform: none; clip-path: inset(0 0 0 0); transition: opacity 0.5s ease var(--lc-delay, 0ms), transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) var(--lc-delay, 0ms), clip-path 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) var(--lc-delay, 0ms); }
+  }
+  @media (max-width: 860px) { .lc-tiles { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 720px) { .lc-counters { grid-template-columns: 1fr; } .lc-vs { justify-self: center; } .lc-counter-label { max-width: 100%; } }
+  @media (max-width: 480px) { .lc-tiles { grid-template-columns: 1fr; } .lc-tile { min-height: 0; } }
+</style>
+</head>
+<body>
+
+<div class="pv-bar">
+  <span class="pv-bar__brand">gesso</span>
+  <span class="pv-bar__hint">own-your-site section — design preview</span>
+  <div class="pv-tabs" role="group" aria-label="Jump to a design look">
+    <button class="pv-tab" type="button" data-look="a">look a · ledger</button>
+    <button class="pv-tab" type="button" data-look="b">look b · rent vs own</button>
+    <button class="pv-tab" type="button" data-look="c">look c · the math</button>
+    <button class="pv-tab" type="button" data-look="top">top</button>
+  </div>
+</div>
+
+<!-- ===================== LOOK A : ownership ledger ===================== -->
+<div class="pv-look" data-look="a" id="look-a">
+  <p class="pv-caption"><strong>Look A — the ledger.</strong> A head-to-head comparison table on a blue band. Gesso's column is a yellow color-block that pulses; competitors sit muted in stone. Rows cascade in on scroll.</p>
+  <section class="la-section" aria-labelledby="la-heading">
+    <div class="la-container">
+      <p class="la-eyebrow" aria-hidden="true">own it, don't rent it</p>
+      <h2 id="la-heading" class="la-title">the others rent you a website.<br>gesso hands you the deed.</h2>
+      <p class="la-lede">your site is a plain folder of files on github with your name on it. move it, copy it, keep it forever. no lock-in, no database only they can read.</p>
+
+      <div class="la-ledger-wrap">
+        <table class="la-ledger" aria-describedby="la-heading">
+          <caption class="la-sr-only">Ownership comparison between Gesso and competitor website builders</caption>
+          <thead>
+            <tr>
+              <th scope="col" class="la-rowhead-col"><span class="la-sr-only">Feature</span></th>
+              <th scope="col" class="la-col-gesso"><span class="la-brand">gesso</span><span class="la-badge" aria-hidden="true">the deed</span></th>
+              <th scope="col" class="la-col-comp"><span>Squarespace</span></th>
+              <th scope="col" class="la-col-comp"><span>Wix</span></th>
+              <th scope="col" class="la-col-comp"><span>Format</span></th>
+              <th scope="col" class="la-col-comp"><span>Cargo</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="la-row">
+              <th scope="row" class="la-rowhead">monthly cost</th>
+              <td class="la-cell la-cell-gesso"><span class="la-price">free</span></td>
+              <td class="la-cell"><span class="la-price-comp">$16+</span></td>
+              <td class="la-cell"><span class="la-price-comp">$17+</span></td>
+              <td class="la-cell"><span class="la-price-comp">$15+</span></td>
+              <td class="la-cell"><span class="la-price-comp">$24+</span></td>
+            </tr>
+            <tr class="la-row">
+              <th scope="row" class="la-rowhead">you own the files</th>
+              <td class="la-cell la-cell-gesso"><span class="la-mark la-yes" role="img" aria-label="yes"><span class="la-glyph" aria-hidden="true"></span></span></td>
+              <td class="la-cell"><span class="la-mark la-no" role="img" aria-label="no"><span class="la-glyph" aria-hidden="true"></span></span></td>
+              <td class="la-cell"><span class="la-mark la-no" role="img" aria-label="no"><span class="la-glyph" aria-hidden="true"></span></span></td>
+              <td class="la-cell"><span class="la-mark la-no" role="img" aria-label="no"><span class="la-glyph" aria-hidden="true"></span></span></td>
+              <td class="la-cell"><span class="la-mark la-no" role="img" aria-label="no"><span class="la-glyph" aria-hidden="true"></span></span></td>
+            </tr>
+            <tr class="la-row">
+              <th scope="row" class="la-rowhead">move hosts anytime</th>
+              <td class="la-cell la-cell-gesso"><span class="la-mark la-yes" role="img" aria-label="yes"><span class="la-glyph" aria-hidden="true"></span></span></td>
+              <td class="la-cell"><span class="la-mark la-no" role="img" aria-label="no"><span class="la-glyph" aria-hidden="true"></span></span></td>
+              <td class="la-cell"><span class="la-mark la-no" role="img" aria-label="no"><span class="la-glyph" aria-hidden="true"></span></span></td>
+              <td class="la-cell"><span class="la-mark la-no" role="img" aria-label="no"><span class="la-glyph" aria-hidden="true"></span></span></td>
+              <td class="la-cell"><span class="la-mark la-no" role="img" aria-label="no"><span class="la-glyph" aria-hidden="true"></span></span></td>
+            </tr>
+            <tr class="la-row">
+              <th scope="row" class="la-rowhead">if the company shuts down</th>
+              <td class="la-cell la-cell-gesso"><span class="la-status la-status-live">site stays live</span></td>
+              <td class="la-cell"><span class="la-status la-status-gone">site goes dark</span></td>
+              <td class="la-cell"><span class="la-status la-status-gone">site goes dark</span></td>
+              <td class="la-cell"><span class="la-status la-status-gone">site goes dark</span></td>
+              <td class="la-cell"><span class="la-status la-status-gone">site goes dark</span></td>
+            </tr>
+            <tr class="la-row">
+              <th scope="row" class="la-rowhead">no code needed</th>
+              <td class="la-cell la-cell-gesso"><span class="la-mark la-yes" role="img" aria-label="yes"><span class="la-glyph" aria-hidden="true"></span></span></td>
+              <td class="la-cell"><span class="la-mark la-yes la-yes-muted" role="img" aria-label="yes"><span class="la-glyph" aria-hidden="true"></span></span></td>
+              <td class="la-cell"><span class="la-mark la-yes la-yes-muted" role="img" aria-label="yes"><span class="la-glyph" aria-hidden="true"></span></span></td>
+              <td class="la-cell"><span class="la-mark la-yes la-yes-muted" role="img" aria-label="yes"><span class="la-glyph" aria-hidden="true"></span></span></td>
+              <td class="la-cell"><span class="la-mark la-yes la-yes-muted" role="img" aria-label="yes"><span class="la-glyph" aria-hidden="true"></span></span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="la-foot">your site, your name, your keys. a custom domain runs about $12 a year if you want one. everything else is free, forever.</p>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== LOOK B : rent vs own ===================== -->
+<div class="pv-look" data-look="b" id="look-b">
+  <p class="pv-caption"><strong>Look B — rent vs. own.</strong> The lock-in metaphor in two columns. The muted "others" padlock snaps shut while Gesso's keys jingle in. A Bauhaus ticker runs underneath.</p>
+  <section class="lb-own" aria-labelledby="lb-own-title">
+    <div class="lb-container">
+      <div class="lb-head">
+        <p class="lb-eyebrow">rent vs. own</p>
+        <h2 class="lb-title" id="lb-own-title">stop renting your portfolio</h2>
+        <p class="lb-lede">they hold the keys. with gesso, you do. your site is a normal folder of plain files in your own GitHub repo. cancel anytime — it doesn't go down with us.</p>
+      </div>
+
+      <div class="lb-grid">
+        <article class="lb-col lb-col--them" aria-label="the others: rented and locked in">
+          <header class="lb-col-head">
+            <span class="lb-stamp" aria-hidden="true">rented</span>
+            <h3 class="lb-col-title">the others</h3>
+            <p class="lb-col-sub">squarespace · wix · format · cargo</p>
+          </header>
+          <div class="lb-lock" aria-hidden="true">
+            <span class="lb-shackle"></span>
+            <span class="lb-lockbody"><span class="lb-keyhole"></span></span>
+          </div>
+          <ul class="lb-list">
+            <li class="lb-item lb-item--bad"><span class="lb-mark" aria-hidden="true"></span><span><strong>$16–49/mo</strong>, forever. miss a payment, lose the site.</span></li>
+            <li class="lb-item lb-item--bad"><span class="lb-mark" aria-hidden="true"></span><span>your work lives in a <strong>database only they can read</strong>.</span></li>
+            <li class="lb-item lb-item--bad"><span class="lb-mark" aria-hidden="true"></span><span>can't take it anywhere. <strong>no real export</strong>, no moving hosts.</span></li>
+            <li class="lb-item lb-item--bad"><span class="lb-mark" aria-hidden="true"></span><span>they shut down, you go dark with them.</span></li>
+          </ul>
+        </article>
+
+        <article class="lb-col lb-col--you" aria-label="gesso: your site, yours to keep">
+          <header class="lb-col-head">
+            <span class="lb-deed" aria-hidden="true">deed: you</span>
+            <h3 class="lb-col-title">gesso</h3>
+            <p class="lb-col-sub">your repo · your files · your host · your domain</p>
+          </header>
+          <div class="lb-keys" aria-hidden="true">
+            <span class="lb-key lb-key--1"><span class="lb-key-bit"></span></span>
+            <span class="lb-key lb-key--2"><span class="lb-key-bit"></span></span>
+            <span class="lb-keyring"></span>
+          </div>
+          <ul class="lb-list">
+            <li class="lb-item lb-item--good"><span class="lb-mark" aria-hidden="true"></span><span><strong>free forever.</strong> a domain is optional, about $12/yr.</span></li>
+            <li class="lb-item lb-item--good"><span class="lb-mark" aria-hidden="true"></span><span>plain files in <strong>your own GitHub repo</strong>. no locked database.</span></li>
+            <li class="lb-item lb-item--good"><span class="lb-mark" aria-hidden="true"></span><span><strong>move hosts anytime.</strong> take the whole site and walk.</span></li>
+            <li class="lb-item lb-item--good"><span class="lb-mark" aria-hidden="true"></span><span>if gesso vanished, <strong>your live site keeps running</strong>.</span></li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="lb-marquee" aria-hidden="true">
+        <div class="lb-marquee-track">
+          <span>you own it · take it anywhere · free forever · your repo · your keys · </span>
+          <span>you own it · take it anywhere · free forever · your repo · your keys · </span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== LOOK C : the math ===================== -->
+<div class="pv-look" data-look="c" id="look-c">
+  <p class="pv-caption"><strong>Look C — the math.</strong> Editorial "what you actually own" on a yellow field. The 5-year figures count up ($0 vs $960+) and the four ownership tiles clip-reveal in a cascade.</p>
+  <section class="lc" aria-labelledby="lc-heading">
+    <h2 class="lc-sr-only" id="lc-heading">With Gesso you own your site outright. Five years costs $0, just an optional domain, while Squarespace and Wix cost about $960 or more, and you keep nothing.</h2>
+    <div class="lc-container">
+      <p class="lc-eyebrow">what you actually own</p>
+      <p class="lc-statement">five years of squarespace<br>buys you nothing you keep.</p>
+
+      <div class="lc-counters" role="group" aria-label="Five-year cost comparison">
+        <div class="lc-counter lc-counter--gesso">
+          <div class="lc-shape lc-shape--circle" aria-hidden="true"></div>
+          <p class="lc-counter-label">gesso, 5 years</p>
+          <p class="lc-figure" data-target="0" data-prefix="$">$0</p>
+          <p class="lc-counter-note">free forever. the only bill is your domain, about $12 a year, and that's yours too.</p>
+        </div>
+        <div class="lc-vs" aria-hidden="true">vs</div>
+        <div class="lc-counter lc-counter--them">
+          <div class="lc-shape lc-shape--triangle" aria-hidden="true"></div>
+          <p class="lc-counter-label">squarespace / wix, 5 years</p>
+          <p class="lc-figure" data-target="960" data-prefix="$" data-suffix="+">$960+</p>
+          <p class="lc-counter-note">about $16 a month, every month, and the day you stop paying the site goes dark.</p>
+        </div>
+      </div>
+
+      <p class="lc-checklist-lead">and at the end of it, here's what's still yours with gesso:</p>
+
+      <ul class="lc-tiles" role="list">
+        <li class="lc-tile lc-tile--blue" style="--lc-delay:0ms">
+          <span class="lc-tile-mark" aria-hidden="true">01</span>
+          <h3 class="lc-tile-title">your repository</h3>
+          <p class="lc-tile-body">a normal GitHub repo of plain files. clone it, fork it, back it up.</p>
+        </li>
+        <li class="lc-tile lc-tile--red" style="--lc-delay:90ms">
+          <span class="lc-tile-mark" aria-hidden="true">02</span>
+          <h3 class="lc-tile-title">your files</h3>
+          <p class="lc-tile-body">every image and word sits in plain text and folders. no lock-in, no export wizard.</p>
+        </li>
+        <li class="lc-tile lc-tile--ink" style="--lc-delay:180ms">
+          <span class="lc-tile-mark" aria-hidden="true">03</span>
+          <h3 class="lc-tile-title">your host</h3>
+          <p class="lc-tile-body">deployed on Netlify, but it's a static site. move it anywhere, anytime.</p>
+        </li>
+        <li class="lc-tile lc-tile--yellow" style="--lc-delay:270ms">
+          <span class="lc-tile-mark" aria-hidden="true">04</span>
+          <h3 class="lc-tile-title">your domain</h3>
+          <p class="lc-tile-body">point your own name at it. if gesso ever vanished, your site keeps running.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<!-- Scroll runway so a section that ends the page can still scroll its
+     bottom rows up far enough to trip their reveal observers (on the real
+     site the footer + following sections provide this room). -->
+<div class="pv-spacer" aria-hidden="true" style="height:70vh"></div>
+
+<script>
+  // ---- Preview switcher: jump-scroll to a look (all three stay mounted so
+  // their scroll-triggered animations play naturally as you arrive). ----
+  (function () {
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('.pv-tab'));
+    tabs.forEach(function (t) {
+      t.addEventListener('click', function () {
+        var which = t.getAttribute('data-look');
+        if (which === 'top') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+        var target = document.getElementById('look-' + which);
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  })();
+
+  // ---- LOOK A: staggered row reveal ----
+  (function () {
+    var section = document.querySelector('.la-section');
+    if (!section) return;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || !('IntersectionObserver' in window)) return;
+    section.classList.add('la-js');
+    var rows = section.querySelectorAll('.la-row');
+    rows.forEach(function (row, i) { row.style.transitionDelay = (i * 110) + 'ms'; });
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) { entry.target.classList.add('la-in'); io.unobserve(entry.target); }
+      });
+    }, { threshold: 0.25, rootMargin: '0px 0px -8% 0px' });
+    rows.forEach(function (row) { io.observe(row); });
+  })();
+
+  // ---- LOOK B: locks snap, keys jingle, columns rise ----
+  (function () {
+    var section = document.querySelector('.lb-own');
+    if (!section) return;
+    section.setAttribute('data-js', 'on');
+    var cols = section.querySelectorAll('.lb-col');
+    if (!('IntersectionObserver' in window) || !cols.length) {
+      for (var i = 0; i < cols.length; i++) cols[i].classList.add('is-in');
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) { entry.target.classList.add('is-in'); io.unobserve(entry.target); }
+      });
+    }, { threshold: 0.35 });
+    cols.forEach(function (col) { io.observe(col); });
+  })();
+
+  // ---- LOOK C: count-up + cascading tiles ----
+  (function () {
+    var section = document.querySelector('.lc');
+    if (!section) return;
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduceMotion) section.classList.add('lc-js');
+    function formatFigure(el, value) {
+      var prefix = el.getAttribute('data-prefix') || '';
+      var suffix = el.getAttribute('data-suffix') || '';
+      el.textContent = prefix + Math.round(value).toLocaleString('en-US') + suffix;
+    }
+    function countUp(el) {
+      if (el.dataset.lcDone === '1') return;
+      el.dataset.lcDone = '1';
+      var target = parseFloat(el.getAttribute('data-target'));
+      if (isNaN(target)) return;
+      if (reduceMotion || target === 0) { formatFigure(el, target); return; }
+      var duration = 1100, start = null;
+      function step(ts) {
+        if (start === null) start = ts;
+        var p = Math.min((ts - start) / duration, 1);
+        var eased = 1 - Math.pow(1 - p, 3);
+        formatFigure(el, Math.min(target * eased, target));
+        if (p < 1) requestAnimationFrame(step); else formatFigure(el, target);
+      }
+      requestAnimationFrame(step);
+    }
+    var figures = section.querySelectorAll('.lc-figure');
+    var reveals = section.querySelectorAll('.lc-counter, .lc-vs, .lc-tile');
+    if (!('IntersectionObserver' in window)) {
+      section.classList.remove('lc-js');
+      figures.forEach(function (f) { countUp(f); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries, obs) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var el = entry.target;
+        if (el.classList.contains('lc-figure')) countUp(el); else el.classList.add('lc-in');
+        obs.unobserve(el);
+      });
+    }, { threshold: 0.35, rootMargin: '0px 0px -8% 0px' });
+    figures.forEach(function (f) { io.observe(f); });
+    reveals.forEach(function (r) { io.observe(r); });
+  })();
+</script>
+
+</body>
+</html>

@@ -44,6 +44,9 @@ const features = [
 </section>
 
 <style>
+  /* Trim the bottom pad: the "own your site" section directly below shares this
+     paper field, so a full section pad on both sides reads as one large void. */
+  .features { padding-bottom: var(--space-5); }
   .features__list {
     list-style: none;
     margin: var(--space-5) 0 0;
@@ -143,7 +146,9 @@ const features = [
           }
         }
       },
-      { threshold: 0.25, rootMargin: '0px 0px -8% 0px' }
+      // Fire eagerly: a sliver of the row entering (and a generous bottom margin
+      // so it reveals while still a touch below the fold) is enough to pop it in.
+      { threshold: 0.01, rootMargin: '0px 0px 18% 0px' }
     );
     rows.forEach((row) => io.observe(row));
   }

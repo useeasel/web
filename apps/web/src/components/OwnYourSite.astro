@@ -1,0 +1,231 @@
+---
+// "Own your site" — replaces the old examples strip. Frames ownership as a
+// generous handover: the one-time setup done, here is everything you keep.
+// Four color-blocked cells (repo / files / host / domain), each with a CSS
+// geometric mark, on the calm paper band. Ported from the Look Q exploration.
+const cells = [
+  {
+    tone: 'blue',
+    shape: 'stack',
+    phrase: 'your files',
+    cap: 'every photo you add stays a normal image file, the same one you uploaded. download the whole folder any time.',
+  },
+  {
+    tone: 'red',
+    shape: 'sheet',
+    phrase: 'your content',
+    cap: 'your pages, titles, and descriptions are plain text. open any of them in a text editor and you see exactly what is there.',
+  },
+  {
+    tone: 'yellow',
+    shape: 'pin',
+    phrase: 'your domain',
+    cap: 'add your own web address for about $12 a year. it points at your site and stays in your name.',
+  },
+  {
+    tone: 'ink',
+    shape: 'globe',
+    phrase: 'your hosting',
+    cap: 'your site goes online for free and stays free. move it to another host whenever you like, and it stays live.',
+  },
+];
+---
+
+<section class="section lq-band" id="own" aria-labelledby="lq-heading">
+  <div class="container lq-inner">
+    <header class="lq-head">
+      <h2 id="lq-heading" class="lq-title">we do the setup, then hand it all over.</h2>
+      <p class="lq-lede">
+        Gesso runs the one-time setup and then steps out of the way. What's left is
+        entirely yours, and it's already in your hands. Here's what you walk away with.
+      </p>
+    </header>
+
+    <ul class="lq-grid" role="list" aria-label="four things that are yours to keep">
+      {cells.map((c, i) => (
+        <li class={`lq-cell lq-cell--${c.tone}`} style={`--lq-i:${i}`}>
+          <span class={`lq-shape lq-shape--${c.shape}`} aria-hidden="true"></span>
+          <p class="lq-phrase">{c.phrase}</p>
+          <p class="lq-cap">{c.cap}</p>
+        </li>
+      ))}
+    </ul>
+
+    <p class="lq-foot">all of it, plain files you own, and you never touch a line of code.</p>
+  </div>
+</section>
+
+<style>
+  .lq-band {
+    background: var(--c-paper);
+    color: var(--c-ink);
+    overflow: hidden;
+    /* The feature grid above already carries a full section's bottom padding on
+       the same paper field, so a full top pad here reads as one huge void.
+       Trim the top; keep the normal bottom before the red CTA band. */
+    padding-block: var(--space-4) var(--space-7);
+  }
+  .lq-head { max-width: 46rem; margin-bottom: var(--space-6); }
+  .lq-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    line-height: .95;
+    letter-spacing: -.02em;
+    text-transform: lowercase;
+    font-size: clamp(2.2rem, 6vw, 3.6rem);
+    margin: 0 0 var(--space-3);
+  }
+  .lq-lede {
+    font-family: var(--font-body);
+    font-size: 1.08rem;
+    line-height: 1.5;
+    max-width: 40rem;
+    margin: 0;
+    color: var(--c-ink);
+  }
+
+  .lq-grid {
+    list-style: none;
+    margin: var(--space-5) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+  }
+  .lq-cell {
+    position: relative;
+    border: var(--border-bold);
+    box-shadow: var(--shadow-hard);
+    padding: var(--space-5) var(--space-3) var(--space-3);
+    min-height: 17rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: hidden;
+  }
+  .lq-cell--blue   { background: var(--c-blue);   color: var(--c-white); }
+  .lq-cell--red    { background: var(--c-red);    color: var(--c-white); }
+  .lq-cell--yellow { background: var(--c-yellow); color: var(--c-ink); }
+  .lq-cell--ink    { background: var(--c-ink);    color: var(--c-paper); }
+
+  .lq-shape {
+    position: absolute;
+    top: var(--space-3);
+    left: var(--space-3);
+    width: 1.7rem; height: 1.7rem;
+    display: block;
+  }
+  /* your repo: stacked layers */
+  .lq-shape--stack { border: 3px solid var(--c-white); }
+  .lq-shape--stack::before {
+    content: "";
+    position: absolute;
+    top: -.5rem; left: .35rem;
+    width: 100%; height: 100%;
+    border: 3px solid var(--c-white);
+    background: var(--c-blue);
+  }
+  /* your files: sheet with dog-ear */
+  .lq-shape--sheet { border: 3px solid var(--c-white); }
+  .lq-shape--sheet::before {
+    content: "";
+    position: absolute;
+    top: -3px; right: -3px;
+    border-top: .7rem solid var(--c-red);
+    border-left: .7rem solid var(--c-white);
+  }
+  /* your host: location pin (diamond) */
+  .lq-shape--pin {
+    width: 1.3rem; height: 1.3rem;
+    border: 3px solid var(--c-ink);
+    transform: rotate(45deg);
+    margin: .2rem;
+  }
+  /* your domain: globe (ring + meridian) */
+  .lq-shape--globe {
+    border: 3px solid var(--c-yellow);
+    border-radius: 50%;
+  }
+  .lq-shape--globe::before {
+    content: "";
+    position: absolute;
+    top: -3px; left: 50%;
+    width: 0; height: calc(100% + 6px);
+    border-left: 3px solid var(--c-yellow);
+  }
+
+  .lq-phrase {
+    font-family: var(--font-display);
+    font-weight: 800;
+    line-height: .98;
+    letter-spacing: -.02em;
+    text-transform: lowercase;
+    font-size: clamp(1.5rem, 2.4vw, 1.9rem);
+    margin: 0 0 var(--space-2);
+  }
+  .lq-cap {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: .92rem;
+    line-height: 1.4;
+    margin: 0;
+  }
+
+  .lq-foot {
+    font-family: var(--font-display);
+    font-weight: 800;
+    text-transform: lowercase;
+    letter-spacing: -.01em;
+    font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+    line-height: 1.1;
+    margin: var(--space-5) 0 0;
+    max-width: 36rem;
+    color: var(--c-ink);
+  }
+
+  @media (max-width: 980px) {
+    .lq-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .lq-grid { grid-template-columns: 1fr; }
+    .lq-cell { min-height: 13rem; }
+  }
+
+  /* Staggered rise-in as the cells scroll into view. Armed only once JS adds
+     .lq-js, so no-JS keeps every cell visible; skipped under reduced-motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .lq-band.lq-js .lq-cell {
+      opacity: 0;
+      transform: translateY(1.8rem);
+      transition: opacity .6s ease, transform .6s cubic-bezier(.2, .8, .2, 1);
+      transition-delay: calc(var(--lq-i) * 140ms);
+    }
+    .lq-band.lq-js .lq-cell.lq-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+<script>
+  // Reveal the cells as they scroll in — a gentle staggered rise. Progressive
+  // enhancement: without this the cells are simply always visible.
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduce && 'IntersectionObserver' in window) {
+    document.querySelectorAll<HTMLElement>('.lq-band').forEach((section) => {
+      section.classList.add('lq-js');
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('lq-in');
+              io.unobserve(entry.target);
+            }
+          }
+        },
+        { threshold: 0.3 }
+      );
+      section.querySelectorAll('.lq-cell').forEach((c) => io.observe(c));
+    });
+  }
+</script>

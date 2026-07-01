@@ -116,7 +116,7 @@ img { max-width: 100%; height: auto; display: block; }
 
 .section {
   padding-block: var(--space-7);
-  /* Anchor links (#examples, #faq) land below the sticky header instead of
+  /* Anchor links (#own, #faq) land below the sticky header instead of
      tucking the section top underneath it. ~92px header + a little breathing room. */
   scroll-margin-top: var(--space-7);
 }
